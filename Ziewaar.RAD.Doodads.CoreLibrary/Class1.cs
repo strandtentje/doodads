@@ -63,12 +63,12 @@ public interface ISinkingInteraction<TDataType> : IInteraction
     ITaggedData<TDataType> TaggedData { get; }
 }
 
-public class SinkingInteractionWithWriter(IInteraction parent, ITagged origin, StreamWriter newSink)
-    : ISinkingInteraction<StreamWriter>
+public class SinkingInteractionWith<TData>(IInteraction parent, ITagged origin, TData newSink)
+    : ISinkingInteraction<TData>
 {
     public IInteraction Parent => parent;
     public SortedList<string, object> Variables => parent.Variables;
-    public ITaggedData<StreamWriter> TaggedData { get; } = new MimicTagged<StreamWriter>(origin, newSink);
+    public ITaggedData<TData> TaggedData { get; } = new MimicTagged<TData>(origin, newSink);
 }
 
 public class MimicTagged<TMimic>(ITagged original, TMimic mimicObject) : ITaggedData<TMimic>
@@ -121,17 +121,43 @@ public static class InteractionExtensions
                 return childInteraction.Parent.TryGetClosest<TInteraction>(out candidateParentInteraction);
         }
     }
-
     public static ISinkingInteraction<StreamWriter> ResurfaceWriter(this IInteraction interaction)
     {
         if (interaction.TryGetClosest<ISinkingInteraction<StreamWriter>>(out var candidateWriterOwner))
-            return new SinkingInteractionWithWriter(interaction, candidateWriterOwner.TaggedData,
+            return new SinkingInteractionWith<StreamWriter>(interaction, candidateWriterOwner.TaggedData,
                 candidateWriterOwner.TaggedData.Data);
         if (interaction.TryGetClosest<ISinkingInteraction<Stream>>(out var candidateStreamOwner))
-            return new SinkingInteractionWithWriter(interaction, candidateStreamOwner.TaggedData,
+            return new SinkingInteractionWith<StreamWriter>(interaction, candidateStreamOwner.TaggedData,
                 new StreamWriter(candidateStreamOwner.TaggedData.Data));
-        return new SinkingInteractionWithWriter(interaction, NullTagged.Instance,
+        return new SinkingInteractionWith<StreamWriter>(interaction, NullTagged.Instance,
             new StreamWriter(NullStream.Instance));
+    }
+
+    public static ISinkingInteraction<Stream> ResurfaceStream(this IInteraction interaction)
+    {
+        if (interaction.TryGetClosest<ISinkingInteraction<Stream>>(out var candidateStreamOwner))
+            return new SinkingInteractionWith<Stream>(interaction, candidateStreamOwner.TaggedData,
+                candidateStreamOwner.TaggedData.Data);
+        return new SinkingInteractionWith<Stream>(interaction, NullTagged.Instance, NullStream.Instance);
+    }
+
+    public static bool RequireUpdate<TData>(this ISinkingInteraction<TData> interaction, long newState)
+    {
+        var tag = interaction.TaggedData.Tag;
+        var result = tag.State switch
+        {
+            SidechannelState.Always => true,
+            SidechannelState.StampDifferent when tag.Stamp != newState => true,
+            SidechannelState.StampGreater when newState > tag.Stamp => true,
+            SidechannelState.StampLower when newState < tag.Stamp => true,
+            _ => false
+        };
+        if (result)
+        {
+            tag.Stamp = newState;
+            tag.IsTainted = true;
+        }
+        return result;
     }
 }
 
@@ -146,9 +172,69 @@ public class NullTagged : ITagged
     }
 }
 
+public class ServiceConstants : SortedList<string, object>
+{
+    public TimeSpan LastChange;
+}
+
+public static class SortedListExtensions
+{
+    public static TResult InsertIgnore<TResult>(this SortedList<string, object> list, string key, TResult defaultValue = default)
+    {
+        if (!list.TryGetValue(key, out var candidateObjectValue))
+            list.Add(key, candidateObjectValue = defaultValue);
+        if (candidateObjectValue is not TResult candidateResultValue) 
+            list[key] = candidateResultValue = defaultValue;
+        return candidateResultValue;
+    }
+    
+    public static SortedList<string, object> ToSortedList(this Exception ex, bool includeStack = true, bool includeData = true, bool includeInner = true)
+    {
+        var result = new SortedList<string, object>
+        {
+            ["Type"] = ex.GetType().FullName,
+            ["Message"] = ex.Message,
+            ["Source"] = ex.Source,
+            ["HResult"] = ex.HResult,
+            ["TargetSite"] = ex.TargetSite?.ToString()
+        };
+
+        if (includeStack && !string.IsNullOrEmpty(ex.StackTrace))
+            result["StackTrace"] = ex.StackTrace;
+
+        if (includeData && ex.Data?.Count > 0)
+        {
+            var dataDict = new Dictionary<string, object>();
+            foreach (var key in ex.Data.Keys)
+            {
+                if (key is string strKey)
+                    dataDict[strKey] = ex.Data[key];
+                else
+                    dataDict[key?.ToString() ?? "<null>"] = ex.Data[key];
+            }
+            result["Data"] = dataDict;
+        }
+
+        if (includeInner && ex.InnerException != null)
+        {
+            result["InnerException"] = ToSortedList(ex.InnerException, includeStack, includeData, includeInner);
+        }
+
+        return result;
+    }
+}
+
+
+public class VariablesInteraction(IInteraction parent, SortedList<string, object> variables) : IInteraction
+{
+    public IInteraction Parent => parent;
+    public SortedList<string, object> Variables => variables;
+}
+
+
 public interface IService
 {
     void Enter(
-        SortedList<string, object> constants,
+        ServiceConstants serviceConstants,
         IInteraction interaction);
 }

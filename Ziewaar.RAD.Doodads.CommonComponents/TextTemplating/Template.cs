@@ -8,7 +8,7 @@ public class Template : IService
     [WildcardBranch] public event EventHandler<IInteraction> PlaceholderDataRequested;
     [SuggestedWildcards] public string[] Wildcards { get; private set; } = [];
 
-    public void Enter(SortedList<string, object> constants, IInteraction interaction)
+    public void Enter(ServiceConstants constants, IInteraction interaction)
     {
         var templateRequestInteraction =
             new TemplateSinkingInteraction<Stream>(interaction, this.Parser.CurrentTemplateData);
@@ -45,19 +45,19 @@ public class Template : IService
                     break;
                 case TemplateCommandType.CallOutSource
                     when (segment.Type & TemplateCommandType.AllFilters) != TemplateCommandType.NoFilter:
-                    var callOutIntermediate = new RawStringSinkingWildcardInteraction(interaction, segment.Payload);
+                    var callOutIntermediate = new RawStringAlwaysSinkingWildcardInteraction(interaction, segment.Payload);
                     PlaceholderDataRequested?.Invoke(this, callOutIntermediate);
                     writer.Write(segment.Type.ApplyFilterTo(callOutIntermediate.GetFullString()));
                     break;
                 case TemplateCommandType.ContextCallOutSource
                     when (segment.Type & TemplateCommandType.AllFilters) != TemplateCommandType.NoFilter:
-                    var contextCallOutIntermediate = new RawStringWithVariableSinkingWildcardInteraction(interaction, segment.Payload);
+                    var contextCallOutIntermediate = new RawStringAlwaysWithVariableSinkingWildcardInteraction(interaction, segment.Payload);
                     PlaceholderDataRequested?.Invoke(this, contextCallOutIntermediate);
                     writer.Write(segment.Type.ApplyFilterTo(contextCallOutIntermediate.GetFullString()));
                     break;
                 case TemplateCommandType.CallOutOrVariable:
                     var optionalCallOutOrIntermediate =
-                        new RawStringSinkingWildcardInteraction(interaction, segment.Payload);
+                        new RawStringAlwaysSinkingWildcardInteraction(interaction, segment.Payload);
                     PlaceholderDataRequested?.Invoke(this, optionalCallOutOrIntermediate);
                     if (optionalCallOutOrIntermediate.TaggedData.Tag.IsTainted &&
                         interaction.Variables.TryGetValue(segment.Payload, out var rawAlternative) &&
@@ -66,11 +66,14 @@ public class Template : IService
                     else
                         writer.Write(segment.Type.ApplyFilterTo(optionalCallOutOrIntermediate.GetFullString()));
                     break;
-                case TemplateCommandType.ConstantSource
-                    when constants.TryGetValue(segment.Payload, out var rowObject) &&
-                         rowObject is string rawText:
-                    writer.Write(segment.Type.ApplyFilterTo(rawText)); 
+                case TemplateCommandType.ConstantSource:
+                    if (!constants.TryGetValue(segment.Payload, out var rawObjectConstant))
+                        constants.Add(segment.Payload, rawObjectConstant = "");
+                    if (rawObjectConstant is not string rawStringConstant)
+                        constants[segment.Payload] = rawStringConstant = "";
+                    writer.Write(segment.Type.ApplyFilterTo(rawStringConstant));
                     break;
+                
             }
         }
     }
