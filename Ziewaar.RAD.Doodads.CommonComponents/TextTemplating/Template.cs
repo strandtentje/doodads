@@ -1,4 +1,8 @@
-﻿namespace Ziewaar.RAD.Doodads.CommonComponents;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents;
 
 public class Template : IService
 {
@@ -6,6 +10,8 @@ public class Template : IService
 
     [NamedBranch] public event EventHandler<IInteraction> RequestTemplateData;
     [WildcardBranch] public event EventHandler<IInteraction> PlaceholderDataRequested;
+    public event EventHandler<IInteraction> OnError;
+
     [SuggestedWildcards] public string[] Wildcards { get; private set; } = [];
 
     public void Enter(ServiceConstants constants, IInteraction interaction)
@@ -45,19 +51,19 @@ public class Template : IService
                     break;
                 case TemplateCommandType.CallOutSource
                     when (segment.Type & TemplateCommandType.AllFilters) != TemplateCommandType.NoFilter:
-                    var callOutIntermediate = new RawStringAlwaysSinkingWildcardInteraction(interaction, segment.Payload);
+                    var callOutIntermediate = new TemplatePlaceholderRequestInteraction(interaction, segment.Payload);
                     PlaceholderDataRequested?.Invoke(this, callOutIntermediate);
                     writer.Write(segment.Type.ApplyFilterTo(callOutIntermediate.GetFullString()));
                     break;
                 case TemplateCommandType.ContextCallOutSource
                     when (segment.Type & TemplateCommandType.AllFilters) != TemplateCommandType.NoFilter:
-                    var contextCallOutIntermediate = new RawStringAlwaysWithVariableSinkingWildcardInteraction(interaction, segment.Payload);
+                    var contextCallOutIntermediate = new NamedTemplatePlaceholderRequestInteraction(interaction, segment.Payload);
                     PlaceholderDataRequested?.Invoke(this, contextCallOutIntermediate);
                     writer.Write(segment.Type.ApplyFilterTo(contextCallOutIntermediate.GetFullString()));
                     break;
                 case TemplateCommandType.CallOutOrVariable:
                     var optionalCallOutOrIntermediate =
-                        new RawStringAlwaysSinkingWildcardInteraction(interaction, segment.Payload);
+                        new TemplatePlaceholderRequestInteraction(interaction, segment.Payload);
                     PlaceholderDataRequested?.Invoke(this, optionalCallOutOrIntermediate);
                     if (optionalCallOutOrIntermediate.TaggedData.Tag.IsTainted &&
                         interaction.Variables.TryGetValue(segment.Payload, out var rawAlternative) &&

@@ -4,6 +4,7 @@ public class TemplateSinkingInteraction<TDataType>(IInteraction parent, ITaggedD
     ISinkingInteraction<TDataType>
 {
     public IInteraction Parent => parent;
-    public SortedList<string, object> Variables => parent.Variables;
+    public IReadOnlyDictionary<string, object> Variables => parent.Variables;
     public ITaggedData<TDataType> TaggedData { get; } = data;
+    public string Delimiter => "";
 }

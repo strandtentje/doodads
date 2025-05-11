@@ -7,17 +7,17 @@ public class FileReadingSource : IService
     private FileInfo LastFileInfo = null;
     private byte[] LastValidData = null;
     [NamedBranch] public event EventHandler<IInteraction> PathSink;
-    [NamedBranch] public event EventHandler<IInteraction> OnIoError;
+    [NamedBranch] public event EventHandler<IInteraction> OnError;
 
     public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
     {
         var pathSource = LastFileInfo == null
-            ? new RawStringAlwaysSinkingInteraction(interaction, SidechannelState.Always)
-            : new RawStringAlwaysSinkingInteraction(interaction, SidechannelState.StampGreater);
+            ? new RawStringSinkingInteraction(interaction, suggestedState: SidechannelState.Always)
+            : new RawStringSinkingInteraction(interaction, suggestedState: SidechannelState.StampGreater);
         PathSink?.Invoke(this, pathSource);
         if (LastFileInfo == null && !pathSource.TaggedData.Tag.IsTainted)
         {
-            OnIoError?.Invoke(this,
+            OnError?.Invoke(this,
                 new VariablesInteraction(interaction,
                     new SortedList<string, object> { { "error", "no path provided" } }));
             return;
@@ -34,7 +34,7 @@ public class FileReadingSource : IService
                 }
                 catch (Exception ex)
                 {
-                    OnIoError?.Invoke(this, new VariablesInteraction(interaction, ex.ToSortedList()));
+                    OnError?.Invoke(this, new VariablesInteraction(interaction, ex.ToSortedList()));
                 }
             }
             else

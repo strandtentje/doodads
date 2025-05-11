@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.CommonComponents\Ziewaar.RAD.Doodads.CommonComponents.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.Hardcoding\Ziewaar.RAD.Doodads.Hardcoding.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.StandaloneWebserver\Ziewaar.RAD.Doodads.StandaloneWebserver.csproj" />
+  </ItemGroup>
+
+</Project>

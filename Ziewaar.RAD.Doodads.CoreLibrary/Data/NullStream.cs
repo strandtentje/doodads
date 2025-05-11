@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.CoreLibrary;
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Data;
 
 public class NullStream : Stream
 {

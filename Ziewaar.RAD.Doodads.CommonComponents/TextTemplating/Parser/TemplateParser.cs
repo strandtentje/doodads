@@ -1,11 +1,5 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents;
 
-public class LatestTemplateUpdate() : ITaggedData<Stream>
-{
-    public SidechannelTag Tag { get; set; } = SidechannelTag.UpdateWhenChanged;
-    public Stream Data { get; } = new MemoryStream();
-}
-
 public class TemplateParser(string placeholderStart = "{% ", string placeholderEnd = " %}")
 {
     private readonly List<TemplateCommand> CommandStack = new();

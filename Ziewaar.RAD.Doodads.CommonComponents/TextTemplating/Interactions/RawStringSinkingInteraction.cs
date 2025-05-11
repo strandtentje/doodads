@@ -1,20 +1,19 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents;
 
-public class RawStringAlwaysSinkingInteraction : ISinkingInteraction<StreamWriter>
+public class RawStringSinkingInteraction : ISinkingInteraction<StreamWriter>
 {
     private readonly MemoryStream Buffer;
-
-    public RawStringAlwaysSinkingInteraction(IInteraction parent, SidechannelState suggestedState = SidechannelState.Always)
+    public RawStringSinkingInteraction(IInteraction parent, string delimiter = "", SidechannelState suggestedState = SidechannelState.Always)
     {
         this.Parent = parent;
         this.Buffer = new MemoryStream();
         this.TaggedData = new TaggedStreamWriterData(new StreamWriter(this.Buffer), suggestedState);
+        this.Delimiter = delimiter;
     }
-
     public IInteraction Parent { get; }
-    public virtual SortedList<string, object> Variables => Parent.Variables;
+    public virtual IReadOnlyDictionary<string, object> Variables => Parent.Variables;
     public ITaggedData<StreamWriter> TaggedData { get; }
-
+    public string Delimiter { get; }
     public string GetFullString()
     {
         using var reader = new StreamReader(Buffer);
