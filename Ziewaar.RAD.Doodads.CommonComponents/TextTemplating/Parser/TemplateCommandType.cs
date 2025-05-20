@@ -12,9 +12,6 @@ public enum TemplateCommandType
     CallOutSource =
         0b0_0010,
 
-    ContextCallOutSource =
-        0b0_0100,
-
     CallOutOrVariable =
         0b0_1000,
 

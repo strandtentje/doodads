@@ -13,14 +13,13 @@ public static class TemplateTokens
 
     public static string TrimTemplateTokens(this string inputString) =>
         inputString.Trim(
-            CallOutOrContext, Context, CallOut, ContextCallOut, ArgumentSource,
+            CallOutOrContext, Context, CallOut, ArgumentSource,
             NoFilter, HtmlFilter, UrlFilter, AttributeFilter, JsFilter);
 
     public const char
         CallOutOrContext = '?',
         Context = '<',
         CallOut = '>',
-        ContextCallOut = ':',
         ArgumentSource = '#',
         NoFilter = '_',
         HtmlFilter = '&',
@@ -32,7 +31,6 @@ public static class TemplateTokens
     {
         '<' => TemplateCommandType.VariableSource,
         '>' => TemplateCommandType.CallOutSource,
-        ':' => TemplateCommandType.ContextCallOutSource,
         '#' => TemplateCommandType.ConstantSource,
         _ => TemplateCommandType.CallOutOrVariable,
     };

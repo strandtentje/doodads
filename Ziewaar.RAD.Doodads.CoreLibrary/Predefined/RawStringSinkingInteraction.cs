@@ -1,6 +1,6 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents;
 
-public class RawStringSinkingInteraction : ISinkingInteraction<StreamWriter>
+public class RawStringSinkingInteraction: ISinkingInteraction<StreamWriter>
 {
     private readonly MemoryStream Buffer;
     public RawStringSinkingInteraction(IInteraction parent, string delimiter = "", SidechannelState suggestedState = SidechannelState.Always)

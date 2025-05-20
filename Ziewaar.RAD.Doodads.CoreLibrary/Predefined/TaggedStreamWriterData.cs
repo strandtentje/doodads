@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.CommonComponents;
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 public class TaggedStreamWriterData(StreamWriter data, SidechannelState state) : ITaggedData<StreamWriter>
 {

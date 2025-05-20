@@ -1,7 +1,7 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.SymbolStore;
+using System.Linq;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
-
 public static class InteractionExtensions
 {
     public static bool TryGetClosest<TInteraction>(
@@ -24,6 +24,26 @@ public static class InteractionExtensions
         }
     }
 #nullable enable
+    public static bool TryFindVariable<TType>(
+        this IInteraction interaction,
+        string key,
+        out TType? candidateValue)
+    {
+        IReadOnlyDictionary<string, object>? previousVariables = null;
+        for(;interaction != null; interaction = interaction.Parent)
+        {
+            if (previousVariables != interaction.Variables && 
+                interaction.Variables.TryGetValue(key, out object value) && 
+                value is TType foundResult)
+            {
+                candidateValue = foundResult;
+                return true;
+            }
+            previousVariables = interaction.Variables;
+        }
+        candidateValue = default;
+        return false;
+    }
     public static ISinkingInteraction<StreamWriter>? ResurfaceWriter(
         this IInteraction interaction) =>
         interaction.TryGetClosest<ISinkingInteraction<StreamWriter>>(out var candidateWriterOwner) ? 
