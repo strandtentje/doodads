@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-class GuardService : IService
+public class OptionService : IService
 {
     [NamedBranch]
     public event EventHandler<IInteraction> OnError;
@@ -16,8 +16,8 @@ class GuardService : IService
     public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
     {
         var sourceName = serviceConstants.InsertIgnore("variable", "variable");
-        var groupName = serviceConstants.InsertIgnore("groupvarformat", "group_{0}");
         var regexEnable = bool.TryParse(serviceConstants.InsertIgnore("regexenabled", "false"), out bool isEnabled) && isEnabled;
+        var groupName = regexEnable ? serviceConstants.InsertIgnore("groupvarformat", "group_{0}") : "";
 
         if (serviceConstants.TryGetValue("equals", out var equals) && equals is string validEquals)
         {

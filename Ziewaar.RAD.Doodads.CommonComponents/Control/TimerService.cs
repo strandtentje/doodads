@@ -2,15 +2,14 @@
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control
 {
-    public class TimerService : IService
+    public class TimerService : IService, IDisposable
     {
         private Timer CurrentTimer;
-
         [NamedBranch]
         public event EventHandler<IInteraction> OnError;
         [NamedBranch]
         public event EventHandler<IInteraction> Continue;
-
+        public void Dispose() => CurrentTimer?.Dispose();
         public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
         {
             if (!interaction.TryGetClosest<TimerCommandInteraction>(out var candidateCommand, x => x.IsConsumed) || 

@@ -1,6 +1,6 @@
 ﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
-public class WebServer : IService
+public class WebServer : IService, IDisposable
 {
     [NamedBranch] public event EventHandler<IInteraction>? OnError;
     [NamedBranch] public event EventHandler<IInteraction>? PrefixesRequested;
@@ -107,4 +107,6 @@ public class WebServer : IService
             return false;
         }
     }
+
+    public void Dispose() => CurrentListener?.Close();
 }
