@@ -7,10 +7,6 @@ public class Definition : IService
     public event EventHandler<IInteraction> OnError;
     [NamedBranch]
     public event EventHandler<IInteraction> Begin;
-    public int CompareTo(Definition other)
-    {
-        throw new NotImplementedException();
-    }
     public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
     {
         if (interaction.TryGetClosest<CallingInteraction>(out var ci))
