@@ -3,7 +3,7 @@
 namespace Ziewaar.RAD.Doodads.RKOP.Testing
 {
     [TestClass]
-    public sealed class Test1
+    public sealed class RkopParserRoundtrip
     {
         [TestMethod]
         public void TestEmptyFile()
@@ -148,7 +148,36 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual("SecretService", desc.Children[2].Children[0].RedirectsTo.ServiceTypeName);
             Assert.AreEqual("MoreService", desc.Children[2].ServiceTypeName);
         }
+        [TestMethod]
+        public void TestRoundtrip()
+        {
+            var testText = """
+                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                    Child->OtherService(exa = "beep");
+                    _EarlyDefine->SecretService();
+                    Child2->MoreService(peta = "boop") {
+                        CallbackBranch->_EarlyDefine;
+                    };
+                };
+                """;
 
+            ServiceDescription desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(testText.Trim(), fullText.Trim());
+        }
 
     }
 }

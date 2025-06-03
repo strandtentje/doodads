@@ -210,4 +210,36 @@ public class ServiceConstantExpression : IParityParser
                 return true;
         }
     }
+    public void WriteTo(StreamWriter writer)
+    {
+        switch (this.ConstantType)
+        {
+            case ConstantType.String:
+                writer.Write('"');
+                writer.Write(this.TextValue.Replace(@"\", @"\\").Replace(@"""", @"\"""));
+                writer.Write('"');
+                break;
+            case ConstantType.Bool:
+                writer.Write(this.BoolValue ? "True" : "False");
+                break;
+            case ConstantType.Number:
+                if (Math.Floor(this.NumberValue) == this.NumberValue)
+                    writer.Write(((int)this.NumberValue).ToString());
+                else
+                    writer.Write(this.NumberValue.ToString(CultureInfo.InvariantCulture));
+                break;
+            case ConstantType.Reference:
+                writer.Write(this.Set.Key);
+                writer.Write(".");
+                writer.Write(this.Member.Key);
+                break;
+            case ConstantType.Path:
+                writer.Write(@"f""");
+                writer.Write(this.PathValue.RelativePath.Replace(@"\", @"\\").Replace(@"""", @"\"""));
+                writer.Write(@"""");
+                break;
+            default:
+                break;
+        }
+    }
 }

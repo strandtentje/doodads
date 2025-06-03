@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.RKOP.Exceptions;
+﻿using System.IO;
+using Ziewaar.RAD.Doodads.RKOP.Exceptions;
 
 namespace Ziewaar.RAD.Doodads.RKOP;
 
@@ -33,5 +34,10 @@ public class ServiceConstantsMember : IParityParser
         inText = text;
         return state;            
     }
-
+    public void WriteTo(StreamWriter writer)
+    {
+        writer.Write(Key);
+        writer.Write(" = ");
+        Value.WriteTo(writer);
+    }
 }

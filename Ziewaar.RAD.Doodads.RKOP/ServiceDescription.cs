@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Ziewaar.RAD.Doodads.RKOP.Exceptions;
 
 
@@ -34,19 +36,18 @@ public class ServiceDescription : IParityParser
             ValidateToken(TokenDescription.Identifier, out var serviceNameToken);
 
         var state = ParityParsingState.Unchanged;
+        if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
+            state |= ParityParsingState.New;
+        else if (this.ConstantsDescription.Key != serviceReferenceToken.Text)
+            state |= ParityParsingState.Changed;
+        this.ConstantsDescription.Key = serviceReferenceToken.Text;
+
         if (!serviceNameToken.Text.StartsWith("_"))
         {
             this.RedirectsTo = null;
             text = text.
                 SkipWhile(char.IsWhiteSpace).
                 ValidateToken(TokenDescription.StartOfArguments, out var _);
-
-
-            if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
-                state |= ParityParsingState.New;
-            else if (this.ConstantsDescription.Key != serviceReferenceToken.Text)
-                state |= ParityParsingState.Changed;
-            this.ConstantsDescription.Key = serviceReferenceToken.Text;
 
             if (string.IsNullOrWhiteSpace(this.ServiceTypeName))
                 state |= ParityParsingState.New;
@@ -99,4 +100,33 @@ public class ServiceDescription : IParityParser
         return state;
     }
 
+    public void WriteTo(StreamWriter writer, int indentLevel = 0, string indentString = "    ")
+    {
+        for (int i = 0; i < indentLevel; i++)
+            writer.Write(indentString);
+        writer.Write(ConstantsDescription.Key);
+        writer.Write("->");
+        if (RedirectsTo is ServiceDescription redir)
+        {
+            writer.Write(redir.ConstantsDescription.Key);
+        } else
+        {
+            writer.Write(ServiceTypeName);
+            writer.Write("(");
+            ConstantsDescription.WriteTo(writer);
+            writer.Write(")");
+            if (Children.Count > 0)
+            {
+                writer.WriteLine(" {");
+                foreach (var item in Children)
+                {
+                    item.WriteTo(writer, indentLevel + 1, indentString);
+                }
+                for (int i = 0; i < indentLevel; i++)
+                    writer.Write(indentString);
+                writer.Write("}");
+            }
+        }
+        writer.WriteLine(";");
+    }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 
 namespace Ziewaar.RAD.Doodads.RKOP;
@@ -18,14 +20,16 @@ public class ServiceConstantsDescription : IParityParser
         {
             if (Members.Count == memCounter)
                 Members.Add(new ServiceConstantsMember());
-            lastState = Members[memCounter++].UpdateFrom(ref text);
+            lastState = Members[memCounter].UpdateFrom(ref text);
+            if (lastState > ParityParsingState.Void)
+                memCounter++;
             finalState |= lastState;
             text = text.TakeToken(TokenDescription.ArgumentSeparator, out comma);            
         } while (comma.IsValid);
 
         while (memCounter < Members.Count)
         {
-            Members.RemoveAt(memCounter - 1);            
+            Members.RemoveAt(memCounter);            
         }
 
         if (oCounter != Members.Count)
@@ -34,5 +38,14 @@ public class ServiceConstantsDescription : IParityParser
         text[$"const_{Key}"] = this;
 
         return finalState;
+    }
+    public void WriteTo(StreamWriter writer)
+    {
+        for (int i = 0; i < Members.Count; i++)
+        {
+            Members[i].WriteTo(writer);
+            if (i < Members.Count - 1)
+                writer.Write(", ");
+        }
     }
 }
