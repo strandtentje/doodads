@@ -1,4 +1,10 @@
-﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Module;
+﻿
+using System;
+using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 public class Return : IService
 {
     public event EventHandler<IInteraction> OnError;

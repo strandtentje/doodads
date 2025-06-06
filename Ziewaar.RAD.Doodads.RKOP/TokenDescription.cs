@@ -33,6 +33,12 @@ public class TokenDescription(
         ArgumentSeparator = DescribeSingleCharacter(',', "List separator (comma, ',')"),
         AssignmentOperator = DescribeSingleCharacter('=', "Assignment operator (equals, '=')"),
         Terminator = DescribeSingleCharacter(';', "Terminator char (semicol, ';')"),
+        Chainer = new TokenDescription(
+            (pos, chr) => pos switch
+            {
+                0 => chr == ';' || chr == ':' || chr == '&',
+                _ => false
+            }, x => x.Length == 1, "What to do after this description"),
         BlockOpen = DescribeSingleCharacter('{', "Open curly bracket"),
         BlockClose = DescribeSingleCharacter('}', "Close curly bracket"),
         RelativePathAnnouncement = new TokenDescription(

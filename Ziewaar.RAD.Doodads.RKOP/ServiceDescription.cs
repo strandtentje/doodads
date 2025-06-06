@@ -1,49 +1,75 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Ziewaar.RAD.Doodads.RKOP.Exceptions;
-
-
 namespace Ziewaar.RAD.Doodads.RKOP;
+#nullable enable
 
-public class ServiceDescription : IParityParser
+public class ServiceDescription<TResult> : IParityParser where TResult : class, IInstanceWrapper, new()
 {
-    public string ServiceTypeName;
+    public string? ServiceTypeName;
     public ServiceConstantsDescription ConstantsDescription = new ServiceConstantsDescription();
-    public List<ServiceDescription> Children = new List<ServiceDescription>();
-    public ServiceDescription RedirectsTo;
+    public List<ServiceDescription<TResult>> Children = new List<ServiceDescription<TResult>>();
+    public ServiceDescription<TResult>? RedirectsTo;
+    public ServiceDescription<TResult>? Concatenation;
+    public ServiceDescription<TResult>? SingleBranch;
+    public DirectoryInfo? WorkingDirectory;
 
-    public ParityParsingState UpdateFrom(ref CursorText text)
+    public TResult? Wrapper { get; private set; }
+    public ParityParsingState UpdateFrom(ref CursorText text) => this.UpdateFrom(ref text, null);
+    public ParityParsingState UpdateFrom(ref CursorText text, ServiceDescription<TResult>? source = null)
     {
         text = text.
             SkipWhile(char.IsWhiteSpace);
 
         if (text.Position == text.Text.Length)
-            // clean up here!
-            return ParityParsingState.Void;
-
-        text = text.
-            TakeToken(TokenDescription.Identifier, out var serviceReferenceToken);
-
-        if (!serviceReferenceToken.IsValid)
-            // or clean up here!
-            return ParityParsingState.Void;
-
-        text = text.
-            SkipWhile(char.IsWhiteSpace).
-            ValidateToken(TokenDescription.BranchAnnouncement, out var assignment).
-            SkipWhile(char.IsWhiteSpace).
-            ValidateToken(TokenDescription.Identifier, out var serviceNameToken);
-
-        var state = ParityParsingState.Unchanged;
-        if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
-            state |= ParityParsingState.New;
-        else if (this.ConstantsDescription.Key != serviceReferenceToken.Text)
-            state |= ParityParsingState.Changed;
-        this.ConstantsDescription.Key = serviceReferenceToken.Text;
-
-        if (!serviceNameToken.Text.StartsWith("_"))
         {
+            Wrapper?.Cleanup();
+            return ParityParsingState.Void;
+        }
+        var state = ParityParsingState.Unchanged;
+
+        if (source == null)
+        {
+            text = text.
+                TakeToken(TokenDescription.Identifier, out var referenceIdentifier);
+            if (!referenceIdentifier.IsValid)
+            {
+                Wrapper?.Cleanup();
+                return ParityParsingState.Void;
+            }
+            text = text.
+                SkipWhile(char.IsWhiteSpace).
+                ValidateToken(TokenDescription.BranchAnnouncement, out var assignment);
+            if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
+                state |= ParityParsingState.New;
+            else if (this.ConstantsDescription.Key != referenceIdentifier.Text)
+                state |= ParityParsingState.Changed;
+            this.ConstantsDescription.Key = referenceIdentifier.Text;
+        }
+        else
+        {
+            var preceedingIdentifier = source.ConstantsDescription.Key;
+            if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
+                state |= ParityParsingState.New;
+            else if (this.ConstantsDescription.Key != preceedingIdentifier)
+                state |= ParityParsingState.Changed;
+            this.ConstantsDescription.Key = preceedingIdentifier;
+        }
+
+        this.WorkingDirectory = text.WorkingDirectory;
+
+        text = text.
+            SkipWhile(char.IsWhiteSpace);
+
+        var startOfText = text;
+
+        text = text.
+            ValidateToken(TokenDescription.Identifier, out var typeIdentifier);
+
+        if (!typeIdentifier.Text.StartsWith("_"))
+        {
+            this.Wrapper = new();
             this.RedirectsTo = null;
             text = text.
                 SkipWhile(char.IsWhiteSpace).
@@ -51,10 +77,9 @@ public class ServiceDescription : IParityParser
 
             if (string.IsNullOrWhiteSpace(this.ServiceTypeName))
                 state |= ParityParsingState.New;
-            else if (this.ConstantsDescription.Key != serviceNameToken.Text)
+            else if (this.ServiceTypeName != typeIdentifier.Text)
                 state |= ParityParsingState.Changed;
-            this.ServiceTypeName = serviceNameToken.Text;
-
+            this.ServiceTypeName = typeIdentifier.Text;
 
             // do something with service ref AND OR type name being changed y/n
             state |= ConstantsDescription.UpdateFrom(ref text); // do something with constants being changed y/n
@@ -71,31 +96,79 @@ public class ServiceDescription : IParityParser
                 do
                 {
                     if (Children.Count == childCounter)
-                        Children.Add(new ServiceDescription());
+                        Children.Add(new ServiceDescription<TResult>());
                     lastState = Children[childCounter].UpdateFrom(ref text);
                     state |= lastState;
                     if (lastState > ParityParsingState.Void)
                         childCounter++;
                 } while (lastState != ParityParsingState.Void);
 
-                while(childCounter < Children.Count)
+                while (childCounter < Children.Count)
                 {
                     Children.RemoveAt(childCounter);
                     state |= ParityParsingState.Changed;
                 }
-                        
+
                 text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.BlockClose, out var _);
                 text = text.ExitScope();
             }
+            else
+            {
+                Children.Clear();
+            }
+
             text[ConstantsDescription.Key] = this;
-        } else
-        {
-            this.RedirectsTo = text[serviceNameToken.Text] as ServiceDescription ?? 
-                throw new ReferenceException($"Referring to unknown existing service {serviceNameToken.Text}");
+
+            text = text.SkipWhile(char.IsWhiteSpace);
+            text = text.TakeToken(TokenDescription.Chainer, out var chainer);
+
+            switch (chainer.Text[0])
+            {
+                case '&':
+                    Concatenation = Concatenation ?? new ServiceDescription<TResult>();
+                    state |= Concatenation.UpdateFrom(ref text, this);
+                    break;
+                case ':':
+                    SingleBranch = SingleBranch ?? new ServiceDescription<TResult>();
+                    state |= SingleBranch.UpdateFrom(ref text, this);
+                    break;
+                case ';':
+                    Concatenation?.Wrapper?.Cleanup();
+                    SingleBranch?.Wrapper?.Cleanup();
+                    Concatenation = null;
+                    SingleBranch = null;
+                    state |= ParityParsingState.Changed;
+                    break;
+                default:
+                    throw new ParsingException("Expected &, : or ;");
+            }
+
+            if (state > ParityParsingState.Unchanged)
+            {
+                TResult? concatenationWrapper = null, singleWrapper = null;
+                if (Concatenation != null && Concatenation.Wrapper != null)
+                    concatenationWrapper = Concatenation.Wrapper;
+                if (SingleBranch != null && SingleBranch.Wrapper != null)
+                    singleWrapper = SingleBranch.Wrapper;
+
+                Wrapper.SetDefinition(
+                    startOfText,
+                    this.ServiceTypeName,
+                    concatenationWrapper,
+                    singleWrapper,
+                    this.ConstantsDescription.ToSortedList(),
+                    this.Children.ToSortedList());
+            }
         }
-
-
-        text = text.TakeToken(TokenDescription.Terminator, out var terminator);
+        else
+        {
+            this.Wrapper?.Cleanup();
+            this.Wrapper = new();
+            this.RedirectsTo = text[typeIdentifier.Text] as ServiceDescription<TResult> ??
+                throw new ReferenceException($"Referring to unknown existing service {typeIdentifier.Text}");
+            Wrapper.SetReference(this.RedirectsTo);
+            text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.Terminator, out var _);
+        }
 
         return state;
     }
@@ -106,10 +179,11 @@ public class ServiceDescription : IParityParser
             writer.Write(indentString);
         writer.Write(ConstantsDescription.Key);
         writer.Write("->");
-        if (RedirectsTo is ServiceDescription redir)
+        if (RedirectsTo is ServiceDescription<TResult> redir)
         {
             writer.Write(redir.ConstantsDescription.Key);
-        } else
+        }
+        else
         {
             writer.Write(ServiceTypeName);
             writer.Write("(");
@@ -126,7 +200,17 @@ public class ServiceDescription : IParityParser
                     writer.Write(indentString);
                 writer.Write("}");
             }
+            if (Concatenation != null && SingleBranch != null)
+                throw new InvalidOperationException("cannot have a conatenation branch, and a single branch");
+            if (Concatenation != null)
+            {
+                writer.Write("&");
+                Concatenation.WriteTo(writer, indentLevel);
+            } else if (SingleBranch != null)
+            {
+                writer.Write(":");
+                SingleBranch.WriteTo(writer, indentLevel);
+            }
         }
-        writer.WriteLine(";");
     }
 }

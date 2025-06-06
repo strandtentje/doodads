@@ -13,9 +13,9 @@ public class ServiceConstantExpression : IParityParser
     public ConstantType ConstantType;
     private ServiceConstantsDescription Set;
     private ServiceConstantsMember Member;
-    private string TextValue;
-    private (string WorkingDirectory, string RelativePath) PathValue;
-    private bool BoolValue;
+    public string TextValue;
+    public (string WorkingDirectory, string RelativePath) PathValue;
+    public bool BoolValue;
     public decimal NumberValue;
 
     public object GetValue() => ConstantType switch

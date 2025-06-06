@@ -1,4 +1,5 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+﻿
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 public class VoidInteraction : IInteraction
 {

@@ -1,4 +1,10 @@
-﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Module
+﻿using System;
+using Ziewaar.RAD.Doodads.CoreLibrary.Attributes;
+using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Services
 {
     public class Call : IService
     {
@@ -13,15 +19,9 @@
             string SourceSetting(EventHandler<IInteraction> forwardSourcing, string name, string fallback) =>
                 (this, serviceConstants, interaction, forwardSourcing).SourceSetting(name, fallback);
 
-            var moduleName = SourceSetting(ModuleName, "modulename", "no_module");
+            var moduleName = SourceSetting(ModuleName, "modulefile", "no_module");
 
-            if (Definition.NamedDefinitions.TryGetValue(moduleName, out var found))
-            {
-                found.Enter(serviceConstants, new CallingInteraction(interaction, resultInteraction =>
-                {
-                    Continue?.Invoke(this, resultInteraction);
-                }));
-            }
+            ProgramRepository.Instance.GetEntryPointForFile(moduleName).Run(interaction);
         }
     }
 }

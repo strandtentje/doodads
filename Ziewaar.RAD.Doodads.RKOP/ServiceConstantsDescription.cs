@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
-
-
+using System.Linq;
 namespace Ziewaar.RAD.Doodads.RKOP;
-
 public class ServiceConstantsDescription : IParityParser
 {
     public string Key;
@@ -24,12 +23,12 @@ public class ServiceConstantsDescription : IParityParser
             if (lastState > ParityParsingState.Void)
                 memCounter++;
             finalState |= lastState;
-            text = text.TakeToken(TokenDescription.ArgumentSeparator, out comma);            
+            text = text.TakeToken(TokenDescription.ArgumentSeparator, out comma);
         } while (comma.IsValid);
 
         while (memCounter < Members.Count)
         {
-            Members.RemoveAt(memCounter);            
+            Members.RemoveAt(memCounter);
         }
 
         if (oCounter != Members.Count)
@@ -47,5 +46,36 @@ public class ServiceConstantsDescription : IParityParser
             if (i < Members.Count - 1)
                 writer.Write(", ");
         }
+    }
+    public SortedList<string, object> ToSortedList() => new SortedList<string, object>(
+        Members.ToDictionary(x => x.Key, x => x.Value.GetValue()));
+
+    public void Set(string reqName, ConstantType type, string reqValue, string workingDir)
+    {
+        var toChange = Members.SingleOrDefault(x => x.Key == reqName);
+        if (toChange == null)
+            Members.Add(toChange = new ServiceConstantsMember());
+
+        toChange.Value.ConstantType = type;
+        switch (type)
+        {
+            case ConstantType.String:
+                toChange.Value.TextValue = reqValue;
+                break;
+            case ConstantType.Bool:
+                toChange.Value.BoolValue = Convert.ToBoolean(reqValue);
+                break;
+            case ConstantType.Number:
+                toChange.Value.NumberValue = Convert.ToDecimal(reqValue);
+                break;
+            case ConstantType.Path:
+                toChange.Value.PathValue = (workingDir, reqValue);
+                break;
+            case ConstantType.Reference:
+                break;
+            default:
+                break;
+        }
+
     }
 }
