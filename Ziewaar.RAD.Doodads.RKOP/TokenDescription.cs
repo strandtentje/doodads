@@ -33,6 +33,12 @@ public class TokenDescription(
         ArgumentSeparator = DescribeSingleCharacter(',', "List separator (comma, ',')"),
         AssignmentOperator = DescribeSingleCharacter('=', "Assignment operator (equals, '=')"),
         Terminator = DescribeSingleCharacter(';', "Terminator char (semicol, ';')"),
+        TermOrAmp = new TokenDescription(
+            (pos, chr) => pos switch
+            {
+                0 => chr == ';' || chr == '&',
+                _ => false,
+            }, x => x.Length == 1, "Termining semicol or ampersand for next service"),
         Chainer = new TokenDescription(
             (pos, chr) => pos switch
             {

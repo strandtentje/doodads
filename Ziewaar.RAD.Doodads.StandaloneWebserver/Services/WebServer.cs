@@ -50,7 +50,7 @@ public class WebServer : IService, IDisposable
             stopper => stopper.Command == ServerCommand.Stop) &&
             CurrentListener != null && CurrentListener.IsListening)
         {
-            stopper.Consume();
+            stopper!.Consume();
             CurrentListener.Stop();
             CurrentListener = null;
             StartingInteraction = null;
@@ -68,7 +68,8 @@ public class WebServer : IService, IDisposable
 
         Prefixes =
             prefixSink.GetAllPrefixes(ref LastUpdateFromBranch) ??
-            serviceConstants.RequireUpdatedItemsOf<string>("prefixes", ref LastUpdateFromConstants);
+            serviceConstants.RequireUpdatedItemsOf<string>("prefixes", ref LastUpdateFromConstants) ??
+            Prefixes;        
     }
 
     private bool ValidateStartCommand(IInteraction interaction)
@@ -95,6 +96,7 @@ public class WebServer : IService, IDisposable
     {
         if (Prefixes is string[] updatedPrefixesArray)
         {
+            UrlAccessGuarantor.EnsureUrlAcls(Prefixes);
             CurrentListener = new();
             foreach (var item in updatedPrefixesArray)
             {

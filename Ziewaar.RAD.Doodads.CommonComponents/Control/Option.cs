@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-public class OptionService : IService
+public class Option : IService
 {
     public event EventHandler<IInteraction> OnError;
     public event EventHandler<IInteraction> NotApplicable;

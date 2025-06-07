@@ -8,12 +8,10 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services
 {
     public class Call : IService
     {
-        [NamedBranch]
         public event EventHandler<IInteraction> OnError;
-        [NamedBranch]
-        public event EventHandler<IInteraction> Continue;
-        [NamedBranch]
         public event EventHandler<IInteraction> ModuleName;
+        [DefaultBranch]
+        public event EventHandler<IInteraction> Continue;        
         public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
         {
             string SourceSetting(EventHandler<IInteraction> forwardSourcing, string name, string fallback) =>

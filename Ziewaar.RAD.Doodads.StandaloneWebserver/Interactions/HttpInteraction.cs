@@ -42,6 +42,5 @@ public class HttpInteraction(
         set => context.Response.ContentType = value;
     }
     string IContentTypeSource.ContentType => context.Request.ContentType ?? "application/octet-stream";
-
-    IInteraction IInteraction.Parent => throw new NotImplementedException();
+    IInteraction IInteraction.Parent => parent;
 }

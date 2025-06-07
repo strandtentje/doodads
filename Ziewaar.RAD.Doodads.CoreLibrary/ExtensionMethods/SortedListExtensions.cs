@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+﻿using System.Linq;
+
+namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 
 public static class SortedListExtensions
 {
@@ -16,8 +18,9 @@ public static class SortedListExtensions
         if (minStamp >= list.LastChange.Ticks)
             return null;
         minStamp = list.LastChange.Ticks;
-        var result = list.InsertIgnore<TResult[]>(key, []);
-        return result.Length > 0 ? null : result;
+        var objectResult = list.InsertIgnore<object[]>(key, []);
+        var result = objectResult.OfType<TResult>().ToArray();
+        return result.Length > 0 ? result : null;
     }
 #nullable disable
     public static SortedList<string, object> ToSortedList(this Exception ex, bool includeStack = true, bool includeData = true, bool includeInner = true)

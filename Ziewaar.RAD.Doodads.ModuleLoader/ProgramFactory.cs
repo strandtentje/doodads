@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Ziewaar.RAD.Doodads.RKOP;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
@@ -19,23 +20,17 @@ public class ProgramFactory
             FileInfo = programFileInfo,
         };
 
-        void Reload()
-        {
-            var fileInfo = new FileInfo(filePath);
-            var cursor = CursorText.Create(fileInfo.Directory, fileInfo.Name, File.ReadAllText(filePath));
-            result.DescriptionRoot.UpdateFrom(ref cursor);
-        }
-
         programDirWatcher.Changed += (s, e) =>
         {
-            Reload();
+            result.Reload();
         };
         programDirWatcher.Deleted += (s, e) =>
         {
             result.Dispose();
         };
+        programDirWatcher.EnableRaisingEvents = true;
 
-        Reload();
+        result.Reload();
 
         return result;
     }

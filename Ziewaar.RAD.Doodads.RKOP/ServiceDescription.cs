@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using Ziewaar.RAD.Doodads.RKOP.Exceptions;
@@ -122,7 +123,22 @@ public class ServiceDescription<TResultSink> : IParityParser where TResultSink :
         VoidAll();
         ServiceDescription<TResultSink> newRedirection = text[typeIdentifier.Text] as ServiceDescription<TResultSink> ??
             throw new ReferenceException($"Referring to unknown existing service {typeIdentifier.Text}");
-        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.Terminator, out var _);
+        var interText = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.TermOrAmp, out var termOrAmp);
+
+        if (!termOrAmp.IsValid)
+            throw new ParsingException("Reference may only be succeeded by ampersand or semicolon");
+
+        switch (termOrAmp.Text[0])
+        {
+            case '&':
+                break;
+            case ';':
+                text = interText;
+                break;
+            default:
+                break;
+        }
+
         if (this.RedirectsTo == null)
         {
             this.RedirectsTo = newRedirection;
@@ -213,6 +229,9 @@ public class ServiceDescription<TResultSink> : IParityParser where TResultSink :
     {
         text = text.SkipWhile(char.IsWhiteSpace);
         var candidateNextCursor = text.TakeToken(TokenDescription.Chainer, out var chainingToken);
+
+        if (!chainingToken.IsValid)
+            throw new ParsingException("Expected closing or chaining token ';', '&' or ':'");
 
         switch (chainingToken.Text[0])
         {
@@ -325,12 +344,12 @@ public class ServiceDescription<TResultSink> : IParityParser where TResultSink :
             ResultSink?.Cleanup();
         }
     }
-    public void WriteTo(StreamWriter writer, bool skipBranchName = false, int indentLevel = 0, string indentString = "    ")
+    public void WriteTo(StreamWriter writer, int skippedBranchNames = 0, int indentSpaces = 0)
     {
-        if (!skipBranchName)
+        if (skippedBranchNames == 0)
         {
-            for (int i = 0; i < indentLevel; i++)
-                writer.Write(indentString);
+            for (int i = 0; i < indentSpaces; i++)
+                writer.Write(" ");
             writer.Write(ConstantsDescription.BranchKey);
             writer.Write("->");
         }
@@ -349,29 +368,42 @@ public class ServiceDescription<TResultSink> : IParityParser where TResultSink :
                 writer.WriteLine(" {");
                 foreach (var item in Children)
                 {
-                    item.WriteTo(writer, false, indentLevel + 1, indentString);
+                    item.WriteTo(writer, 0, indentSpaces + 4);
                 }
-                for (int i = 0; i < indentLevel; i++)
-                    writer.Write(indentString);
+                for (int i = 0; i < indentSpaces; i++)
+                    writer.Write(" ");
                 writer.Write("}");
             }
             if (SingleBranch != null)
             {
                 writer.Write(":");
-                SingleBranch.WriteTo(writer, true, indentLevel);
+                SingleBranch.WriteTo(writer, skippedBranchNames + 1, indentSpaces);
             }
             if (Concatenation != null)
             {
                 writer.WriteLine();
-                for (int i = 0; i < indentLevel; i++)
-                    writer.Write(indentString);
-                for (int i = 0; i < ConstantsDescription.BranchKey.Length; i++)
+                for (int i = 0; i < indentSpaces; i++)
                     writer.Write(" ");
+                var cleanKey = ConstantsDescription.BranchKey;
+                while (true)
+                {
+                    if (cleanKey.EndsWith("_continue"))
+                        cleanKey = cleanKey.Substring(0, cleanKey.Length - "_continue".Length);
+                    else if (cleanKey.EndsWith("_concat"))
+                        cleanKey = cleanKey.Substring(0, cleanKey.Length - "_concat".Length);
+                    else
+                        break;
+                }
+                if (skippedBranchNames == 0)
+                {
+                    for (int i = 0; i < cleanKey.Length; i++)
+                        writer.Write(" ");                
+                }
                 writer.Write("& ");
-                Concatenation.WriteTo(writer, true, indentLevel);
+                Concatenation.WriteTo(writer, skippedBranchNames + 1, indentSpaces + cleanKey.Length);
             }
         }
-        if (!skipBranchName)
+        if (skippedBranchNames == 0)
         {
             writer.WriteLine(";");
         }

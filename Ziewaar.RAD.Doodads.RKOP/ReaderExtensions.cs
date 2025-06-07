@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using Ziewaar.RAD.Doodads.RKOP.Exceptions;
 
@@ -14,11 +15,10 @@ public static class ReaderExtensions
             position++;
         return text.AdvanceTo(position);
     }
-
     public static int GetCurrentLine(this CursorText text) =>
-        Math.Abs(Array.BinarySearch(text.LinePositions, text.Position));
+        text.Text.Take(text.Position).Count(x => x == '\n') + 1;
     public static int GetCurrentCol(this CursorText text) =>
-        text.Position - text.LinePositions[text.GetCurrentLine() - 1];
+        text.Text.Take(text.Position).Reverse().TakeWhile(x => x != '\n').Count();
     public static CursorText TakeToken(
         this CursorText text,
         TokenDescription description,

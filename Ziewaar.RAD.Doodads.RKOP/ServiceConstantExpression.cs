@@ -26,9 +26,9 @@ public class ServiceConstantExpression : IParityParser
         ConstantType.String => TextValue,
         ConstantType.Bool => BoolValue,
         ConstantType.Number => NumberValue,
-        ConstantType.Path => PathValue,
+        ConstantType.Path => Path.Combine(PathValue.WorkingDirectory, PathValue.RelativePath),
         ConstantType.Reference => Member.Value.GetValue(),
-        ConstantType.Array => ArrayItems.Select(x => x.GetValue()),
+        ConstantType.Array => ArrayItems.Select(x => x.GetValue()).ToArray(),
         _ => throw new InvalidOperationException(),
     };
 

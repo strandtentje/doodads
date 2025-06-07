@@ -243,8 +243,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                          & PieService(farts = 44);
                     Baby->OtherService(exa = "beep"):Tubes()
                         & PieService(farts = 44) {
-                        Oink->Pig():Hog();
-                    };
+                            Oink->Pig():Hog();
+                        };
                     _EarlyDefine->SecretService();
                     Child2->MoreService(peta = "boop"):OtherService() {
                         CallbackBranch->_EarlyDefine;
@@ -407,6 +407,81 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             var fullText = reader.ReadToEnd();
 
             Assert.AreEqual(fixedText.Trim(), fullText.Trim());
+        }
+
+        [TestMethod]
+        public void TestRedirectionsMoreBetter()
+        {
+            var testText = """
+                start->Definition():Hold() {
+                    _server->WebServer(prefixes = ["http://localhost:8533/"]):Call(modulefile = "C:\\Users\\deFine\\source\\repos\\Ziewaar.RAD.Doodads.Editor");
+                    _instructionLoop->ConsoleReadLine():Option(equals = "stop") {
+                        Continue->ConsoleOutput():ConstantTextSource(text = "Received stop instruction")
+                                & StopWebServer():_server;
+                        NotApplicable->ConsoleOutput():ConstantTextSource(text = "unknown instruction")
+                                     & _instructionLoop;
+                    };
+                    Continue->StartWebServer():_server;
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(testText.Trim(), fullText.Trim());
+        }
+
+        [TestMethod]
+        public void TestRedirectionsMoreBetterWithAmpersands()
+        {
+            var testText = """
+                start->Definition():Hold() {
+                    _instructionLoop->VoidService();
+                    _server->WebServer(prefixes = ["http://localhost:8533/"]):Call(modulefile = "C:\\Users\\deFine\\source\\repos\\Ziewaar.RAD.Doodads.Editor")
+                           & _instructionLoop;
+                    _instructionLoop->ConsoleReadLine():Option(equals = "stop") {
+                        Continue->ConsoleOutput():ConstantTextSource(text = "Received stop instruction")
+                                & StopWebServer() {
+                                    Bla->_server;
+                                }
+                                & Release();
+                        NotApplicable->ConsoleOutput():ConstantTextSource(text = "unknown instruction")
+                                     & _instructionLoop;
+                    };
+                    Continue->StartWebServer():_server;
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(testText.Trim(), fullText.Trim());
         }
     }
 }
