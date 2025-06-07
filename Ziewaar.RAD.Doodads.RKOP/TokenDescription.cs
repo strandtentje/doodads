@@ -33,23 +33,24 @@ public class TokenDescription(
         ArgumentSeparator = DescribeSingleCharacter(',', "List separator (comma, ',')"),
         AssignmentOperator = DescribeSingleCharacter('=', "Assignment operator (equals, '=')"),
         Terminator = DescribeSingleCharacter(';', "Terminator char (semicol, ';')"),
-        TermOrAmp = new TokenDescription(
+        TermOrAmpP = new TokenDescription(
             (pos, chr) => pos switch
             {
-                0 => chr == ';' || chr == '&',
+                0 => chr == ';' || chr == '&' || chr == '|',
                 _ => false,
             }, x => x.Length == 1, "Termining semicol or ampersand for next service"),
-        Chainer = new TokenDescription(
+        ChainerP = new TokenDescription(
             (pos, chr) => pos switch
             {
-                0 => chr == ';' || chr == ':' || chr == '&',
+                0 => chr == ';' || chr == ':' || chr == '&' || chr == '|',
                 _ => false
             }, x => x.Length == 1, "What to do after this description"),
         BlockOpen = DescribeSingleCharacter('{', "Open curly bracket"),
         BlockClose = DescribeSingleCharacter('}', "Close curly bracket"),
         ArrayOpen = DescribeSingleCharacter('[', "Start of array with blocky bracket"),
         ArrayClose = DescribeSingleCharacter(']', "End of array with blocky bracket"),
-        Ampersand = DescribeSingleCharacter('&', "Et sign"),
+        AmpersandP = DescribeSingleCharacter('&', "Et sign"),
+        Pipe = DescribeSingleCharacter('|', "Or pipe"),
         NextOrCloseArray = new TokenDescription(
             (pos, chr) => pos switch
             {

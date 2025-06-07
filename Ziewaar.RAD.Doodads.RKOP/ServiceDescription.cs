@@ -261,6 +261,7 @@ public class ServiceDescription<TResultSink> : IParityParser where TResultSink :
                 stateAfterContinue |= SingleBranch.UpdateFrom(ref text, new ContinueChain<TResultSink>(this));
 
                 text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.Ampersand, out var amperToken);
+                // u need to make an OR here to handle OnError branch
                 if (amperToken.IsValid)
                 {
                     stateAfterContinue |= Concatenation == null ? ParityParsingState.Changed : ParityParsingState.Unchanged;
