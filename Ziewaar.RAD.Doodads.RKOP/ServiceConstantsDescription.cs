@@ -6,7 +6,7 @@ using System.Linq;
 namespace Ziewaar.RAD.Doodads.RKOP;
 public class ServiceConstantsDescription : IParityParser
 {
-    public string Key;
+    public string BranchKey;
     public List<ServiceConstantsMember> Members = new();
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
@@ -34,7 +34,7 @@ public class ServiceConstantsDescription : IParityParser
         if (oCounter != Members.Count)
             finalState |= ParityParsingState.Changed;
 
-        text[$"const_{Key}"] = this;
+        text[$"const_{BranchKey}"] = this;
 
         return finalState;
     }

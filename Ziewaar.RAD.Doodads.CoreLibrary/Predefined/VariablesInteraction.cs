@@ -54,3 +54,17 @@ public class LazySingleKeyDictionary(string key, Func<string> valueFactory)
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
+
+public class RootInteraction(SortedList<string, object> variables) : ISelfStartingInteraction
+{
+    public IInteraction Parent => StopperInteraction.Instance;
+    public IReadOnlyDictionary<string, object> Variables => variables;
+}
+
+public class StopperInteraction : IInteraction
+{
+    public static readonly StopperInteraction Instance = new();
+    private StopperInteraction() { }
+    public IInteraction Parent => throw new ArgumentOutOfRangeException("This is the stopper interaction.");
+    public IReadOnlyDictionary<string, object> Variables => throw new ArgumentOutOfRangeException("This is the stopper interaction.");
+}

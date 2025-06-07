@@ -119,7 +119,7 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
 
         EventInfo singleEvent = null;
         if (allEvents.Count() == 1)
-            singleEvent = allEvents.ElementAt(1);
+            singleEvent = allEvents.ElementAt(0);
 
         if (singleEvent == null)
         {
@@ -162,12 +162,13 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
             {
                 singleBuilder.Run(e);
             });
+            singleEvent.AddEventHandler(this.CurrentInstance, existingSingleBranchHandler);
         }
     }
 
     public void SetReference<TResult>(ServiceDescription<TResult> redirectsTo) where TResult : class, IInstanceWrapper, new()
     {
-        if (redirectsTo.Wrapper is IInstanceWrapper redirWrapper &&
+        if (redirectsTo.ResultSink is IInstanceWrapper redirWrapper &&
             redirWrapper is ServiceBuilder redirBuilder)
         {
             this.Redirection = redirBuilder;

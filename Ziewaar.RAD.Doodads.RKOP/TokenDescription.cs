@@ -41,6 +41,7 @@ public class TokenDescription(
             }, x => x.Length == 1, "What to do after this description"),
         BlockOpen = DescribeSingleCharacter('{', "Open curly bracket"),
         BlockClose = DescribeSingleCharacter('}', "Close curly bracket"),
+        Ampersand = DescribeSingleCharacter('&', "Et sign"),
         RelativePathAnnouncement = new TokenDescription(
             (pos, chr) => pos switch
             {

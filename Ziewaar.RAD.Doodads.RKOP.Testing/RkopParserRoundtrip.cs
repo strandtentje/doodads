@@ -63,7 +63,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
             Assert.IsTrue(simple.LocalScope.TryGetValue("const_Entry", out var consts));
             Assert.IsTrue(consts is ServiceConstantsDescription scDesc && scDesc.Members.Count == 0);
-            Assert.AreEqual("Entry", desc.ConstantsDescription.Key);
+            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
             Assert.AreEqual("SomeService", desc.ServiceTypeName);
         }
 
@@ -91,7 +91,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual(false, assertedConsts.Members.Single(x => x.Key == "stinky").Value.GetValue());
             (string x, string y) registeredPath = ((string x, string y))assertedConsts.Members.Single(x => x.Key == "path").Value.GetValue();
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("Entry", desc.ConstantsDescription.Key);
+            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
             Assert.AreEqual("SomeService", desc.ServiceTypeName);
         }
 
@@ -122,12 +122,12 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual(false, assertedConsts.Members.Single(x => x.Key == "stinky").Value.GetValue());
             (string x, string y) registeredPath = ((string x, string y))assertedConsts.Members.Single(x => x.Key == "path").Value.GetValue();
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("Entry", desc.ConstantsDescription.Key);
+            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
             Assert.AreEqual("SomeService", desc.ServiceTypeName);
 
             Assert.AreEqual(2, desc.Children.Count);
-            Assert.AreEqual("Child", desc.Children[0].ConstantsDescription.Key);
-            Assert.AreEqual("Child2", desc.Children[1].ConstantsDescription.Key);
+            Assert.AreEqual("Child", desc.Children[0].ConstantsDescription.BranchKey);
+            Assert.AreEqual("Child2", desc.Children[1].ConstantsDescription.BranchKey);
             Assert.AreEqual("OtherService", desc.Children[0].ServiceTypeName);
             Assert.AreEqual("MoreService", desc.Children[1].ServiceTypeName);
         }
@@ -160,13 +160,13 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual(false, assertedConsts.Members.Single(x => x.Key == "stinky").Value.GetValue());
             (string x, string y) registeredPath = ((string x, string y))assertedConsts.Members.Single(x => x.Key == "path").Value.GetValue();
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("Entry", desc.ConstantsDescription.Key);
+            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
             Assert.AreEqual("SomeService", desc.ServiceTypeName);
 
             Assert.AreEqual(3, desc.Children.Count);
-            Assert.AreEqual("Child", desc.Children[0].ConstantsDescription.Key);
-            Assert.AreEqual("_EarlyDefine", desc.Children[1].ConstantsDescription.Key);
-            Assert.AreEqual("Child2", desc.Children[2].ConstantsDescription.Key);
+            Assert.AreEqual("Child", desc.Children[0].ConstantsDescription.BranchKey);
+            Assert.AreEqual("_EarlyDefine", desc.Children[1].ConstantsDescription.BranchKey);
+            Assert.AreEqual("Child2", desc.Children[2].ConstantsDescription.BranchKey);
             Assert.AreEqual("OtherService", desc.Children[0].ServiceTypeName);
             Assert.AreEqual("SecretService", desc.Children[2].Children[0].RedirectsTo?.ServiceTypeName);
             Assert.AreEqual("MoreService", desc.Children[2].ServiceTypeName);
@@ -203,5 +203,132 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual(testText.Trim(), fullText.Trim());
         }
 
+        [TestMethod]
+        public void TestContinueRoundtrip()
+        {
+            var testText = """
+                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                    Child->OtherService(exa = "beep");
+                    _EarlyDefine->SecretService();
+                    Child2->MoreService(peta = "boop"):OtherService() {
+                        CallbackBranch->_EarlyDefine;
+                    };
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(testText.Trim(), fullText.Trim());
+        }
+        [TestMethod]
+        public void TestConcatRoundtrip()
+        {
+            var testText = """
+                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                    Child->OtherService(exa = "beep") & PieService(farts = 44);
+                    Baby->OtherService(exa = "beep"):Tubes() & PieService(farts = 44) {
+                        Oink->Pig():Hog();
+                    };
+                    _EarlyDefine->SecretService();
+                    Child2->MoreService(peta = "boop"):OtherService() {
+                        CallbackBranch->_EarlyDefine;
+                    };
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(testText.Trim(), fullText.Trim());
+        }
+        [TestMethod]
+        public void TestMixedConcatRoundtrip()
+        {
+            var testText = """
+                start->Definition():Hold() {
+                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") & ConsoleReadLine():Release();
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(testText.Trim(), fullText.Trim());
+        }
+        [TestMethod]
+        public void TestFunkySpacedRoundtrip()
+        {
+            var testText = """
+                start->Definition():Hold() {
+                    Continue 
+                    -> ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") 
+                    &  ConsoleReadLine():Release();
+                };
+                """;
+
+            var fixedText = """
+                start->Definition():Hold() {
+                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") & ConsoleReadLine():Release();
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(fixedText.Trim(), fullText.Trim());
+        }
     }
 }

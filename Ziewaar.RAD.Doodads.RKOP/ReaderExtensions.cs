@@ -18,7 +18,7 @@ public static class ReaderExtensions
     public static int GetCurrentLine(this CursorText text) =>
         Math.Abs(Array.BinarySearch(text.LinePositions, text.Position));
     public static int GetCurrentCol(this CursorText text) =>
-        text.Position - text.LinePositions[text.GetCurrentLine()];
+        text.Position - text.LinePositions[text.GetCurrentLine() - 1];
     public static CursorText TakeToken(
         this CursorText text,
         TokenDescription description,

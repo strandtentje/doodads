@@ -2,17 +2,18 @@
 using System.Linq;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+#nullable enable
 public static class InteractionExtensions
 {
     public static bool TryGetClosest<TInteraction>(
         this IInteraction childInteraction,
-        out TInteraction candidateParentInteraction,
-        Func<TInteraction, bool> predicate = null)
+        out TInteraction? candidateParentInteraction,
+        Func<TInteraction, bool>? predicate = null)
         where TInteraction : IInteraction
     {
         switch (childInteraction)
         {
-            case null:
+            case StopperInteraction _:
                 candidateParentInteraction = default;
                 return false;
             case TInteraction alreadySuitableInteraction
@@ -66,7 +67,7 @@ public static class InteractionExtensions
             delimiter = writerInteraction.Delimiter;
             return writerInteraction.RequireUpdate(stamp);
         }
-        else if (interaction.ResurfaceWriter() is ISinkingInteraction<Stream> streamInteraction)
+        else if (interaction.ResurfaceStream() is ISinkingInteraction<Stream> streamInteraction)
         {
             source = streamInteraction;
             writer = new StreamWriter(streamInteraction.TaggedData.Data);

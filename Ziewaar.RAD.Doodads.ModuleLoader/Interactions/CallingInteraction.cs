@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Interactions;
 public class CallingInteraction(IInteraction offset, Action<IInteraction> continued) : IInteraction
 {
     public IInteraction Parent => offset;

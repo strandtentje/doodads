@@ -1,13 +1,48 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
-using Ziewaar.RAD.Doodads.CoreLibrary.Data;
-/*using Ziewaar.RAD.Doodads.Hardcoding;*/
+﻿using Ziewaar.Common.Aardvargs;
+using Ziewaar.RAD.Doodads.CommonComponents;
+using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+using Ziewaar.RAD.Doodads.ModuleLoader;
+using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
-Console.WriteLine("Hello, World!");
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        var parsedArgs = ArgParser.Parse(args);
 
-/* Service<StartWebServer>.Configure(null, starter => 
-    starter.ToStart += Service<WebServer>.Configure(
-        new ServiceConstants { { "prefixes", "http://*:41968/" } },
-        server => server.HandleRequest += Service<ConstantTextSource>.Configure(
-            new ServiceConstants { { "1", "hellorld" } })));*/
+        var files = parsedArgs.Filenames;
+        if (!files.Any())
+        {
+            files.Add(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Doodads",
+                "boot.rkop"));
+        }
+
+        TypeRepository.Instance.
+            PopulateWith(typeof(WebServer).Assembly).
+            PopulateWith(typeof(Template).Assembly).
+            PopulateWith(typeof(Definition).Assembly);
+
+        var rootInteraction = new RootInteraction(parsedArgs.Options);
+
+        foreach (var item in files)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(item) ?? throw new Exception("Invalid directory."));
+
+            if (!File.Exists(item))
+            {
+                using (var cfg = File.CreateText(item))
+                {
+                    cfg.Write("""
+                        start->Definition():Hold():ConsoleOutput():ConstantTextSource(text = "Doodads"):ConsoleReadLine():Release();
+                        """);
+                }
+            }
+
+            var program = ProgramRepository.Instance.GetForFile(item);
+            program.EntryPoint.Run(rootInteraction);
+        }
+    }
+}

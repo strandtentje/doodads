@@ -10,17 +10,23 @@ public class TypeRepository
 {
     public static readonly TypeRepository Instance = new();
     private readonly SortedList<string, Type> namedServiceTypes = new();
-    public void PopulateWith(params string[] assemblyFiles)
+    public TypeRepository PopulateWith(params string[] assemblyFiles)
     {
         foreach (var assemblyPath in assemblyFiles)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
-            var serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x));
-            foreach (var serviceType in serviceTypes)
-            {
-                namedServiceTypes.Add(serviceType.Name, serviceType);
-            }
+            PopulateWith(assembly);
         }
+        return this;
+    }
+    public TypeRepository PopulateWith(Assembly assembly)
+    {
+        var serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x));
+        foreach (var serviceType in serviceTypes)
+        {
+            namedServiceTypes.Add(serviceType.Name, serviceType);
+        }
+        return this;
     }
     public IService CreateInstanceFor(string name, out Type foundType)
     {

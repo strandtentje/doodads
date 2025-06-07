@@ -1,187 +1,342 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using Ziewaar.RAD.Doodads.RKOP.Exceptions;
 namespace Ziewaar.RAD.Doodads.RKOP;
 #nullable enable
-
-public class ServiceDescription<TResult> : IParityParser where TResult : class, IInstanceWrapper, new()
+public class ServiceDescription<TResultSink> : IParityParser where TResultSink : class, IInstanceWrapper, new()
 {
     public string? ServiceTypeName;
     public ServiceConstantsDescription ConstantsDescription = new ServiceConstantsDescription();
-    public List<ServiceDescription<TResult>> Children = new List<ServiceDescription<TResult>>();
-    public ServiceDescription<TResult>? RedirectsTo;
-    public ServiceDescription<TResult>? Concatenation;
-    public ServiceDescription<TResult>? SingleBranch;
-    public DirectoryInfo? WorkingDirectory;
-
-    public TResult? Wrapper { get; private set; }
-    public ParityParsingState UpdateFrom(ref CursorText text) => this.UpdateFrom(ref text, null);
-    public ParityParsingState UpdateFrom(ref CursorText text, ServiceDescription<TResult>? source = null)
+    public List<ServiceDescription<TResultSink>> Children = new List<ServiceDescription<TResultSink>>();
+    public ServiceDescription<TResultSink>? RedirectsTo;
+    public ServiceDescription<TResultSink>? Concatenation;
+    public ServiceDescription<TResultSink>? SingleBranch;
+    public CursorText TextScope = CursorText.Empty;
+    public TResultSink? ResultSink { get; private set; }
+    public ParityParsingState UpdateFrom(ref CursorText text) => this.UpdateFrom(ref text, new NonChaining<TResultSink>());
+    public ParityParsingState UpdateFrom(ref CursorText text, ChainingPayload<TResultSink> chain)
     {
-        text = text.
-            SkipWhile(char.IsWhiteSpace);
+        var state = HandleEOF(ref text);
+        if (state == ParityParsingState.Void)
+            return state;
 
-        if (text.Position == text.Text.Length)
-        {
-            Wrapper?.Cleanup();
-            return ParityParsingState.Void;
-        }
-        var state = ParityParsingState.Unchanged;
-
-        if (source == null)
-        {
-            text = text.
-                TakeToken(TokenDescription.Identifier, out var referenceIdentifier);
-            if (!referenceIdentifier.IsValid)
-            {
-                Wrapper?.Cleanup();
-                return ParityParsingState.Void;
-            }
-            text = text.
-                SkipWhile(char.IsWhiteSpace).
-                ValidateToken(TokenDescription.BranchAnnouncement, out var assignment);
-            if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
-                state |= ParityParsingState.New;
-            else if (this.ConstantsDescription.Key != referenceIdentifier.Text)
-                state |= ParityParsingState.Changed;
-            this.ConstantsDescription.Key = referenceIdentifier.Text;
-        }
+        if (chain is NonChaining<TResultSink>)
+            state = ParseBranchKey(ref text);
+        else if (chain is ChainingPayload<TResultSink> source)
+            state = DeduceBranchKey(source);
         else
+            throw new ArgumentException("Provide a chaining origin, or NonChaining if none.", nameof(chain));
+
+        if (state == ParityParsingState.Void)
+            return state;
+
+        if (ResultSink == null)
         {
-            var preceedingIdentifier = source.ConstantsDescription.Key;
-            if (string.IsNullOrWhiteSpace(this.ConstantsDescription.Key))
-                state |= ParityParsingState.New;
-            else if (this.ConstantsDescription.Key != preceedingIdentifier)
-                state |= ParityParsingState.Changed;
-            this.ConstantsDescription.Key = preceedingIdentifier;
+            state = ParityParsingState.New;
+            ResultSink = new();
         }
 
-        this.WorkingDirectory = text.WorkingDirectory;
-
         text = text.
-            SkipWhile(char.IsWhiteSpace);
-
-        var startOfText = text;
-
-        text = text.
+            SkipWhile(char.IsWhiteSpace).
             ValidateToken(TokenDescription.Identifier, out var typeIdentifier);
 
-        if (!typeIdentifier.Text.StartsWith("_"))
+        if (typeIdentifier.Text.StartsWith("_"))
         {
-            this.Wrapper = new();
-            this.RedirectsTo = null;
-            text = text.
-                SkipWhile(char.IsWhiteSpace).
-                ValidateToken(TokenDescription.StartOfArguments, out var _);
-
-            if (string.IsNullOrWhiteSpace(this.ServiceTypeName))
-                state |= ParityParsingState.New;
-            else if (this.ServiceTypeName != typeIdentifier.Text)
-                state |= ParityParsingState.Changed;
-            this.ServiceTypeName = typeIdentifier.Text;
-
-            // do something with service ref AND OR type name being changed y/n
-            state |= ConstantsDescription.UpdateFrom(ref text); // do something with constants being changed y/n
-
-            text = text.
-                SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.EndOfArguments, out var _).
-                SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.BlockOpen, out var openBlock);
-
-            if (openBlock.IsValid)
-            {
-                text = text.EnterScope();
-                int childCounter = 0;
-                ParityParsingState lastState = ParityParsingState.Void;
-                do
-                {
-                    if (Children.Count == childCounter)
-                        Children.Add(new ServiceDescription<TResult>());
-                    lastState = Children[childCounter].UpdateFrom(ref text);
-                    state |= lastState;
-                    if (lastState > ParityParsingState.Void)
-                        childCounter++;
-                } while (lastState != ParityParsingState.Void);
-
-                while (childCounter < Children.Count)
-                {
-                    Children.RemoveAt(childCounter);
-                    state |= ParityParsingState.Changed;
-                }
-
-                text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.BlockClose, out var _);
-                text = text.ExitScope();
-            }
-            else
-            {
-                Children.Clear();
-            }
-
-            text[ConstantsDescription.Key] = this;
-
-            text = text.SkipWhile(char.IsWhiteSpace);
-            text = text.TakeToken(TokenDescription.Chainer, out var chainer);
-
-            switch (chainer.Text[0])
-            {
-                case '&':
-                    Concatenation = Concatenation ?? new ServiceDescription<TResult>();
-                    state |= Concatenation.UpdateFrom(ref text, this);
-                    break;
-                case ':':
-                    SingleBranch = SingleBranch ?? new ServiceDescription<TResult>();
-                    state |= SingleBranch.UpdateFrom(ref text, this);
-                    break;
-                case ';':
-                    Concatenation?.Wrapper?.Cleanup();
-                    SingleBranch?.Wrapper?.Cleanup();
-                    Concatenation = null;
-                    SingleBranch = null;
-                    state |= ParityParsingState.Changed;
-                    break;
-                default:
-                    throw new ParsingException("Expected &, : or ;");
-            }
-
-            if (state > ParityParsingState.Unchanged)
-            {
-                TResult? concatenationWrapper = null, singleWrapper = null;
-                if (Concatenation != null && Concatenation.Wrapper != null)
-                    concatenationWrapper = Concatenation.Wrapper;
-                if (SingleBranch != null && SingleBranch.Wrapper != null)
-                    singleWrapper = SingleBranch.Wrapper;
-
-                Wrapper.SetDefinition(
-                    startOfText,
-                    this.ServiceTypeName,
-                    concatenationWrapper,
-                    singleWrapper,
-                    this.ConstantsDescription.ToSortedList(),
-                    this.Children.ToSortedList());
-            }
+            state |= ParseReference(ref text, typeIdentifier);            
         }
         else
         {
-            this.Wrapper?.Cleanup();
-            this.Wrapper = new();
-            this.RedirectsTo = text[typeIdentifier.Text] as ServiceDescription<TResult> ??
-                throw new ReferenceException($"Referring to unknown existing service {typeIdentifier.Text}");
-            Wrapper.SetReference(this.RedirectsTo);
-            text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.Terminator, out var _);
+            state |=
+                ParseTypeAndConstants(ref text, typeIdentifier) |
+                ParseChildrenBlock(ref text);
+
+            LinkToScope(text);
+            state |= ParseClosingToken(ref text, chain);
         }
+
+        if (state > ParityParsingState.Unchanged)
+            HandleDataChanges();
 
         return state;
     }
-
-    public void WriteTo(StreamWriter writer, int indentLevel = 0, string indentString = "    ")
+    private ParityParsingState HandleEOF(ref CursorText text)
     {
-        for (int i = 0; i < indentLevel; i++)
-            writer.Write(indentString);
-        writer.Write(ConstantsDescription.Key);
-        writer.Write("->");
-        if (RedirectsTo is ServiceDescription<TResult> redir)
+        text = text.SkipWhile(char.IsWhiteSpace);
+        if (text.Position == text.Text.Length)
         {
-            writer.Write(redir.ConstantsDescription.Key);
+            LinkToScope(CursorText.Empty);
+            return VoidAll();
+        }
+        else
+        {
+            return ParityParsingState.Unchanged;
+        }
+    }
+    private ParityParsingState ParseBranchKey(ref CursorText text)
+    {
+        text = text.TakeToken(TokenDescription.Identifier, out var referenceIdentifier);
+        if (!referenceIdentifier.IsValid)
+            return VoidAll();
+
+        text = text.
+            SkipWhile(char.IsWhiteSpace).
+            ValidateToken(TokenDescription.BranchAnnouncement, out var assignment);
+
+        if (string.IsNullOrWhiteSpace(this.ConstantsDescription.BranchKey))
+        {
+            this.ConstantsDescription.BranchKey = referenceIdentifier.Text;
+            return ParityParsingState.New;
+        }
+        else if (this.ConstantsDescription.BranchKey != referenceIdentifier.Text)
+        {
+            this.ConstantsDescription.BranchKey = referenceIdentifier.Text;
+            return ParityParsingState.Changed;
+        }
+        else
+        {
+            return ParityParsingState.Unchanged;
+        }
+    }
+    private ParityParsingState DeduceBranchKey(ChainingPayload<TResultSink> source)
+    {
+        var preceedingIdentifier = source.NewKey;
+        if (string.IsNullOrWhiteSpace(this.ConstantsDescription.BranchKey))
+        {
+            this.ConstantsDescription.BranchKey = preceedingIdentifier;
+            return ParityParsingState.New;
+        }
+        else if (this.ConstantsDescription.BranchKey != preceedingIdentifier)
+        {
+            this.ConstantsDescription.BranchKey = preceedingIdentifier;
+            return ParityParsingState.Changed;
+        }
+        else
+        {
+            return ParityParsingState.Unchanged;
+        }
+    }
+    private ParityParsingState ParseReference(ref CursorText text, Token typeIdentifier)
+    {
+        VoidAll();
+        ServiceDescription<TResultSink> newRedirection = text[typeIdentifier.Text] as ServiceDescription<TResultSink> ??
+            throw new ReferenceException($"Referring to unknown existing service {typeIdentifier.Text}");
+        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.Terminator, out var _);
+        if (this.RedirectsTo == null)
+        {
+            this.RedirectsTo = newRedirection;
+            return ParityParsingState.New;
+        }
+        else if (this.RedirectsTo == newRedirection)
+        {
+            this.RedirectsTo = newRedirection;
+            return ParityParsingState.Changed;
+        }
+        else
+        {
+            return ParityParsingState.Unchanged;
+        }
+    }
+    private ParityParsingState ParseTypeAndConstants(ref CursorText text, Token typeIdentifier)
+    {
+        this.RedirectsTo = null;
+        text = text.
+            SkipWhile(char.IsWhiteSpace).
+            ValidateToken(TokenDescription.StartOfArguments, out var _);
+
+        var state = ConstantsDescription.UpdateFrom(ref text);
+
+        text = text.
+            SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.EndOfArguments, out var _);
+
+        if (string.IsNullOrWhiteSpace(this.ServiceTypeName))
+        {
+            this.ServiceTypeName = typeIdentifier.Text;
+            return state | ParityParsingState.New;
+        }
+        else if (this.ServiceTypeName != typeIdentifier.Text)
+        {
+            this.ServiceTypeName = typeIdentifier.Text;
+            return state | ParityParsingState.Changed;
+        }
+        else
+        {
+            return state;
+        }
+    }
+    private ParityParsingState ParseChildrenBlock(ref CursorText text)
+    {
+        text = text.
+            SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.BlockOpen, out var openBlock);
+
+        if (openBlock.IsValid)
+        {
+            ParityParsingState state = ParityParsingState.Unchanged;
+            text = text.EnterScope();
+            int childCounter = 0;
+            ParityParsingState lastState = ParityParsingState.Void;
+            do
+            {
+                if (Children.Count == childCounter)
+                    Children.Add(new ServiceDescription<TResultSink>());
+                lastState = Children[childCounter].UpdateFrom(ref text);
+                state |= lastState;
+                if (lastState > ParityParsingState.Void)
+                    childCounter++;
+            } while (lastState != ParityParsingState.Void);
+
+            while (childCounter < Children.Count)
+            {
+                Children[childCounter].VoidAll();
+                Children.RemoveAt(childCounter);
+                state |= ParityParsingState.Changed;
+            }
+
+            text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.BlockClose, out var _);
+            text = text.ExitScope();
+
+
+            return state;
+        }
+        else if (Children.Count > 0)
+        {
+            this.VoidChildren();
+            return ParityParsingState.Changed;
+        }
+        else
+        {
+            return ParityParsingState.Unchanged;
+        }
+    }
+    private ParityParsingState ParseClosingToken(ref CursorText text, ChainingPayload<TResultSink> chain)
+    {
+        text = text.SkipWhile(char.IsWhiteSpace);
+        var candidateNextCursor = text.TakeToken(TokenDescription.Chainer, out var chainingToken);
+
+        switch (chainingToken.Text[0])
+        {
+            case '&':
+                if (chain is ContinueChain<TResultSink>)
+                {
+                    if (Concatenation != null)
+                    {
+                        Concatenation?.VoidAll();
+                        Concatenation = null;
+                        return ParityParsingState.Changed;
+                    } else
+                    {
+                        return ParityParsingState.Unchanged;
+                    }
+                }
+                else
+                {
+                    text = candidateNextCursor;
+                    Concatenation = Concatenation ?? new ServiceDescription<TResultSink>();
+                    return Concatenation.UpdateFrom(ref text, new ConcatChain<TResultSink>(this));
+                }
+            case ':':
+                var stateAfterContinue = SingleBranch == null ? ParityParsingState.Changed : ParityParsingState.Unchanged;
+                SingleBranch = SingleBranch ?? new ServiceDescription<TResultSink>();
+                text = candidateNextCursor;
+                stateAfterContinue |= SingleBranch.UpdateFrom(ref text, new ContinueChain<TResultSink>(this));
+
+                text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.Ampersand, out var amperToken);
+                if (amperToken.IsValid)
+                {
+                    stateAfterContinue |= Concatenation == null ? ParityParsingState.Changed : ParityParsingState.Unchanged;
+                    Concatenation = new ServiceDescription<TResultSink>();
+                    stateAfterContinue |= Concatenation.UpdateFrom(ref text, new ConcatChain<TResultSink>(this));
+                } else
+                {
+                    stateAfterContinue |= Concatenation != null ? ParityParsingState.Changed : ParityParsingState.Unchanged;
+                    Concatenation?.VoidAll();
+                    Concatenation = null;
+                }
+                return stateAfterContinue;
+            case ';':
+                var stateAfterCloser =
+                    (Concatenation ?? SingleBranch) != null ?
+                    ParityParsingState.Changed : ParityParsingState.Unchanged;
+                Concatenation?.VoidAll();
+                Concatenation = null;
+                SingleBranch?.VoidAll();
+                SingleBranch = null;
+                text = candidateNextCursor;
+                return stateAfterCloser;
+            default:
+                throw new ParsingException("Expected &, : or ;");
+        }
+    }
+    private void LinkToScope(CursorText text)
+    {
+        if (this.TextScope?.LocalScope is SortedList<string, object> existingScope && 
+            existingScope.IndexOfValue(this) is int currentScopeIndex && 
+            currentScopeIndex > -1)
+        {
+            existingScope.RemoveAt(currentScopeIndex);
+        }
+        if (ConstantsDescription?.BranchKey is string newBranchName)
+            text[newBranchName] = this;
+        this.TextScope = text;
+    }
+    public ParityParsingState VoidAll()
+    {
+        VoidChildren();
+        Children.Clear();
+        Concatenation?.UpdateFrom(ref CursorText.Empty);
+        SingleBranch?.UpdateFrom(ref CursorText.Empty);
+        RedirectsTo = null;
+        Concatenation = null;
+        SingleBranch = null;
+        ServiceTypeName = null;
+        HandleDataChanges();
+
+        return ParityParsingState.Void;
+    }
+    private void VoidChildren()
+    {
+        foreach (var item in Children)
+            item.UpdateFrom(ref CursorText.Empty);
+    }
+    public void HandleDataChanges()
+    {
+        if (RedirectsTo != null)
+        {
+            ResultSink ??= new TResultSink();
+            ResultSink.SetReference(this.RedirectsTo);
+        } else if (this.ServiceTypeName != null)
+        {
+            TResultSink? concatenationWrapper = null, singleWrapper = null;
+            if (Concatenation != null && Concatenation.ResultSink != null)
+                concatenationWrapper = Concatenation.ResultSink;
+            if (SingleBranch != null && SingleBranch.ResultSink != null)
+                singleWrapper = SingleBranch.ResultSink;
+            ResultSink ??= new TResultSink();
+            ResultSink.SetDefinition(
+                TextScope,
+                this.ServiceTypeName,
+                concatenationWrapper,
+                singleWrapper,
+                this.ConstantsDescription.ToSortedList(),
+                this.Children.ToSortedList());
+        } else
+        {
+            ResultSink?.Cleanup();
+        }
+    }
+    public void WriteTo(StreamWriter writer, bool skipBranchName = false, int indentLevel = 0, string indentString = "    ")
+    {
+        if (!skipBranchName)
+        {
+            for (int i = 0; i < indentLevel; i++)
+                writer.Write(indentString);
+            writer.Write(ConstantsDescription.BranchKey);
+            writer.Write("->");
+        }
+        if (RedirectsTo is ServiceDescription<TResultSink> redir)
+        {
+            writer.Write(redir.ConstantsDescription.BranchKey);
         }
         else
         {
@@ -194,23 +349,26 @@ public class ServiceDescription<TResult> : IParityParser where TResult : class, 
                 writer.WriteLine(" {");
                 foreach (var item in Children)
                 {
-                    item.WriteTo(writer, indentLevel + 1, indentString);
+                    item.WriteTo(writer, false, indentLevel + 1, indentString);
                 }
                 for (int i = 0; i < indentLevel; i++)
                     writer.Write(indentString);
                 writer.Write("}");
             }
-            if (Concatenation != null && SingleBranch != null)
-                throw new InvalidOperationException("cannot have a conatenation branch, and a single branch");
-            if (Concatenation != null)
-            {
-                writer.Write("&");
-                Concatenation.WriteTo(writer, indentLevel);
-            } else if (SingleBranch != null)
+            if (SingleBranch != null)
             {
                 writer.Write(":");
-                SingleBranch.WriteTo(writer, indentLevel);
+                SingleBranch.WriteTo(writer, true, indentLevel);
             }
+            if (Concatenation != null)
+            {
+                writer.Write(" & ");
+                Concatenation.WriteTo(writer, true, indentLevel);
+            }
+        }
+        if (!skipBranchName)
+        {
+            writer.WriteLine(";");
         }
     }
 }

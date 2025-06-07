@@ -13,6 +13,7 @@ public class ConstantTextSource : IService
         {
             writer.Write(serviceConstants.InsertIgnore("text", ""));
             writer.Write(delimiter);
+            writer.Flush();
         } else
         {
             OnError?.Invoke(this, 
@@ -20,3 +21,4 @@ public class ConstantTextSource : IService
         }
     }
 }
+

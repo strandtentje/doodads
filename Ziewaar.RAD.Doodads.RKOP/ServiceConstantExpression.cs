@@ -205,7 +205,7 @@ public class ServiceConstantExpression : IParityParser
             case ConstantType.Number:
                 return this.NumberValue != value.NumberValue;
             case ConstantType.Reference:
-                return this.Set.Key != value.Set.Key || this.Member.Key != value.Member.Key || this.Member.Value.Mismatches(value.Member.Value);
+                return this.Set.BranchKey != value.Set.BranchKey || this.Member.Key != value.Member.Key || this.Member.Value.Mismatches(value.Member.Value);
             default:
                 return true;
         }
@@ -229,7 +229,7 @@ public class ServiceConstantExpression : IParityParser
                     writer.Write(this.NumberValue.ToString(CultureInfo.InvariantCulture));
                 break;
             case ConstantType.Reference:
-                writer.Write(this.Set.Key);
+                writer.Write(this.Set.BranchKey);
                 writer.Write(".");
                 writer.Write(this.Member.Key);
                 break;

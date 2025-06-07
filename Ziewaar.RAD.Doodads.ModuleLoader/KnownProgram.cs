@@ -12,9 +12,8 @@ public class KnownProgram : IDisposable
     public ServiceDescription<ServiceBuilder> DescriptionRoot;
     public DirectoryInfo DirectoryInfo;
     public FileInfo FileInfo;
-    private ServiceBuilder _serviceBuilder => (ServiceBuilder)(IInstanceWrapper)DescriptionRoot.Wrapper;
+    private ServiceBuilder _serviceBuilder => (ServiceBuilder)(IInstanceWrapper)DescriptionRoot.ResultSink;
     public IEntryPoint EntryPoint => _serviceBuilder;
-
     public void Dispose()
     {
         DescriptionRoot.UpdateFrom(ref CursorText.Empty);

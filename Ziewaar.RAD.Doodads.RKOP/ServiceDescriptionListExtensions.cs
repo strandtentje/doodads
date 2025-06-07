@@ -11,7 +11,7 @@ public static class ServiceDescriptionListExtensions
     {
         SortedList<string, TResult> results = [];
         foreach (var item in descriptions)
-            results.Add(item.ConstantsDescription.Key, item.Wrapper);
+            results.Add(item.ConstantsDescription.BranchKey, item.ResultSink);
         return results;
     }
 }

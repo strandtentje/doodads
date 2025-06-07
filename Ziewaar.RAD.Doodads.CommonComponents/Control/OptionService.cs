@@ -6,12 +6,10 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 public class OptionService : IService
 {
-    [NamedBranch]
     public event EventHandler<IInteraction> OnError;
-    [NamedBranch]
-    public event EventHandler<IInteraction> Continue;
-    [NamedBranch]
     public event EventHandler<IInteraction> NotApplicable;
+    [DefaultBranch]
+    public event EventHandler<IInteraction> Continue;
 
     public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
     {
