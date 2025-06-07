@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
@@ -15,4 +16,5 @@ public class ProgramRepository
     }
     public IEntryPoint GetEntryPointForFile(string filePath) =>
         GetForFile(filePath).EntryPoint;
+    public KnownProgram[] GetKnownPrograms() => Programs.Values.ToArray();
 }

@@ -22,7 +22,7 @@ public class StringSplitService : IService
     {
         var variableName = serviceConstants.InsertIgnore("var", "text");
         var inputVariable = serviceConstants.InsertIgnore("in", variableName);
-        var outputVariable = serviceConstants.InsertIgnore("out", variableName);        
+        var outputVariable = serviceConstants.InsertIgnore("out", variableName);
         var textToSplit = serviceConstants.InsertIgnore("default", "");
 
         var wildcardName = serviceConstants.InsertIgnore("wildcardname", "item");

@@ -30,20 +30,23 @@ public class ReadProgram : IService
         string SourceSetting(EventHandler<IInteraction> forwardSourcing, string name, string fallback) =>
             (this, serviceConstants, interaction, forwardSourcing).SourceSetting(name, fallback);
 
-        var moduleName = SourceSetting(ModuleName, "modulefile", "no_module");
-
-        var program = ProgramRepository.Instance.GetForFile(moduleName);
 
         ServiceDescription<ServiceBuilder> selectedDefinition;
         string pathSoFar;
+
+        KnownProgram program;
+
 
         if (interaction.TryGetClosest<ServiceDescriptionInteraction>(out var precedent))
         {
             selectedDefinition = precedent.Definition;
             pathSoFar = (string)precedent.Variables["servicepath"];
+            program = precedent.Root;
         }
         else
         {
+            var moduleName = SourceSetting(ModuleName, "modulefile", "no_module");
+            program = ProgramRepository.Instance.GetForFile(moduleName);
             string[] splitPath = SourceSetting(ModuleRoute, "moduleroute", "").Split("/", StringSplitOptions.RemoveEmptyEntries);
             var moduleRoute = new Queue<string>(splitPath);
             selectedDefinition = program.DescriptionRoot;
@@ -79,20 +82,20 @@ public class ReadProgram : IService
         }
 
         if (selectedDefinition.Concatenation != null)
-            Concatenation?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, selectedDefinition.Concatenation));
+            Concatenation?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, program, selectedDefinition.Concatenation));
 
         if (selectedDefinition.SingleBranch != null)
-            SingleBranch?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, selectedDefinition.SingleBranch));
+            SingleBranch?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, program, selectedDefinition.SingleBranch));
 
         if (selectedDefinition.RedirectsTo != null)
-            CallRedirect?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, selectedDefinition.RedirectsTo));
+            CallRedirect?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, program, selectedDefinition.RedirectsTo));
 
         foreach (var item in selectedDefinition.Concatenation.Children)
         {
             if (item.ConstantsDescription.BranchKey.StartsWith("_"))
-                DefineRedirect?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, item));
+                DefineRedirect?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, program, item));
             else
-                Branch?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, item));
+                Branch?.Invoke(this, new ServiceDescriptionInteraction(interaction, pathSoFar, program, item));
         }
     }
 }

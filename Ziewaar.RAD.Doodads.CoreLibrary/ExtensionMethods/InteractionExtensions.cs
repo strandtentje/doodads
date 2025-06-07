@@ -33,6 +33,8 @@ public static class InteractionExtensions
         IReadOnlyDictionary<string, object>? previousVariables = null;
         for(;interaction != null; interaction = interaction.Parent)
         {
+            if (interaction is StopperInteraction)
+                break;
             if (previousVariables != interaction.Variables && 
                 interaction.Variables.TryGetValue(key, out object value) && 
                 value is TType foundResult)
