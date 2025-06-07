@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Ziewaar.RAD.Doodads.RuntimeForDotnetCore": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\deFine\\source\\repos\\demo\\boot.rkop"
+      "commandName": "Project"
     }
   }
 }

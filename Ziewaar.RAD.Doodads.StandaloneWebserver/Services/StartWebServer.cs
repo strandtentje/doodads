@@ -3,6 +3,7 @@
 public class StartWebServer : IService
 {
     public event EventHandler<IInteraction>? OnError;
+    [DefaultBranch]
     public event EventHandler<IInteraction>? ToStart;
     public void Enter(ServiceConstants serviceConstants, IInteraction interaction) =>
         ToStart?.Invoke(this, new ServerCommandInteraction(interaction, ServerCommand.Start));

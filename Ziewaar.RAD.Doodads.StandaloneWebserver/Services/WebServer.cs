@@ -2,9 +2,10 @@
 
 public class WebServer : IService, IDisposable
 {
-    [NamedBranch] public event EventHandler<IInteraction>? OnError;
-    [NamedBranch] public event EventHandler<IInteraction>? PrefixesRequested;
-    [NamedBranch] public event EventHandler<IInteraction>? HandleRequest;
+    public event EventHandler<IInteraction>? OnError;
+    public event EventHandler<IInteraction>? PrefixesRequested;
+    [DefaultBranch]
+    public event EventHandler<IInteraction>? HandleRequest;
     private HttpListener? CurrentListener = null;
     private long LastUpdateFromBranch;
     private long LastUpdateFromConstants;

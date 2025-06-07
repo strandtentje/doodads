@@ -41,7 +41,15 @@ public class TokenDescription(
             }, x => x.Length == 1, "What to do after this description"),
         BlockOpen = DescribeSingleCharacter('{', "Open curly bracket"),
         BlockClose = DescribeSingleCharacter('}', "Close curly bracket"),
+        ArrayOpen = DescribeSingleCharacter('[', "Start of array with blocky bracket"),
+        ArrayClose = DescribeSingleCharacter(']', "End of array with blocky bracket"),
         Ampersand = DescribeSingleCharacter('&', "Et sign"),
+        NextOrCloseArray = new TokenDescription(
+            (pos, chr) => pos switch
+            {
+                0 => chr == ']' || chr == ',',
+                _ => false,
+            }, x => x.Length == 1, "End of array with ], or next item with comma"),
         RelativePathAnnouncement = new TokenDescription(
             (pos, chr) => pos switch
             {

@@ -239,8 +239,10 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         {
             var testText = """
                 Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
-                    Child->OtherService(exa = "beep") & PieService(farts = 44);
-                    Baby->OtherService(exa = "beep"):Tubes() & PieService(farts = 44) {
+                    Child->OtherService(exa = "beep")
+                         & PieService(farts = 44);
+                    Baby->OtherService(exa = "beep"):Tubes()
+                        & PieService(farts = 44) {
                         Oink->Pig():Hog();
                     };
                     _EarlyDefine->SecretService();
@@ -273,7 +275,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         {
             var testText = """
                 start->Definition():Hold() {
-                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") & ConsoleReadLine():Release();
+                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
+                            & ConsoleReadLine():Release();
                 };
                 """;
 
@@ -308,7 +311,82 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
 
             var fixedText = """
                 start->Definition():Hold() {
-                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") & ConsoleReadLine():Release();
+                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
+                            & ConsoleReadLine():Release();
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(fixedText.Trim(), fullText.Trim());
+        }
+
+        [TestMethod]
+        public void TestArrayRoundtrip()
+        {
+            var testText = """
+                start->Definition():Hold(items = ["honky", "tonky", "phonky"]) {
+                    Continue-> ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")   &  ConsoleReadLine():Release();
+                };
+                """;
+
+            var fixedText = """
+                start->Definition():Hold(items = ["honky", "tonky", "phonky"]) {
+                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
+                            & ConsoleReadLine():Release();
+                };
+                """;
+
+            ServiceDescription<MockWrapper> desc = new();
+            string cdir = Directory.GetCurrentDirectory();
+            var simple = CursorText.Create(
+                new DirectoryInfo(cdir),
+                "test",
+                testText);
+            var result = desc.UpdateFrom(ref simple);
+
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            desc.WriteTo(writer);
+            writer.Flush();
+            ms.Position = 0;
+            var reader = new StreamReader(ms);
+            var fullText = reader.ReadToEnd();
+
+            Assert.AreEqual(fixedText.Trim(), fullText.Trim());
+        }
+
+        [TestMethod]
+        public void TestDirtyArrayRoundtrip()
+        {
+            var testText = """
+                start->Definition():Hold(items = [
+                "honky",
+                , "tonky","phonky",]) {
+                    Continue 
+                    -> ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") 
+                    &  ConsoleReadLine():Release();
+                };
+                """;
+
+            var fixedText = """
+                start->Definition():Hold(items = ["honky", "tonky", "phonky"]) {
+                    Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
+                            & ConsoleReadLine():Release();
                 };
                 """;
 

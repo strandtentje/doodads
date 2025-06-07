@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -17,6 +19,7 @@ public class ServiceConstantExpression : IParityParser
     public (string WorkingDirectory, string RelativePath) PathValue;
     public bool BoolValue;
     public decimal NumberValue;
+    private ServiceConstantExpression[] ArrayItems = [];
 
     public object GetValue() => ConstantType switch
     {
@@ -25,12 +28,21 @@ public class ServiceConstantExpression : IParityParser
         ConstantType.Number => NumberValue,
         ConstantType.Path => PathValue,
         ConstantType.Reference => Member.Value.GetValue(),
+        ConstantType.Array => ArrayItems.Select(x => x.GetValue()),
         _ => throw new InvalidOperationException(),
     };
 
     public ParityParsingState UpdateFrom(ref CursorText inText)
     {
         var text = inText.SkipWhile(char.IsWhiteSpace);
+
+        text = text.TakeToken(TokenDescription.ArrayOpen, out var aop);
+        if (aop.IsValid)
+        {
+            ParityParsingState arrRes = ConsumeRemainingArrayIncludingCloser(ref text);
+            inText = text;
+            return arrRes;
+        }
 
         text = text.TakeToken(TokenDescription.RelativePathAnnouncement, out var rpa);
         if (rpa.IsValid)
@@ -113,6 +125,35 @@ public class ServiceConstantExpression : IParityParser
         }
 
         return ParityParsingState.Void;
+    }
+
+    private ParityParsingState ConsumeRemainingArrayIncludingCloser(ref CursorText text)
+    {
+        List<ServiceConstantExpression> newArrayExpressions = new();
+        while (true)
+        {
+            text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.ArrayClose, out var closer);
+            if (closer.IsValid)
+                break;
+            var newItem = new ServiceConstantExpression();
+            newArrayExpressions.Add(newItem);
+            newItem.UpdateFrom(ref text);
+            Token comma;
+            do
+            {
+                text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.ArgumentSeparator, out comma);
+            } while (comma.IsValid);
+        }
+        ParityParsingState state = ParityParsingState.Unchanged;
+        if (this.ConstantType != ConstantType.Array)
+            state = ParityParsingState.Changed;
+        else if (this.ArrayItems.Length != newArrayExpressions.Count)
+            state = ParityParsingState.Changed;
+        else if (this.ArrayItems.Zip(newArrayExpressions, (x, y) => (x, y)).Any(p => p.x.Mismatches(p.y)))
+            state = ParityParsingState.Changed;
+        this.ConstantType = ConstantType.Array;
+        this.ArrayItems = newArrayExpressions.ToArray();
+        return state;
     }
 
     private ParityParsingState SetPathValue(DirectoryInfo workingDirectory, string x)
@@ -206,6 +247,12 @@ public class ServiceConstantExpression : IParityParser
                 return this.NumberValue != value.NumberValue;
             case ConstantType.Reference:
                 return this.Set.BranchKey != value.Set.BranchKey || this.Member.Key != value.Member.Key || this.Member.Value.Mismatches(value.Member.Value);
+            case ConstantType.Path:
+                return this.PathValue != value.PathValue;
+            case ConstantType.Array:
+                if (this.ArrayItems.Length != value.ArrayItems.Length)
+                    return true;
+                return this.ArrayItems.Zip(value.ArrayItems, (x, y) => (x, y)).Any(p => p.x.Mismatches(p.y));
             default:
                 return true;
         }
@@ -237,6 +284,16 @@ public class ServiceConstantExpression : IParityParser
                 writer.Write(@"f""");
                 writer.Write(this.PathValue.RelativePath.Replace(@"\", @"\\").Replace(@"""", @"\"""));
                 writer.Write(@"""");
+                break;
+            case ConstantType.Array:
+                writer.Write("[");
+                for (int i = 0; i < this.ArrayItems.Length; i++)
+                {
+                    this.ArrayItems[i].WriteTo(writer);
+                    if (i + 1 < this.ArrayItems.Length)
+                        writer.Write(", ");
+                }
+                writer.Write("]");
                 break;
             default:
                 break;

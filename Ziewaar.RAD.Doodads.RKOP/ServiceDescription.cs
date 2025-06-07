@@ -362,7 +362,12 @@ public class ServiceDescription<TResultSink> : IParityParser where TResultSink :
             }
             if (Concatenation != null)
             {
-                writer.Write(" & ");
+                writer.WriteLine();
+                for (int i = 0; i < indentLevel; i++)
+                    writer.Write(indentString);
+                for (int i = 0; i < ConstantsDescription.BranchKey.Length; i++)
+                    writer.Write(" ");
+                writer.Write("& ");
                 Concatenation.WriteTo(writer, true, indentLevel);
             }
         }
