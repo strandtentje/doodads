@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-namespace Ziewaar.RAD.Doodads.RKOP.Exceptions;
+﻿namespace Ziewaar.RAD.Doodads.RKOP.Exceptions;
 
 [Serializable]
 public class ParsingException : Exception

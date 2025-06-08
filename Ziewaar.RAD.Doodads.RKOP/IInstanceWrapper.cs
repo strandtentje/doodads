@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-
-
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 
 public interface IInstanceWrapper
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 public class ServiceConstantsDescription : IParityParser
 {
     public string BranchKey;

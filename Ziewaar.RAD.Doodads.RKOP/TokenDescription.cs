@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 
 public class TokenDescription(
     Func<int, char, bool> predicate,

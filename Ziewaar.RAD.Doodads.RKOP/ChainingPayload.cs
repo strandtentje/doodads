@@ -1,5 +1,4 @@
-﻿using System;
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 
 public abstract class ChainingPayload<TResult>(ServiceDescription<TResult>? source, string? suffix = null) where TResult : class, IInstanceWrapper, new()
 {

@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 
 [Flags]
 public enum ParityParsingState

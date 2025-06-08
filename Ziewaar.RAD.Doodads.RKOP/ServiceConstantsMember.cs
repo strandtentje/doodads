@@ -1,7 +1,4 @@
-﻿using System.IO;
-using Ziewaar.RAD.Doodads.RKOP.Exceptions;
-
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 
 public class ServiceConstantsMember : IParityParser
 {

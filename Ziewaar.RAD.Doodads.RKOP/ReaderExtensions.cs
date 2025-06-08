@@ -1,10 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using Ziewaar.RAD.Doodads.RKOP.Exceptions;
-
-
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP;
 
 public static class ReaderExtensions
 {

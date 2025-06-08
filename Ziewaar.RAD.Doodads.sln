@@ -13,6 +13,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Runtime
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Hardcoding", "Ziewaar.RAD.Doodads.Hardcoding\Ziewaar.RAD.Doodads.Hardcoding.csproj", "{5C9C45FD-0E02-43EA-8D18-3F887354C09E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.Common.Aardvargs", "Ziewaar.Common.Aardvargs\Ziewaar.Common.Aardvargs.csproj", "{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.Common.Aardvargs.Tests", "Ziewaar.Common.Aardvargs.Tests\Ziewaar.Common.Aardvargs.Tests.csproj", "{6B30C773-5E94-40B2-B07D-44F3D76A499C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.ModuleLoader", "Ziewaar.RAD.Doodads.ModuleLoader\Ziewaar.RAD.Doodads.ModuleLoader.csproj", "{475015B1-FF56-4F35-A8E9-BDAA0F5128FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.RKOP", "Ziewaar.RAD.Doodads.RKOP\Ziewaar.RAD.Doodads.RKOP.csproj", "{E495A7CE-7925-4B20-B9DA-229A1ED9ED2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.RKOP.Testing", "Ziewaar.RAD.Doodads.RKOP.Testing\Ziewaar.RAD.Doodads.RKOP.Testing.csproj", "{48098A72-B1E5-4111-A716-77FC4412DF08}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +49,26 @@ Global
 		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B30C773-5E94-40B2-B07D-44F3D76A499C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B30C773-5E94-40B2-B07D-44F3D76A499C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B30C773-5E94-40B2-B07D-44F3D76A499C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B30C773-5E94-40B2-B07D-44F3D76A499C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{475015B1-FF56-4F35-A8E9-BDAA0F5128FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{475015B1-FF56-4F35-A8E9-BDAA0F5128FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{475015B1-FF56-4F35-A8E9-BDAA0F5128FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{475015B1-FF56-4F35-A8E9-BDAA0F5128FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E495A7CE-7925-4B20-B9DA-229A1ED9ED2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E495A7CE-7925-4B20-B9DA-229A1ED9ED2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E495A7CE-7925-4B20-B9DA-229A1ED9ED2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E495A7CE-7925-4B20-B9DA-229A1ED9ED2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48098A72-B1E5-4111-A716-77FC4412DF08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48098A72-B1E5-4111-A716-77FC4412DF08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48098A72-B1E5-4111-A716-77FC4412DF08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48098A72-B1E5-4111-A716-77FC4412DF08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
