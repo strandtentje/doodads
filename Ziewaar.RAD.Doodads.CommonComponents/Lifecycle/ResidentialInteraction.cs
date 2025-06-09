@@ -5,7 +5,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 public class ResidentialInteraction : IInteraction, IDisposable
 {
     private readonly SemaphoreSlim Blocker;
-    private bool _isDisposed;
+    private bool IsDisposed;
 
     public string Name { get; }
     public IInteraction Parent { get; }
@@ -19,9 +19,9 @@ public class ResidentialInteraction : IInteraction, IDisposable
     public static ResidentialInteraction CreateBlocked(IInteraction parent, string name) => new ResidentialInteraction(parent, name, new SemaphoreSlim(0, 1));
     public void Dispose()
     {
-        if (!this._isDisposed)
+        if (!this.IsDisposed)
         {
-            this._isDisposed = true;
+            this.IsDisposed = true;
             try
             {
                 Blocker.Release();
@@ -35,7 +35,7 @@ public class ResidentialInteraction : IInteraction, IDisposable
     public bool Enter()
     {
         Blocker.Wait();
-        return !_isDisposed;
+        return !IsDisposed;
     }
 
     public void Leave() => Blocker.Release();

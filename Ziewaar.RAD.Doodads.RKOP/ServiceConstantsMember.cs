@@ -8,7 +8,7 @@ public class ServiceConstantsMember : IParityParser
     {
         var text = inText.
             SkipWhile(char.IsWhiteSpace).
-            TakeToken(TokenDescription.Identifier, out var identifier);
+            TakeToken(TokenDescription.IdentifierWithoutUnderscore, out var identifier);
 
         if (!identifier.IsValid)
             return ParityParsingState.Void;

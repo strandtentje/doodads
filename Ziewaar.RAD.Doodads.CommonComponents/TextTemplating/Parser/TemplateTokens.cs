@@ -3,29 +3,29 @@ namespace Ziewaar.RAD.Doodads.CommonComponents;
 public static class TemplateTokens
 {
     public static int OrdinalIndexOfPlaceholderStart(this string inputString, int fromPosition) =>
-        inputString.IndexOf(PlaceholderStart, fromPosition, StringComparison.Ordinal);
+        inputString.IndexOf(PLACEHOLDER_START, fromPosition, StringComparison.Ordinal);
 
     public static int OrdinalIndexOfPlaceholderEnd(this string inputString, int fromPosition) =>
-        inputString.IndexOf(PlaceholderEnd, fromPosition, StringComparison.Ordinal);
+        inputString.IndexOf(PLACEHOLDER_END, fromPosition, StringComparison.Ordinal);
 
-    public const string PlaceholderStart = "{% ";
-    public const string PlaceholderEnd = " %}";
+    public const string PLACEHOLDER_START = "{% ";
+    public const string PLACEHOLDER_END = " %}";
 
     public static string TrimTemplateTokens(this string inputString) =>
         inputString.Trim(
-            CallOutOrContext, Context, CallOut, ArgumentSource,
-            NoFilter, HtmlFilter, UrlFilter, AttributeFilter, JsFilter);
+            CALL_OUT_OR_CONTEXT, CONTEXT, CALL_OUT, ARGUMENT_SOURCE,
+            NO_FILTER, HTML_FILTER, URL_FILTER, ATTRIBUTE_FILTER, JS_FILTER);
 
     public const char
-        CallOutOrContext = '?',
-        Context = '<',
-        CallOut = '>',
-        ArgumentSource = '#',
-        NoFilter = '_',
-        HtmlFilter = '&',
-        UrlFilter = '%',
-        AttributeFilter = '=',
-        JsFilter = ';';
+        CALL_OUT_OR_CONTEXT = '?',
+        CONTEXT = '<',
+        CALL_OUT = '>',
+        ARGUMENT_SOURCE = '#',
+        NO_FILTER = '_',
+        HTML_FILTER = '&',
+        URL_FILTER = '%',
+        ATTRIBUTE_FILTER = '=',
+        JS_FILTER = ';';
 
     public static TemplateCommandType ConvertToSourceCommandType(this char token) => token switch
     {

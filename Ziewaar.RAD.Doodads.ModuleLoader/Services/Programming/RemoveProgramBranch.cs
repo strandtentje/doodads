@@ -1,12 +1,4 @@
-﻿
-using System;
-using Ziewaar.RAD.Doodads.CoreLibrary.Data;
-using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
-using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-using Ziewaar.RAD.Doodads.ModuleLoader.Interactions;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Programming;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Programming;
 
 public class RemoveProgramBranch : IService
 {

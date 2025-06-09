@@ -1,10 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.RKOP;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class KnownProgram : IDisposable
 {
@@ -13,23 +7,23 @@ public class KnownProgram : IDisposable
     public ServiceDescription<ServiceBuilder> DescriptionRoot;
     public DirectoryInfo DirectoryInfo;
     public FileInfo FileInfo;
-    private bool _currentlyReloading = false;
-    private readonly object _fileRefreshLock = new();
+    private bool CurrentlyReloading = false;
+    private readonly object FileRefreshLock = new();
 
-    private ServiceBuilder _serviceBuilder => (ServiceBuilder)(IInstanceWrapper)DescriptionRoot.ResultSink;
-    public IEntryPoint EntryPoint => _serviceBuilder;
+    private ServiceBuilder serviceBuilder => (ServiceBuilder)(IInstanceWrapper)DescriptionRoot.ResultSink;
+    public IEntryPoint EntryPoint => serviceBuilder;
     public void Dispose()
     {
         DescriptionRoot.UpdateFrom(ref CursorText.Empty);
-        _serviceBuilder.Cleanup();
+        serviceBuilder.Cleanup();
     }
     public void Reload()
     {
-        if (_currentlyReloading)
+        if (CurrentlyReloading)
             return;
-        lock(_fileRefreshLock)
+        lock(FileRefreshLock)
         {
-            this._currentlyReloading = true;
+            this.CurrentlyReloading = true;
             try
             {
                 Console.WriteLine("Reloading program {0}", FileInfo.Name);
@@ -53,7 +47,7 @@ public class KnownProgram : IDisposable
             }
             finally
             {
-                this._currentlyReloading = false;
+                this.CurrentlyReloading = false;
                 GC.Collect();
             }
         }

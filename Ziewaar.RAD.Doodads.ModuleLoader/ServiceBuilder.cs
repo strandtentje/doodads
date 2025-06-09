@@ -1,177 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using Ziewaar.RAD.Doodads.CoreLibrary.Attributes;
-using Ziewaar.RAD.Doodads.CoreLibrary.Data;
-using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.RKOP;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
-
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+#nullable enable
 public class ServiceBuilder : IInstanceWrapper, IEntryPoint
 {
-    private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
-
-    private Type currentType;
-    private SortedList<string, Delegate> existingEventHandlers = new();
-    private ServiceBuilder Concatenation;
-    private ServiceConstants CurrentConstants;
-
-    private EventHandler<IInteraction> existingSingleBranchHandler = null;
-    private ServiceBuilder Redirection;
-
-    public string CurrentTypeName { get; private set; }
-    public IService CurrentInstance { get; private set; }
+    public IAmbiguousServiceWrapper? CurrentService { get; private set; }
     public void Cleanup()
     {
-        if (CurrentInstance != null)
-        {
-            var allEvents = currentType.GetEvents().ToArray();
-
-            if (existingEventHandlers != null)
-            {
-                foreach (var item in allEvents)
-                {
-                    if (existingEventHandlers.TryGetValue(item.Name, out var dlg))
-                        item.RemoveEventHandler(this.CurrentInstance, dlg);
-                }
-            }
-
-            EventInfo singleEvent = null;
-            if (allEvents.Count() == 1)
-                singleEvent = allEvents.ElementAt(1);
-
-            if (singleEvent == null)
-            {
-                var defaultsByAttribute = allEvents.Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(DefaultBranchAttribute)));
-
-                if (defaultsByAttribute.Count() == 1)
-                    singleEvent = defaultsByAttribute.ElementAt(0);
-            }
-
-            if (existingSingleBranchHandler != null &&
-                singleEvent != null)
-            {
-                singleEvent.RemoveEventHandler(this.CurrentInstance, existingSingleBranchHandler);
-            }
-
-
-            if (CurrentInstance is IDisposable disposable)
-                disposable.Dispose();
-
-            this.CurrentInstance = null;
-            this.CurrentTypeName = null;
-            this.currentType = null;
-            this.existingEventHandlers.Clear();
-            this.Concatenation = null;
-            this.CurrentConstants = null;
-            this.existingSingleBranchHandler = null;
-            this.Redirection = null;
-        }
+        CurrentService?.Cleanup();
+        CurrentService = null;
     }
-
-    public void Run(IInteraction e)
+    private TResult EnsureCurrent<TResult>() where TResult : class, IAmbiguousServiceWrapper, new()
     {
-        if (Redirection != null)
+        if (this.CurrentService is not TResult result)
         {
-            Redirection.Run(e);
+            Cleanup();
+            result = new TResult();
         }
-        else
-        {
-            CurrentInstance.Enter(CurrentConstants, e);
-            Concatenation?.Run(e);
-        }
+        return result;
     }
-
+    private ServiceBuilder Cast<TResult>(TResult? item) where TResult : class, IInstanceWrapper, new() =>
+        (ServiceBuilder)(IInstanceWrapper)(item ?? throw new ArgumentNullException(nameof(item)));
     public void SetDefinition<TResult>(
         CursorText atPosition,
         string typename,
-        TResult concatenation,
-        TResult singleBranch,
         SortedList<string, object> constants,
-        SortedList<string, TResult> namedBranches)
-        where TResult : IInstanceWrapper, new()
+        SortedList<string, ServiceExpression<TResult>> wrappers)
+        where TResult : class, IInstanceWrapper, new()
     {
-        this.Redirection = null;
-        if (this.CurrentTypeName != typename)
-        {
-            if (this.CurrentInstance is IDisposable disposable)
-                disposable.Dispose();
-            this.CurrentTypeName = typename;
-            this.CurrentInstance = TypeRepository.Instance.CreateInstanceFor(this.CurrentTypeName, out this.currentType);
-            this.existingEventHandlers.Clear();
-            this.existingSingleBranchHandler = null;
-        }
-
-        if (concatenation is IInstanceWrapper concatWrapper &&
-            concatWrapper is ServiceBuilder concatBuilder)
-        {
-            this.Concatenation = concatBuilder;
-        }
-
-        this.CurrentConstants = new ServiceConstants(constants);
-        this.CurrentConstants.LastChange = Stopwatch.Elapsed;
-
-        var allEvents = currentType.GetEvents().ToArray();
-        var newEventHandlers = new SortedList<string, Delegate>();
-
-        EventInfo singleEvent = null;
-        if (allEvents.Count() == 1)
-            singleEvent = allEvents.ElementAt(0);
-
-        if (singleEvent == null)
-        {
-            var defaultsByAttribute = allEvents.Where(x => x.CustomAttributes.Any(x => x.AttributeType == typeof(DefaultBranchAttribute)));
-
-            if (defaultsByAttribute.Count() == 1)
-                singleEvent = defaultsByAttribute.ElementAt(0);
-        }
-
-        if (existingSingleBranchHandler != null &&
-            singleEvent != null)
-        {
-            singleEvent.RemoveEventHandler(this.CurrentInstance, existingSingleBranchHandler);
-        }
-
-        foreach (var item in allEvents)
-        {
-            if (existingEventHandlers.TryGetValue(item.Name, out var dlg))
-                item.RemoveEventHandler(this.CurrentInstance, dlg);
-
-            if (namedBranches.TryGetValue(item.Name, out var child))
-            {
-                var iWrapChild = (IInstanceWrapper)child;
-                var sbChild = (ServiceBuilder)iWrapChild;
-                var newEvent = newEventHandlers[item.Name] = new EventHandler<IInteraction>((s, e) =>
-                {
-                    sbChild.Run(e);
-                });
-                item.AddEventHandler(this.CurrentInstance, newEvent);
-            }
-        }
-
-        existingEventHandlers = newEventHandlers;
-
-        if (singleEvent != null &&
-            singleBranch is IInstanceWrapper singleWrapper &&
-            singleWrapper is ServiceBuilder singleBuilder)
-        {
-            existingSingleBranchHandler = new EventHandler<IInteraction>((s, e) =>
-            {
-                singleBuilder.Run(e);
-            });
-            singleEvent.AddEventHandler(this.CurrentInstance, existingSingleBranchHandler);
-        }
+        var wrapper = EnsureCurrent<DefinedServiceWrapper>();
+        var castWrappers = wrappers.ToDictionary(
+            x => x.Key,
+            x => Cast(x.Value.ResultSink));
+        wrapper.Update(atPosition, typename, constants, castWrappers);
+        CurrentService = wrapper;
     }
-
-    public void SetReference<TResult>(ServiceDescription<TResult> redirectsTo) where TResult : class, IInstanceWrapper, new()
+    public void SetSoftLink<TResult>(ServiceExpression<TResult> redirectsTo)
+        where TResult : class, IInstanceWrapper, new()
     {
-        if (redirectsTo.ResultSink is IInstanceWrapper redirWrapper &&
-            redirWrapper is ServiceBuilder redirBuilder)
-        {
-            this.Redirection = redirBuilder;
-        }
+        var wrapper = EnsureCurrent<SoftLinkingServiceWrapper>();
+        wrapper.SetTarget(Cast(redirectsTo.ResultSink));
+        CurrentService = wrapper;
+    }
+    public void SetHardLink<TResult>(ServiceExpression<TResult> redirectsTo)
+        where TResult : class, IInstanceWrapper, new()
+    {
+        var wrapper = EnsureCurrent<HardLinkingServiceWrapper>();
+        wrapper.SetTarget(Cast(redirectsTo.ResultSink));
+        CurrentService = wrapper;
+    }
+    public void SetUnconditionalSequence<TResult>(ServiceExpression<TResult>[] sequence)
+        where TResult : class, IInstanceWrapper, new()
+    {
+        var wrapper = EnsureCurrent<DoNextOnDoneWrapper>();
+        wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
+        CurrentService = wrapper;
+    }
+    public void SetAlternativeSequence<TResult>(ServiceExpression<TResult>[] sequence)
+        where TResult : class, IInstanceWrapper, new()
+    {
+        var wrapper = EnsureCurrent<DoNextOnElseWrapper>();
+        wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
+        CurrentService = wrapper;
+    }
+    public void SetContinueSequence<TResult>(ServiceExpression<TResult>[] sequence)
+        where TResult : class, IInstanceWrapper, new()
+    {
+        var wrapper = EnsureCurrent<DoNextOnThenWrapper>();
+        wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
+        CurrentService = wrapper;
+    }
+    public void Run(object sender, IInteraction interaction)
+    {
+        throw new NotImplementedException();
     }
 }

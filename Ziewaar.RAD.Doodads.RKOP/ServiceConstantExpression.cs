@@ -4,7 +4,6 @@ public class ServiceConstantExpression : IParityParser
 {
     public ConstantType ConstantType;
     private ServiceConstantsDescription Set;
-    private ServiceConstantsMember Member;
     public string TextValue;
     public (string WorkingDirectory, string RelativePath) PathValue;
     public bool BoolValue;
@@ -17,7 +16,6 @@ public class ServiceConstantExpression : IParityParser
         ConstantType.Bool => BoolValue,
         ConstantType.Number => NumberValue,
         ConstantType.Path => Path.Combine(PathValue.WorkingDirectory, PathValue.RelativePath),
-        ConstantType.Reference => Member.Value.GetValue(),
         ConstantType.Array => ArrayItems.Select(x => x.GetValue()).ToArray(),
         _ => throw new InvalidOperationException(),
     };
@@ -48,36 +46,6 @@ public class ServiceConstantExpression : IParityParser
             var stringRes = ConsumeRemainingStringIncludingQuotes(ref text, SetStringValue);
             inText = text;
             return stringRes;
-        }
-
-        text = text.TakeToken(TokenDescription.Identifier, out var firstId);
-        if (firstId.IsValid && bool.TryParse(firstId.Text, out bool resultBool))
-        {
-            inText = text;
-            return SetBoolValue(resultBool);
-        }
-        else if (firstId.IsValid)
-        {
-            text = text.TakeToken(TokenDescription.DecimalSeparator, out var point);
-            if (point.IsValid)
-            {
-                text = text.TakeToken(TokenDescription.Identifier, out var secondId);
-                if (secondId.IsValid &&
-                    text[$"const_{firstId.Text}"] is ServiceConstantsDescription scd &&
-                    scd.Members.SingleOrDefault(x => x.Key == secondId.Text) is ServiceConstantsMember member)
-                {
-                    inText = text;
-                    return this.SetReferencedValue(scd, member);
-                }
-                else
-                {
-                    throw new ReferenceException($"No constants set called {firstId.Text} in scope, or it has no member called {secondId.Text}");
-                }
-            }
-            else
-            {
-                throw new ReferenceException($"Identifier as expression must always be true, false or Reference.SeparatedByPeriod");
-            }
         }
 
         text = text.TakeToken(TokenDescription.Numbers, out var wholeNums);
@@ -168,15 +136,6 @@ public class ServiceConstantExpression : IParityParser
 
         return state;
     }
-
-    private ParityParsingState SetReferencedValue(ServiceConstantsDescription desc, ServiceConstantsMember mem)
-    {
-        this.ConstantType = ConstantType.Reference;
-        this.Set = desc;
-        this.Member = mem;
-        return ParityParsingState.Changed;
-    }
-
     private ParityParsingState SetBoolValue(bool resultBool)
     {
         var state = ParityParsingState.Unchanged;
@@ -235,8 +194,6 @@ public class ServiceConstantExpression : IParityParser
                 return this.BoolValue != value.BoolValue;
             case ConstantType.Number:
                 return this.NumberValue != value.NumberValue;
-            case ConstantType.Reference:
-                return this.Set.BranchKey != value.Set.BranchKey || this.Member.Key != value.Member.Key || this.Member.Value.Mismatches(value.Member.Value);
             case ConstantType.Path:
                 return this.PathValue != value.PathValue;
             case ConstantType.Array:
@@ -264,11 +221,6 @@ public class ServiceConstantExpression : IParityParser
                     writer.Write(((int)this.NumberValue).ToString());
                 else
                     writer.Write(this.NumberValue.ToString(CultureInfo.InvariantCulture));
-                break;
-            case ConstantType.Reference:
-                writer.Write(this.Set.BranchKey);
-                writer.Write(".");
-                writer.Write(this.Member.Key);
                 break;
             case ConstantType.Path:
                 writer.Write(@"f""");

@@ -1,12 +1,8 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Attributes;
-using Ziewaar.RAD.Doodads.CoreLibrary.Data;
-
-namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-
-
+﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 public interface IService
 {
-    [NamedBranch] public event EventHandler<IInteraction> OnError;
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
     void Enter(
         ServiceConstants serviceConstants,
         IInteraction interaction);

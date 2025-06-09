@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using Ziewaar.RAD.Doodads.RKOP;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class ProgramFactory
 {

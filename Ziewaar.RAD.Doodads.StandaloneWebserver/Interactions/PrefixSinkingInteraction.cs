@@ -2,25 +2,25 @@
 
 public class PrefixSinkingInteraction : ISinkingInteraction<Stream>
 {
-    private readonly MemoryStream prefixData;
+    private readonly MemoryStream PrefixData;
     public PrefixSinkingInteraction(IInteraction parent, long lastKnownStamp, SidechannelState when)
     {
         Parent = parent;
-        prefixData = new();
-        TaggedData = new PrefixSinkData(prefixData, lastKnownStamp, when);
+        PrefixData = new();
+        TaggedData = new PrefixSinkData(PrefixData, lastKnownStamp, when);
     }
     public ITaggedData<Stream> TaggedData { get; }
     public string Delimiter => "\n";
     public IInteraction Parent { get; }
     public IReadOnlyDictionary<string, object> Variables => Parent.Variables;
-    public bool HasData => prefixData.Length > 0;
+    public bool HasData => PrefixData.Length > 0;
     public string[]? GetAllPrefixes(ref long after)
     {
         if (!TaggedData.Tag.IsTainted || !HasData || after >= TaggedData.Tag.Stamp)
             return null;
         after = TaggedData.Tag.Stamp;
         List<string> prefixes = [];
-        using var reader = new StreamReader(prefixData);
+        using var reader = new StreamReader(PrefixData);
         while (!reader.EndOfStream)
             if (reader.ReadLine() is string prefixLine && !string.IsNullOrWhiteSpace(prefixLine))
                 prefixes.Add(prefixLine);

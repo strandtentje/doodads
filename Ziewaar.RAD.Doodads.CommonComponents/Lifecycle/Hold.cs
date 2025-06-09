@@ -6,14 +6,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 
 public class Hold : IService, IDisposable
 {
-    private List<ResidentialInteraction> history = new();
+    private List<ResidentialInteraction> History = new();
     public event EventHandler<IInteraction> OnError;
     [DefaultBranch]
     public event EventHandler<IInteraction> Continue;
     public event EventHandler<IInteraction> Name;
     public void Dispose()
     {
-        foreach (var item in history)
+        foreach (var item in History)
             item.Dispose();
     }
     public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
@@ -23,9 +23,9 @@ public class Hold : IService, IDisposable
         var name = SourceSetting(this.Name, "name", "default");
         var currentResident = ResidentialInteraction.CreateBlocked(
             interaction, name);
-        history.Add(currentResident);
+        History.Add(currentResident);
         Continue?.Invoke(this, currentResident);
         currentResident.Enter();
-        history.Remove(currentResident);
+        History.Remove(currentResident);
     }
 }

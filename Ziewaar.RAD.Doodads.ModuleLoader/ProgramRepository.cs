@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class ProgramRepository
 {

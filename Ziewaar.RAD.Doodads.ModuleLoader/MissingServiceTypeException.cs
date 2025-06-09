@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 [Serializable]
 public class MissingServiceTypeException : Exception

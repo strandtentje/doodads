@@ -8,10 +8,10 @@ public class CursorText(
     SortedList<string, object> localScope,
     int position = 0)
 {
-    public static readonly CursorText _empty = CursorText.Create(
+    private static readonly CursorText FixedEmpty = CursorText.Create(
         new DirectoryInfo(Environment.CurrentDirectory),
         "deleted", "");
-    public static CursorText Empty = _empty.AdvanceTo(0);
+    public static CursorText Empty = FixedEmpty.AdvanceTo(0);
     public DirectoryInfo WorkingDirectory => workingDirectory;
     public char[] Text => text;    
     public int Position => position;

@@ -1,7 +1,6 @@
 ﻿namespace Ziewaar.RAD.Doodads.RKOP;
 public class ServiceConstantsDescription : IParityParser
 {
-    public string BranchKey;
     public List<ServiceConstantsMember> Members = new();
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
@@ -28,9 +27,7 @@ public class ServiceConstantsDescription : IParityParser
 
         if (oCounter != Members.Count)
             finalState |= ParityParsingState.Changed;
-
-        text[$"const_{BranchKey}"] = this;
-
+        
         return finalState;
     }
     public void WriteTo(StreamWriter writer)
@@ -65,8 +62,6 @@ public class ServiceConstantsDescription : IParityParser
                 break;
             case ConstantType.Path:
                 toChange.Value.PathValue = (workingDir, reqValue);
-                break;
-            case ConstantType.Reference:
                 break;
             default:
                 break;

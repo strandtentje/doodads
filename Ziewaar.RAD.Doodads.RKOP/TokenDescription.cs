@@ -8,6 +8,15 @@ public class TokenDescription(
     public bool Predicate(int position, char character) => predicate(position, character);
     public bool Validate(string text) => validation(text);
     public string HumanReadable => humanReadable;
+    public static readonly TokenDescription IdentifierWithoutUnderscore = new TokenDescription(
+        (pos, chr) => pos switch
+        {
+            0 => char.IsLetter(chr),
+            _ => char.IsLetterOrDigit(chr) || chr == '_',
+        },
+        x => x.Length > 0,
+        "Identifier starting with letter and continuing with letter, digit or underscore"
+    );
     public static readonly TokenDescription Identifier = new TokenDescription(
         (pos, chr) => pos switch
         {
@@ -16,7 +25,7 @@ public class TokenDescription(
         },
         x => x.Length > 0,
         "Identifier starting with letter and continuing with letter, digit or underscore"
-        );
+    );
     public static TokenDescription DescribeSingleCharacter(char expectedCharacter, string humanReadable) => new TokenDescription(
         (pos, chr) => pos switch
         {
@@ -25,11 +34,13 @@ public class TokenDescription(
         }, x => x.Length == 1,
         humanReadable);
     public static readonly TokenDescription
+        Underscore = DescribeSingleCharacter('_', "Underscore"),
         StartOfArguments = DescribeSingleCharacter('(', "Opening bracket ("),
         EndOfArguments = DescribeSingleCharacter(')', "Closing bracket )"),
         ArgumentSeparator = DescribeSingleCharacter(',', "List separator (comma, ',')"),
         AssignmentOperator = DescribeSingleCharacter('=', "Assignment operator (equals, '=')"),
         Terminator = DescribeSingleCharacter(';', "Terminator char (semicol, ';')"),
+        DefaultBranchCoupler = DescribeSingleCharacter(':', "Coupler char (col, ':')"),
         TermOrAmpP = new TokenDescription(
             (pos, chr) => pos switch
             {
