@@ -44,4 +44,17 @@ public abstract class SerializableServiceSeries<TResultSink> :
             serviceExpression.Purge();
         Children = null;
     }
+    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(
+        Func<TDesiredResultSink, bool>? predicate = null) where TDesiredResultSink : class
+    {
+        predicate ??= x => true;
+        if (this is TDesiredResultSink desiredResultSink && predicate(desiredResultSink))
+            return desiredResultSink;
+        
+        var localMatches = Children?.OfType<TDesiredResultSink>().ToArray();
+        return 
+            localMatches?.Any() == true 
+                ? localMatches.SingleOrDefault(predicate)
+                : Children?.Select(x => x.GetSingleOrDefault(predicate)).SingleOrDefault();
+    }
 }

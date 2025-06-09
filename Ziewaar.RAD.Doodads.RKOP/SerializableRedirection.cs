@@ -57,4 +57,16 @@ public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultS
     {
         writer.Write(RefersToService?.CurrentNameInScope);
     }
+
+    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(Func<TDesiredResultSink, bool>? predicate = null) 
+        where TDesiredResultSink : class
+    {
+        predicate ??= x => true;
+        if (this is TDesiredResultSink selfDesired && predicate(selfDesired))
+            return selfDesired;
+        else if (RefersToService is TDesiredResultSink referalDesired && predicate(referalDesired))
+            return referalDesired;
+        else 
+            return null;
+    }
 }

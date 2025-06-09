@@ -47,4 +47,17 @@ public class CoalescingServiceDefinition<TResultSink> :
         else 
             throw new ArgumentException("no redirection or description");
     }
+    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(
+        Func<TDesiredResultSink, bool>? predicate = null) where TDesiredResultSink : class
+    {
+        predicate ??= x => true;
+        if (this is TDesiredResultSink selfDesired && predicate(selfDesired))
+            return selfDesired;
+        if (Redirection is TDesiredResultSink desirableRedirection && predicate(desirableRedirection))
+            return desirableRedirection;
+        else if (Description is TDesiredResultSink desirableDescription && predicate(desirableDescription))
+            return desirableDescription;
+        else
+            return null;
+    }
 }

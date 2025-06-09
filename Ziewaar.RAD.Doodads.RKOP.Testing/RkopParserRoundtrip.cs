@@ -5,41 +5,6 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
     [TestClass]
     public sealed class RkopParserRoundtrip
     {
-        public class MockWrapper : IInstanceWrapper
-        {
-            public void Cleanup()
-            {
-
-            }
-            public void SetDefinition<TResult>(CursorText atPosition, string typename, SortedList<string, object> constants, SortedList<string, ServiceExpression<TResult>> wrappers) where TResult : class, IInstanceWrapper, new()
-            {
-                
-            }
-            public void SetSoftLink<TResult>(ServiceExpression<TResult> redirectsTo) where TResult : class, IInstanceWrapper, new()
-            {
-                
-            }
-            public void SetHardLink<TResult>(ServiceExpression<TResult> redirectsTo) where TResult : class, IInstanceWrapper, new()
-            {
-                
-            }
-            public void SetUnconditionalSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new()
-            {
-                
-            }
-            public void SetAlternativeSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new()
-            {
-                
-            }
-            public void SetContinueSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new()
-            {
-                
-            }
-            public void SetDefinition<TResult>(CursorText atPosition, string typename, TResult? nextInLine, TResult? continuation, SortedList<string, object> constants, SortedList<string, TResult> wrappers) where TResult : IInstanceWrapper, new()
-            {
-                
-            }
-        }
         [TestMethod]
         public void TestEmptyFile()
         {
@@ -48,7 +13,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(Directory.GetCurrentDirectory()),
                 "test",
                 $"");
-            var result = desc.UpdateFrom(ref empty);
+            var result = desc.UpdateFrom("test", ref empty);
             Assert.AreEqual(ParityParsingState.Void, result);
         }
         [TestMethod]
@@ -61,7 +26,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 $"""
                    
                 """);
-            var result = desc.UpdateFrom(ref empty);
+            var result = desc.UpdateFrom("test", ref empty);
             Assert.AreEqual(0, empty.LocalScope.Count);
             Assert.AreEqual(ParityParsingState.Void, result);
         }
@@ -73,16 +38,16 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(Directory.GetCurrentDirectory()),
                 "test",
                 $"""
-                Entry->SomeService();
+                SomeService();
                 """);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
             Assert.IsTrue(result > ParityParsingState.Unchanged);
             Assert.IsTrue(simple.LocalScope.TryGetValue("Entry", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
             Assert.IsTrue(simple.LocalScope.TryGetValue("const_Entry", out var consts));
             Assert.IsTrue(consts is ServiceConstantsDescription scDesc && scDesc.Members.Count == 0);
-            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
-            Assert.AreEqual("SomeService", desc.ServiceTypeName);
+            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
+            Assert.AreEqual(0, desc.Constructor.Constants.Members.Count);
         }
 
 
@@ -95,24 +60,21 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 $"""
-                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt");
+                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt");
                 """);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
             Assert.IsTrue(result > ParityParsingState.Unchanged);
-            Assert.IsTrue(simple.LocalScope.TryGetValue("Entry", out var cEntry));
-            Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
-            Assert.IsTrue(simple.LocalScope.TryGetValue("const_Entry", out var consts));
-            Assert.IsTrue(consts is ServiceConstantsDescription scDesc && scDesc.Members.Count == 4);
-            var assertedConsts = (ServiceConstantsDescription)consts;
-            Assert.AreEqual("oy!", assertedConsts.Members.Single(x => x.Key == "yotta").Value.GetValue());
-            Assert.AreEqual(123M, assertedConsts.Members.Single(x => x.Key == "terra").Value.GetValue());
-            Assert.AreEqual(false, assertedConsts.Members.Single(x => x.Key == "stinky").Value.GetValue());
-            (string x, string y) registeredPath = ((string x, string y))assertedConsts.Members.Single(x => x.Key == "path").Value.GetValue();
+            var consts = desc.Constructor.Constants;
+            Assert.IsTrue(consts.Members.Count == 4);
+            Assert.AreEqual("oy!", consts.Members.Single(x => x.Key == "yotta").Value.GetValue());
+            Assert.AreEqual(123M, consts.Members.Single(x => x.Key == "terra").Value.GetValue());
+            Assert.AreEqual(false, consts.Members.Single(x => x.Key == "stinky").Value.GetValue());
+            (string x, string y) registeredPath = ((string x, string y))consts.Members.Single(x => x.Key == "path").Value.GetValue();
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
-            Assert.AreEqual("SomeService", desc.ServiceTypeName);
+            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
         }
-
+        
+        
 
         [TestMethod]
         public void TestNestingConstantsDeclaration()
@@ -123,12 +85,12 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 """
-                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep");
                     Child2->MoreService(peta = "boop");
                 };
                 """);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
             Assert.IsTrue(result > ParityParsingState.Unchanged);
             Assert.IsTrue(simple.LocalScope.TryGetValue("Entry", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
@@ -140,14 +102,16 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual(false, assertedConsts.Members.Single(x => x.Key == "stinky").Value.GetValue());
             (string x, string y) registeredPath = ((string x, string y))assertedConsts.Members.Single(x => x.Key == "path").Value.GetValue();
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
-            Assert.AreEqual("SomeService", desc.ServiceTypeName);
+            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
 
-            Assert.AreEqual(2, desc.Children.Count);
-            Assert.AreEqual("Child", desc.Children[0].ConstantsDescription.BranchKey);
-            Assert.AreEqual("Child2", desc.Children[1].ConstantsDescription.BranchKey);
-            Assert.AreEqual("OtherService", desc.Children[0].ServiceTypeName);
-            Assert.AreEqual("MoreService", desc.Children[1].ServiceTypeName);
+            var child = desc.GetSingleOrDefault<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child")?.GetSingleOrDefault<ServiceDescription<MockWrapper>>();
+            var child2 = desc.GetSingleOrDefault<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child2")?.GetSingleOrDefault<ServiceDescription<MockWrapper>>();
+            Assert.IsNotNull(child);
+            Assert.IsNotNull(child2);
+            Assert.IsNotNull(desc.Children.Branches);
+            Assert.AreEqual(2, desc.Children.Branches.Count);
+            Assert.AreEqual("OtherService", child.Constructor.ServiceTypeName);
+            Assert.AreEqual("MoreService", child2.Constructor.ServiceTypeName);
         }
         [TestMethod]
         public void TestNestingReferringConstantsDeclaration()
@@ -158,7 +122,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 """
-                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep");
                     _EarlyDefine->SecretService();
                     Child2->MoreService(peta = "boop") {
@@ -166,7 +130,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                     };
                 };
                 """);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
             Assert.IsTrue(result > ParityParsingState.Unchanged);
             Assert.IsTrue(simple.LocalScope.TryGetValue("Entry", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
@@ -178,22 +142,34 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual(false, assertedConsts.Members.Single(x => x.Key == "stinky").Value.GetValue());
             (string x, string y) registeredPath = ((string x, string y))assertedConsts.Members.Single(x => x.Key == "path").Value.GetValue();
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("Entry", desc.ConstantsDescription.BranchKey);
-            Assert.AreEqual("SomeService", desc.ServiceTypeName);
+            
+            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
 
-            Assert.AreEqual(3, desc.Children.Count);
-            Assert.AreEqual("Child", desc.Children[0].ConstantsDescription.BranchKey);
-            Assert.AreEqual("_EarlyDefine", desc.Children[1].ConstantsDescription.BranchKey);
-            Assert.AreEqual("Child2", desc.Children[2].ConstantsDescription.BranchKey);
-            Assert.AreEqual("OtherService", desc.Children[0].ServiceTypeName);
-            Assert.AreEqual("SecretService", desc.Children[2].Children[0].RedirectsTo?.ServiceTypeName);
-            Assert.AreEqual("MoreService", desc.Children[2].ServiceTypeName);
+            Assert.IsNotNull(desc.Children.Branches);
+            Assert.AreEqual(3, desc.Children.Branches.Count);
+            
+            var child = desc.GetSingleOrDefault<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child")?.GetSingleOrDefault<ServiceDescription<MockWrapper>>();
+            var earlyDefine = desc.GetSingleOrDefault<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "_EarlyDefine")?.GetSingleOrDefault<ServiceDescription<MockWrapper>>();
+            var child2 = desc.GetSingleOrDefault<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child2")?.GetSingleOrDefault<ServiceDescription<MockWrapper>>();
+            var callBack = desc.GetSingleOrDefault<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "CallBackBranch")?.GetSingleOrDefault<SerializableRedirection<MockWrapper>>();
+            var callbackDefinition = callBack?.GetSingleOrDefault<ServiceDescription<MockWrapper>>();
+            
+            Assert.IsNotNull(child);
+            Assert.IsNotNull(earlyDefine);
+            Assert.IsNotNull(child2);
+            Assert.IsNotNull(callBack);
+            Assert.IsNotNull(callbackDefinition);
+            
+            Assert.AreEqual("OtherService", child.Constructor.ServiceTypeName);
+            Assert.AreEqual("SecretService", earlyDefine.Constructor.ServiceTypeName);
+            Assert.AreEqual("MoreService", child2.Constructor.ServiceTypeName);
+            Assert.AreEqual(earlyDefine, callbackDefinition);
         }
         [TestMethod]
         public void TestRoundtrip()
         {
             var testText = """
-                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep");
                     _EarlyDefine->SecretService();
                     Child2->MoreService(peta = "boop") {
@@ -208,7 +184,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -225,7 +201,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestContinueRoundtrip()
         {
             var testText = """
-                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep");
                     _EarlyDefine->SecretService();
                     Child2->MoreService(peta = "boop"):OtherService() {
@@ -240,7 +216,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -256,7 +232,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestConcatRoundtrip()
         {
             var testText = """
-                Entry->SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
+                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep")
                          & PieService(farts = 44);
                     Baby->OtherService(exa = "beep"):Tubes()
@@ -276,7 +252,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -292,7 +268,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestMixedConcatRoundtrip()
         {
             var testText = """
-                start->Definition():Hold() {
+                Definition():Hold() {
                     Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
                             & ConsoleReadLine():Release();
                 };
@@ -304,7 +280,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -320,7 +296,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestFunkySpacedRoundtrip()
         {
             var testText = """
-                start->Definition():Hold() {
+                Definition():Hold() {
                     Continue 
                     -> ConsoleOutput():ConstantTextSource(text = "Koetjesrepen") 
                     &  ConsoleReadLine():Release();
@@ -328,7 +304,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 """;
 
             var fixedText = """
-                start->Definition():Hold() {
+                Definition():Hold() {
                     Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
                             & ConsoleReadLine():Release();
                 };
@@ -340,7 +316,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -357,13 +333,13 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestArrayRoundtrip()
         {
             var testText = """
-                start->Definition():Hold(items = ["honky", "tonky", "phonky"]) {
+                Definition():Hold(items = ["honky", "tonky", "phonky"]) {
                     Continue-> ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")   &  ConsoleReadLine():Release();
                 };
                 """;
 
             var fixedText = """
-                start->Definition():Hold(items = ["honky", "tonky", "phonky"]) {
+                Definition():Hold(items = ["honky", "tonky", "phonky"]) {
                     Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
                             & ConsoleReadLine():Release();
                 };
@@ -375,7 +351,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -392,7 +368,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestDirtyArrayRoundtrip()
         {
             var testText = """
-                start->Definition():Hold(items = [
+                Definition():Hold(items = [
                 "honky",
                 , "tonky","phonky",]) {
                     Continue 
@@ -402,7 +378,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 """;
 
             var fixedText = """
-                start->Definition():Hold(items = ["honky", "tonky", "phonky"]) {
+                Definition():Hold(items = ["honky", "tonky", "phonky"]) {
                     Continue->ConsoleOutput():ConstantTextSource(text = "Koetjesrepen")
                             & ConsoleReadLine():Release();
                 };
@@ -414,7 +390,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -431,7 +407,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestRedirectionsMoreBetter()
         {
             var testText = """
-                start->Definition():Hold() {
+                Definition():Hold() {
                     _server->WebServer(prefixes = ["http://localhost:8533/"]):Call(modulefile = "C:\\Users\\deFine\\source\\repos\\Ziewaar.RAD.Doodads.Editor");
                     _instructionLoop->ConsoleReadLine():Option(equals = "stop") {
                         Continue->ConsoleOutput():ConstantTextSource(text = "Received stop instruction")
@@ -449,7 +425,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -466,7 +442,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
         public void TestRedirectionsMoreBetterWithAmpersands()
         {
             var testText = """
-                start->Definition():Hold() {
+                Definition():Hold() {
                     _instructionLoop->VoidService();
                     _server->WebServer(prefixes = ["http://localhost:8533/"]):Call(modulefile = "C:\\Users\\deFine\\source\\repos\\Ziewaar.RAD.Doodads.Editor")
                            & _instructionLoop;
@@ -489,7 +465,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom(ref simple);
+            var result = desc.UpdateFrom("test",ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);

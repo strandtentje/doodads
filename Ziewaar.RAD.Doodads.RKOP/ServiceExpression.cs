@@ -28,4 +28,7 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
     public abstract void HandleChanges();
     public abstract void Purge();
     public abstract void WriteTo(StreamWriter writer, int indentation = 0);
+    public abstract TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(
+        Func<TDesiredResultSink, bool>? predicate = null)
+        where TDesiredResultSink : ServiceExpression<TResultSink>;
 }

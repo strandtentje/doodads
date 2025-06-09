@@ -37,4 +37,12 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
         Constructor.WriteTo(writer, indentation);
         Children.WriteTo(writer, indentation);
     }
+    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(Func<TDesiredResultSink, bool>? predicate = null)
+        where TDesiredResultSink : class
+    {
+        if (this is TDesiredResultSink selfDesired && (predicate == null || predicate(selfDesired)))
+            return selfDesired;
+        else 
+            return Children.Branches?.Values.Select(x => x.GetSingleOrDefault(predicate)).SingleOrDefault();
+    }
 }
