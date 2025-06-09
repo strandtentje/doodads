@@ -1,0 +1,33 @@
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+
+public class ReturnElse : IService
+{
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        if (FindCallerOfCurrentScope(interaction).TryGetClosest<CallingInteraction>(out var callingInteraction))
+            callingInteraction!.InvokeOnElse(new ReturningInteraction(interaction, callingInteraction, constants.NamedItems));
+    }
+
+    /// <summary>
+    /// This function deals with the fact that modules can call other modules,
+    /// and if control is returned to another module, and that other higher-up
+    /// module tries to do a return, we don't return to that inner module invocation,
+    /// but rather the actual invocation that belongs to the scope we're looking at.
+    /// </summary>
+    /// <param name="interaction"></param>
+    /// <returns>A free calling interaction that belongs to the caller of this module</returns>
+    private static IInteraction FindCallerOfCurrentScope(IInteraction interaction)
+    {
+        var offset = interaction;
+        while (offset.TryGetClosest<ReturningInteraction>(out var candidateOffset))
+        {
+            offset = candidateOffset!.Cause.Stack;
+        }
+
+        return offset;
+    }
+}

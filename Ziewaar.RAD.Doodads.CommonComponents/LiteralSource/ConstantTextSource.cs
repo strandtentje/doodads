@@ -3,21 +3,23 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 public class ConstantTextSource : IService
 {
-    public event EventHandler<IInteraction> OnError;
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    private readonly UpdatingPrimaryValue PlainTextValue = new();
+    private readonly UpdatingKeyValue ContentType = new("contenttype");
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (!interaction.TryRequireStreamingUpdate(serviceConstants.LastChange.Ticks, 
-            out var source, out var writer, out var delimiter))
-            return;
-        if (source.IsContentTypeApplicable(serviceConstants.InsertIgnore("content-type", "*/*")))
+        (constants, PlainTextValue).IsRereadRequired(out string plainText);
+        (constants, ContentType).IsRereadRequired(() => "*/*", out var contentType);
+
+        if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkInteraction))
         {
-            writer.Write(serviceConstants.InsertIgnore("text", ""));
-            writer.Write(delimiter);
-            writer.Flush();
-        } else
+            sinkInteraction.WriteSegment(plainText, contentType);
+        }
+        else
         {
-            OnError?.Invoke(this, 
-                VariablesInteraction.ForError(interaction, "Update required but no content type applicable"));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "unable to find text sink"));
         }
     }
 }

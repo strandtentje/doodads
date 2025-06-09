@@ -1,9 +1,0 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Interactions;
-
-public class ServiceChangeInteraction(IInteraction parent, ServiceDescription<ServiceBuilder> definition, KnownProgram program) : IInteraction
-{
-    public ServiceDescription<ServiceBuilder> Definition => definition;
-    public KnownProgram Program => program;
-    public IInteraction Parent => parent;
-    public IReadOnlyDictionary<string, object> Variables => throw new NotImplementedException();
-}

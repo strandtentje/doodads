@@ -3,6 +3,7 @@ namespace Ziewaar.RAD.Doodads.RKOP;
 public class SerializableConstructor : IParityParser
 {
     public string? ServiceTypeName { get; private set; }
+    public ServiceConstantExpression PrimaryExpression { get; private set; } = new();
     public ServiceConstantsDescription Constants { get; private set; } = new();
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
@@ -13,7 +14,9 @@ public class SerializableConstructor : IParityParser
             .ValidateToken(TokenDescription.StartOfArguments,
                 out var _);
 
-        var state = Constants.UpdateFrom(ref text);
+        
+        
+        var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
 
         text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.EndOfArguments, out var _);
 

@@ -3,7 +3,8 @@ public interface IService
 {
     public event EventHandler<IInteraction> OnThen;
     public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException; 
     void Enter(
-        ServiceConstants serviceConstants,
+        StampedMap constants,
         IInteraction interaction);
 }

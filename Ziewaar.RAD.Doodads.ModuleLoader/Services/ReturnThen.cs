@@ -1,11 +1,13 @@
 ﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
-public class Return : IService
+public class ReturnThen : IService
 {
-    public event EventHandler<IInteraction> OnError;
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (FindCallerOfCurrentScope(interaction).TryGetClosest<CallingInteraction>(out var callingInteraction))
-            callingInteraction.Continue(new ReturningInteraction(interaction, callingInteraction, serviceConstants));
+            callingInteraction!.InvokeOnThen(new ReturningInteraction(interaction, callingInteraction, constants.NamedItems));
     }
 
     /// <summary>
@@ -21,7 +23,7 @@ public class Return : IService
         var offset = interaction;
         while (offset.TryGetClosest<ReturningInteraction>(out var candidateOffset))
         {
-            offset = candidateOffset.Cause.Parent;
+            offset = candidateOffset!.Cause.Stack;
         }
 
         return offset;

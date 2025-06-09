@@ -1,19 +1,17 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Attributes;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 public class Definition : IService
 {    
-    public event EventHandler<IInteraction> OnError;
-    [DefaultBranch]
-    public event EventHandler<IInteraction> Begin;
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (interaction.TryGetClosest<CallingInteraction>(out var ci))
         {
-            Begin?.Invoke(this, new VariablesInteraction(interaction, serviceConstants));
+            OnThen?.Invoke(this, new CommonInteraction(interaction, constants.NamedItems));
         } else if (interaction.TryGetClosest<ISelfStartingInteraction>(out var ss))
         {
-            Begin?.Invoke(this, new VariablesInteraction(interaction, serviceConstants));
+            OnThen?.Invoke(this, new CommonInteraction(interaction, constants.NamedItems));
         }
     }
 }

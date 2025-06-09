@@ -12,17 +12,6 @@ public static class SortedListExtensions
             list[key] = candidateResultValue = defaultValue;
         return candidateResultValue;
     }
-#nullable enable
-    public static TResult[]? RequireUpdatedItemsOf<TResult>(this ServiceConstants list, string key, ref long minStamp)
-    {
-        if (minStamp >= list.LastChange.Ticks)
-            return null;
-        minStamp = list.LastChange.Ticks;
-        var objectResult = list.InsertIgnore<object[]>(key, []);
-        var result = objectResult.OfType<TResult>().ToArray();
-        return result.Length > 0 ? result : null;
-    }
-#nullable disable
     public static SortedList<string, object> ToSortedList(this Exception ex, bool includeStack = true, bool includeData = true, bool includeInner = true)
     {
         var result = new SortedList<string, object>

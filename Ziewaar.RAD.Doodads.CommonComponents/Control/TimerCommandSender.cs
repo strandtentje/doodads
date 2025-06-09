@@ -2,13 +2,12 @@
 {
     public abstract class TimerCommandSender(TimerCommand command) : IService
     {
-        [NamedBranch]
-        public event EventHandler<IInteraction> OnError;
-        [NamedBranch]
-        public event EventHandler<IInteraction> Continue;
-        public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+        public event EventHandler<IInteraction> OnThen;
+        public event EventHandler<IInteraction> OnElse;
+        public event EventHandler<IInteraction> OnException;
+        public void Enter(StampedMap constants, IInteraction interaction)
         {
-            Continue?.Invoke(this, new TimerCommandInteraction(interaction, command));
+            OnThen?.Invoke(this, new TimerCommandInteraction(interaction, command));
         }
     }
 }

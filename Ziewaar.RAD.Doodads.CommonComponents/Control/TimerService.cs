@@ -1,37 +1,65 @@
 ﻿using System.Threading;
-
+#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control
 {
     public class TimerService : IService, IDisposable
     {
-        private Timer CurrentTimer;
-        [NamedBranch]
-        public event EventHandler<IInteraction> OnError;
-        [NamedBranch]
-        public event EventHandler<IInteraction> Continue;
+        private Timer? CurrentTimer;
         public void Dispose() => CurrentTimer?.Dispose();
-        public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+        private readonly UpdatingPrimaryValue TimeSettingConstant = new();
+        private readonly UpdatingKeyValue PeriodConstant = new("period");
+        private readonly UpdatingKeyValue DueConstant = new("due");
+        private decimal Period, Due;
+        public event EventHandler<IInteraction> OnThen;
+        public event EventHandler<IInteraction> OnElse;
+        public event EventHandler<IInteraction> OnException;
+        public void Enter(StampedMap constants, IInteraction interaction)
         {
-            if (!interaction.TryGetClosest<TimerCommandInteraction>(out var candidateCommand, x => x.IsConsumed) || 
+            ValidateConstants(constants);
+            if (!interaction.TryGetClosest<TimerCommandInteraction>(out var candidateCommand, x => x.IsConsumed) ||
                 candidateCommand is not TimerCommandInteraction timerCommand)
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, "No command provided for timer"));
                 return;
+            }
 
             if (timerCommand.Command == TimerCommand.Start && this.CurrentTimer == null)
             {
-                var stringPeriod = serviceConstants.InsertIgnore<string>("period", "5.5");
-                var stringDue = serviceConstants.InsertIgnore<string>("due", "5.5");
-                var decmialPeriod = decimal.TryParse(stringPeriod, out decimal candidatePeriod) ? candidatePeriod : decimal.MaxValue;
-                var decimalDue = decimal.TryParse(stringDue, out decimal candidateDue) ? candidateDue : decimal.MaxValue;
-                var tsPeriod = TimeSpan.FromSeconds((double)decmialPeriod);
-                var tsDue = TimeSpan.FromSeconds((double)decimalDue);
-
                 this.CurrentTimer = new Timer(_ =>
                 {
-                    Continue?.Invoke(this, interaction);
-                }, null, tsDue, tsPeriod);                
+                    OnThen?.Invoke(this, interaction);
+                }, null, Convert.ToInt64(this.Due), Convert.ToInt64(this.Period));
             } else if (timerCommand.Command == TimerCommand.Stop && this.CurrentTimer != null)
             {
                 this.CurrentTimer.Dispose();
+            }
+            else
+            {
+                OnElse?.Invoke(this, interaction);
+            }
+        }
+        private void ValidateConstants(StampedMap constants)
+        {
+            var periodNew = (constants, PeriodConstant).IsRereadRequired(() => 1000M, out Period);
+            var dueNew = (constants, DueConstant).IsRereadRequired(() => 1000M, out Due);
+            if ((constants, TimeSettingConstant).IsRereadRequired(() => { return $"{Period:0000}-{Due:0000}"; },
+                    out string? config))
+            {
+                var splitStr = config?.Split("-") ?? [];
+                if (splitStr.Length >= 2)
+                {
+                    Period = periodNew ? Period : Convert.ToDecimal(splitStr[0]);
+                    Due = dueNew ? Due : Convert.ToDecimal(splitStr[1]);
+                } else if (splitStr.Length == 1)
+                {
+                    Period = periodNew ? Period : Convert.ToDecimal(splitStr[0]);
+                    Due = dueNew ? Due : Convert.ToDecimal(splitStr[0]);
+                }
+                else
+                {
+                    Period = periodNew ? Period : 1000M;
+                    Due = dueNew ? Due : 1000M;
+                }
             }
         }
     }

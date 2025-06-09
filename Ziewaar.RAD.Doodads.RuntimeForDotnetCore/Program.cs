@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.ModuleLoader;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-
+#nullable enable
 internal class Program
 {
     private static void Main(string[] args)
@@ -25,7 +25,7 @@ internal class Program
             PopulateWith(typeof(Template).Assembly).
             PopulateWith(typeof(Definition).Assembly);
 
-        var rootInteraction = new RootInteraction(parsedArgs.Options);
+        var rootInteraction = new RootInteraction("", parsedArgs.Options);
 
         foreach (var item in files)
         {
@@ -36,13 +36,13 @@ internal class Program
                 using (var cfg = File.CreateText(item))
                 {
                     cfg.Write("""
-                        start->Definition():Hold():ConsoleOutput():ConstantTextSource(text = "Doodads"):ConsoleReadLine():Release();
+                        Definition():Hold():ConsoleOutput():ConstantTextSource(text = "Doodads"):ConsoleInput():First():Release();
                         """);
                 }
             }
 
             var program = ProgramRepository.Instance.GetForFile(item);
-            program.EntryPoint.Run(rootInteraction);
+            program.EntryPoint.Run(new object(), rootInteraction);
         }
     }
 }

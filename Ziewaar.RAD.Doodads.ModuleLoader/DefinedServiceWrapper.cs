@@ -1,4 +1,5 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
+#nullable enable
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private Type? CurrentType;
@@ -7,10 +8,11 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     private Delegate? DoneDelegate;
     public string? TypeName { get; private set; }
     public IService? Instance { get; private set; }
-    public ServiceConstants Constants { get; private set; }
+    public StampedMap? Constants { get; private set; }
     public void Update(
         CursorText atPosition,
         string typename,
+        object? primaryValue,
         SortedList<string, object> constants,
         IDictionary<string, ServiceBuilder> branches)
     {
@@ -20,7 +22,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             this.TypeName = typename;
             this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, out this.CurrentType);
         }
-        this.Constants = new ServiceConstants(constants);
+        this.Constants = new StampedMap(constants);
 
         var allEvents = CurrentType.GetEvents().ToArray();
         var newEventHandlers = new SortedList<string, List<Delegate>>();

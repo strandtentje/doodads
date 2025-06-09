@@ -2,6 +2,7 @@
 
 public interface IInteraction
 {
-    IInteraction Parent { get; }
-    IReadOnlyDictionary<string, object> Variables { get; }
+    IInteraction Stack { get; }
+    object Register { get; }
+    IReadOnlyDictionary<string, object> Memory { get; }
 }

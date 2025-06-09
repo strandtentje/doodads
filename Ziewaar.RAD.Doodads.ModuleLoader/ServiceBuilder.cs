@@ -22,6 +22,7 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
     public void SetDefinition<TResult>(
         CursorText atPosition,
         string typename,
+        object? primaryValue,
         SortedList<string, object> constants,
         SortedList<string, ServiceExpression<TResult>> wrappers)
         where TResult : class, IInstanceWrapper, new()
@@ -30,7 +31,7 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         var castWrappers = wrappers.ToDictionary(
             x => x.Key,
             x => Cast(x.Value.ResultSink));
-        wrapper.Update(atPosition, typename, constants, castWrappers);
+        wrapper.Update(atPosition, typename, primaryValue, constants, castWrappers);
         CurrentService = wrapper;
     }
     public void SetSoftLink<TResult>(ServiceExpression<TResult> redirectsTo)

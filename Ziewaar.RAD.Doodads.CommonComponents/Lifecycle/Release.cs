@@ -1,21 +1,35 @@
 ﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
-
+#nullable enable
 public class Release : IService
 {
-    [DefaultBranch]
-    public event EventHandler<IInteraction> OnError;
-    public event EventHandler<IInteraction> Name;
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    private readonly UpdatingPrimaryValue LockNameConstant = new();
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? Name;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>? OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
-        string SourceSetting(EventHandler<IInteraction> forwardSourcing, string name, string fallback) =>
-            (this, serviceConstants, interaction, forwardSourcing).SourceSetting(name, fallback);
-        var name = SourceSetting(this.Name, "name", "default");
-        if (interaction.TryGetClosest<ResidentialInteraction>(out var candidate, x => x.Name == name))
+        (constants, LockNameConstant).IsRereadRequired(out string? lockName);
+        var nameSource = new TextSinkingInteraction(interaction);
+        Name?.Invoke(this, interaction);
+        string? desiredName = lockName;
+        using (var rd = nameSource.GetDisposingSinkReader())
+        {
+            desiredName ??= rd.ReadToEnd();
+        }
+        if (string.IsNullOrWhiteSpace(desiredName))
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "Hold Lock required name"));
+            return;
+        }
+        if (interaction.TryGetClosest<ResidentialInteraction>(out var candidate, x => x.Name == desiredName) && 
+            candidate != null)
         {
             candidate.Leave();
+            OnThen?.Invoke(this, interaction);
         } else
         {
-            OnError?.Invoke(this, VariablesInteraction.ForError(interaction, "Cannot terminate non-existent residence."));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "Cannot terminate non-existent residence."));
         }
     }
 }

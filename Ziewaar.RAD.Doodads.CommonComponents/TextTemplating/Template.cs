@@ -1,31 +1,42 @@
 ﻿namespace Ziewaar.RAD.Doodads.CommonComponents;
-
+#nullable enable
 public class Template : IService
 {
+    private TextSinkingInteraction? templatefile = null;
     private readonly TemplateParser Parser = new();
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>? OnException;
 
-    [NamedBranch] public event EventHandler<IInteraction> Format;
-    [NamedBranch] public event EventHandler<IInteraction> Placeholder;
-    public event EventHandler<IInteraction> OnError;
-    public void Enter(ServiceConstants constants, IInteraction interaction)
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
-        var templateRequestInteraction =
-            new TemplateSinkingInteraction<Stream>(interaction, this.Parser.CurrentTemplateData);
-        Format?.Invoke(this, templateRequestInteraction);
-        Parser.RefreshTemplateData(templateRequestInteraction.TaggedData);
+        if (!interaction.TryGetClosest<ISinkingInteraction>(out var output) || output == null)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template into."));
+            return;
+        }
 
-        var wildcardName = constants.InsertIgnore("wildcardname", "placeholder");
-        var wildcardValueFormat = constants.InsertIgnore("wildcardvalue", "{0}");
+        if (templatefile != null)
+        {
+            var updateChecker = new CheckUpdateRequiredInteraction(interaction, templatefile);
+            OnThen?.Invoke(this, updateChecker);
+            if (updateChecker.IsRequired)
+            {
+                templatefile.SinkBuffer.Dispose();
+                templatefile = null;
+            }
+        }
 
-        var outputSinker = interaction.ResurfaceWriter();
-        outputSinker.TaggedData.Tag.IsTainted = true;
-        var writer = outputSinker.TaggedData.Data;
+        if (templatefile == null)
+        {
+            templatefile = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
+            OnThen?.Invoke(this, templatefile);
+            Parser.RefreshTemplateData(templatefile.GetDisposingSinkReader());
+        }
 
-        VariablesInteraction CreateWildcardForSegment(TemplateCommand segment) => 
-            VariablesInteraction.
-            CreateBuilder(outputSinker).
-            Add(wildcardName, string.Format(wildcardValueFormat, segment.Payload)).
-            Build();
+        if (templatefile.SinkTrueContentType?.Contains('*') == false)
+            output.SinkTrueContentType ??= templatefile.SinkTrueContentType;
+        using var writer = output.GetWriter(templatefile.SinkTrueContentType);
 
         foreach (var segment in Parser.TemplateCommands)
         {
@@ -36,46 +47,51 @@ public class Template : IService
                     break;
 
                 case TemplateCommandType.VariableSource
-                    when interaction.Variables.TryGetValue(segment.Payload, out var rawObject) &&
-                         rawObject is string rawText:
-                    writer.Write(segment.Type.ApplyFilterTo(rawText));
+                    when interaction.TryFindVariable<object>(segment.Payload, out var rawValue):
+                    if (rawValue is string rawText)
+                        writer.Write(segment.Type.ApplyFilterTo(rawText));
+                    else
+                        writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(rawValue)));
                     break;
 
                 case TemplateCommandType.CallOutSource
                     when (segment.Type & TemplateCommandType.AllFilters) == TemplateCommandType.NoFilter:
-                    Placeholder?.Invoke(this, CreateWildcardForSegment(segment));
+                    OnElse?.Invoke(this, new CommonInteraction(interaction, segment.Payload));
                     break;
 
                 case TemplateCommandType.CallOutSource
                     when (segment.Type & TemplateCommandType.AllFilters) != TemplateCommandType.NoFilter:
-                    var callOutIntermediate = new RawStringSinkingInteraction(CreateWildcardForSegment(segment));
-                    Placeholder?.Invoke(this, callOutIntermediate);
-                    writer.Write(segment.Type.ApplyFilterTo(callOutIntermediate.GetFullString()));
+                    var callOutIntermediate = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
+                    OnElse?.Invoke(this, callOutIntermediate);
+                    writer.Write(segment.Type.ApplyFilterTo(callOutIntermediate.GetDisposingSinkReader().ReadToEnd()));
                     break;
 
                 case TemplateCommandType.CallOutOrVariable:
-                    var perhapsCallout = new RawStringSinkingInteraction(CreateWildcardForSegment(segment));
-                    Placeholder?.Invoke(this, perhapsCallout);
-
-                    if (!perhapsCallout.TaggedData.Tag.IsTainted &&
-                        interaction.Variables.TryGetValue(segment.Payload, out var rawAlternative) &&
-                        rawAlternative is string rawAltText)
-                        writer.Write(segment.Type.ApplyFilterTo(rawAltText));
+                    if (!interaction.TryFindVariable<object>(segment.Payload, out var defaultValue))
+                    {
+                        var attemptedCallOut = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
+                        OnElse?.Invoke(this, attemptedCallOut);
+                        var text = attemptedCallOut.GetDisposingSinkReader().ReadToEnd();
+                        writer.Write(segment.Type.ApplyFilterTo(text));
+                        if (text.Length > 0)
+                            break;
+                    }
+                    if (defaultValue is string defaultString)
+                        writer.Write(segment.Type.ApplyFilterTo(defaultString));
                     else
-                        writer.Write(segment.Type.ApplyFilterTo(perhapsCallout.GetFullString()));
+                        writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(defaultValue)));
+                    
                     break;
 
                 case TemplateCommandType.ConstantSource:
-                    if (!constants.TryGetValue(segment.Payload, out var rawObjectConstant))
-                        constants.Add(segment.Payload, rawObjectConstant = "");
-                    if (rawObjectConstant is not string rawStringConstant)
-                        constants[segment.Payload] = rawStringConstant = "";
-                    writer.Write(segment.Type.ApplyFilterTo(rawStringConstant));
+                    if (!constants.NamedItems.TryGetValue(segment.Payload, out var rawObjectConstant))
+                        break;
+                    if (rawObjectConstant is string rawStringConstant)
+                        writer.Write(segment.Type.ApplyFilterTo(rawStringConstant));
+                    else 
+                        writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(rawObjectConstant)));
                     break;
-
             }
         }
-
-        
     }
 }

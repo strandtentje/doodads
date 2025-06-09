@@ -4,20 +4,14 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
 {
     private readonly List<TemplateCommand> CommandStack = new();
     public IReadOnlyList<TemplateCommand> TemplateCommands => CommandStack;
-    public ITaggedData<Stream> CurrentTemplateData { get; private set; } = new LatestTemplateUpdate();
-    public bool RefreshTemplateData(ITaggedData<Stream> refreshedData)
+    public void RefreshTemplateData(StreamReader reader)
     {
-        if (refreshedData.Tag.Stamp == CurrentTemplateData.Tag.Stamp)
-            return false;
-        CommandStack.Clear();
-        CurrentTemplateData = refreshedData;
-        using var templateReader = new StreamReader(CurrentTemplateData.Data);
-        var allTemplateText = templateReader.ReadToEnd();
+        var allTemplateText = reader.ReadToEnd();
         for(int selectionHead = 0;
             selectionHead < allTemplateText.Length;
             selectionHead = FindNextHead(allTemplateText, selectionHead))
             ;
-        return true;
+        reader.Dispose();
     }
     private int FindNextHead(string allTemplateText, int cursor)
     {

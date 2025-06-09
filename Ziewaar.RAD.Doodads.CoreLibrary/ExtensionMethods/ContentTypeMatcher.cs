@@ -1,7 +1,19 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+﻿using System.Linq;
+
+namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 
 public static class ContentTypeMatcher
 {
+    public static void Assert(string[] a, string b)
+    {
+        if (!a.Any(x => IsMatch(x, b)))
+            throw new ContentTypeMismatchException(string.Join(",", a), b);
+    }
+    public static void Assert(string a, string b)
+    {
+        if (!IsMatch(a, b))
+            throw new ContentTypeMismatchException(a, b);
+    }
     public static bool IsMatch(string a, string b)
     {
         var ctA = Parse(a);

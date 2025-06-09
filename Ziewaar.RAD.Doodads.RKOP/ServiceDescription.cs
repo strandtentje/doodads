@@ -25,6 +25,7 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
         ResultSink.SetDefinition(
             TextScope,
             Constructor.ServiceTypeName,
+            Constructor.PrimaryExpression.GetValue(),
             Constructor.Constants.ToSortedList(),
             Children.Branches);
     }

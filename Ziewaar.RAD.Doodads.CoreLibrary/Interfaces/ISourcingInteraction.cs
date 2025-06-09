@@ -1,6 +1,11 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+﻿using System.Text;
 
-public interface ISourcingInteraction<TDataType> : IInteraction
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+
+public interface ISourcingInteraction : IInteraction
 {
-    ITaggedData<TDataType> TaggedData { get; }
+    Stream SourceBuffer { get; }
+    Encoding TextEncoding { get; }
+    string SourceContentTypePattern { get; }
+    long SourceContentLength { get; }
 }

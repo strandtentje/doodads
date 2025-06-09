@@ -1,21 +1,25 @@
 ﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-
+#nullable enable
 public class WebServer : IService, IDisposable
 {
-    public event EventHandler<IInteraction>? OnError;
-    public event EventHandler<IInteraction>? PrefixesRequested;
-    [DefaultBranch]
-    public event EventHandler<IInteraction>? HandleRequest;
     private HttpListener? CurrentListener = null;
     private long LastUpdateFromBranch;
     private long LastUpdateFromConstants;
     private string[]? Prefixes;
     private IInteraction? StartingInteraction;
-
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>? OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
         HandleStopCommand(interaction);
-        UpdatePrefixes(serviceConstants, interaction);
+        UpdatePrefixes(constants, interaction);
+
+        if (Prefixes.Length == 0)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "no prefixes were configured"));
+            return;
+        }
 
         if (ValidateStartCommand(interaction) && ValidatePrefixes(interaction))
         {
@@ -24,30 +28,29 @@ public class WebServer : IService, IDisposable
             CurrentListener.BeginGetContext(NewIncomingContext, CurrentListener);
         }
     }
-
     private void NewIncomingContext(IAsyncResult ar)
     {
         if (ar.AsyncState is not HttpListener servingListener ||
             servingListener != CurrentListener)
         {
-            OnError?.Invoke(this,
-                VariablesInteraction.ForError(
-                    StartingInteraction,
+            OnException?.Invoke(this,
+                new CommonInteraction(
+                    StartingInteraction ?? StopperInteraction.Instance,
                     "New incoming context from strange server"));
             return;
         }
+
         var httpContext = servingListener.EndGetContext(ar);
         CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
         var httpInteraction = new HttpInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
-        HandleRequest?.Invoke(this, httpInteraction);
+        OnThen?.Invoke(this, httpInteraction);
         httpContext.Response.Close();
     }
-
     private void HandleStopCommand(IInteraction interaction)
     {
         if (interaction.TryGetClosest<ServerCommandInteraction>(
-            out var stopper,
-            stopper => stopper.Command == ServerCommand.Stop) &&
+                out var stopper,
+                stopper => stopper.Command == ServerCommand.Stop) &&
             CurrentListener != null && CurrentListener.IsListening)
         {
             stopper!.Consume();
@@ -56,33 +59,35 @@ public class WebServer : IService, IDisposable
             StartingInteraction = null;
         }
     }
-
-    private void UpdatePrefixes(ServiceConstants serviceConstants, IInteraction interaction)
+    private readonly UpdatingPrimaryValue PrefixesConstant = new();
+    private void UpdatePrefixes(StampedMap serviceConstants, IInteraction interaction)
     {
-        var prefixSink =
-            CurrentListener == null ?
-            new PrefixSinkingInteraction(interaction, 0, SidechannelState.Always) :
-            new PrefixSinkingInteraction(interaction, LastUpdateFromBranch, SidechannelState.StampGreater);
+        (serviceConstants, PrefixesConstant).IsRereadRequired(out object[]? prefixObjArr);
+        Prefixes = prefixObjArr?.OfType<string>().ToArray();
 
-        PrefixesRequested?.Invoke(this, prefixSink);
-
-        Prefixes =
-            prefixSink.GetAllPrefixes(ref LastUpdateFromBranch) ??
-            serviceConstants.RequireUpdatedItemsOf<string>("prefixes", ref LastUpdateFromConstants) ??
-            Prefixes;        
+        if (Prefixes == null || Prefixes.Length == 0)
+        {
+            var tsi = new TextSinkingInteraction(interaction, delimiter: "\n");
+            OnElse?.Invoke(this, tsi);
+            using var rdr = tsi.GetDisposingSinkReader();
+            var newList = new List<string>();
+            while (!rdr.EndOfStream && rdr.ReadLine() is { } line)
+                newList.Add(line);
+            Prefixes = newList.ToArray();
+        }
     }
-
     private bool ValidateStartCommand(IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ServerCommandInteraction>(out var starter,
-            starter => starter.Command == ServerCommand.Start))
+                s => s.Command == ServerCommand.Start) ||
+            starter == null)
             return false;
 
         starter.Consume();
 
         if (CurrentListener != null && CurrentListener.IsListening)
         {
-            OnError?.Invoke(this, VariablesInteraction.ForError(interaction, "Server already started"));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "Server already started"));
             return false;
         }
         else
@@ -91,10 +96,9 @@ public class WebServer : IService, IDisposable
             return true;
         }
     }
-
     private bool ValidatePrefixes(IInteraction interaction)
     {
-        if (Prefixes is string[] updatedPrefixesArray)
+        if (Prefixes is { } updatedPrefixesArray)
         {
             UrlAccessGuarantor.EnsureUrlAcls(Prefixes);
             CurrentListener = new();
@@ -102,14 +106,14 @@ public class WebServer : IService, IDisposable
             {
                 CurrentListener.Prefixes.Add(item);
             }
+
             return true;
         }
         else
         {
-            OnError?.Invoke(this, VariablesInteraction.ForError(interaction, "No Prefix Provided and No Server Running"));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "No Prefix Provided and No Server Running"));
             return false;
         }
     }
-
     public void Dispose() => CurrentListener?.Close();
 }

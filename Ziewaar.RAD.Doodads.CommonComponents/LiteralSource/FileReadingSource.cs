@@ -2,58 +2,60 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 public class FileReadingSource : IService
 {
-    private const string EnableCache = nameof(EnableCache);
-    private const string MaxCacheBytes = nameof(MaxCacheBytes);
-    private FileInfo LastFileInfo = null;
-    private byte[] LastValidData = null;
-    [NamedBranch] public event EventHandler<IInteraction> PathSink;
-    [NamedBranch] public event EventHandler<IInteraction> OnError;
-
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    private readonly UpdatingPrimaryValue ConstantFilename = new();
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
-        var pathSource = LastFileInfo == null
-            ? new RawStringSinkingInteraction(interaction, suggestedState: SidechannelState.Always)
-            : new RawStringSinkingInteraction(interaction, suggestedState: SidechannelState.StampGreater);
-        PathSink?.Invoke(this, pathSource);
-        if (LastFileInfo == null && !pathSource.TaggedData.Tag.IsTainted)
+        (constants, ConstantFilename).IsRereadRequired<string>(out var constantFilename);
+
+        var preferredFilename = constantFilename ?? interaction.Register as string;
+        if (preferredFilename == null)
         {
-            OnError?.Invoke(this,
-                new VariablesInteraction(interaction,
-                    new SortedList<string, object> { { "error", "no path provided" } }));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "either set a constant filename, or provide one thru the primary value"));
             return;
         }
-        if (pathSource.TaggedData.Tag.IsTainted)
+        FileInfo fileInfo;
+        try
         {
-            LastFileInfo = new FileInfo(pathSource.GetFullString());
-            var maxCacheBytes = serviceConstants.InsertIgnore(MaxCacheBytes, 1024 * 1024 * 32);
-            if (serviceConstants.InsertIgnore(EnableCache, LastFileInfo.Length < maxCacheBytes))
+            fileInfo = new FileInfo(preferredFilename);
+            if (!fileInfo.Exists)
             {
-                try
-                {
-                    LastValidData = File.ReadAllBytes(LastFileInfo.FullName);
-                }
-                catch (Exception ex)
-                {
-                    OnError?.Invoke(this, new VariablesInteraction(interaction, ex.ToSortedList()));
-                }
+                using var x = fileInfo.CreateText();
+                x.Write("");
+                x.Flush();
+            }
+        }
+        catch (Exception ex)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, ex.ToString()));
+            return;
+        }
+        
+        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) && 
+            checkUpdateRequiredInteraction != null &&
+            checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != fileInfo.LastWriteTime.Ticks
+            )
+        {
+            checkUpdateRequiredInteraction.IsRequired = true;
+        } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkingInteraction) && 
+                   sinkingInteraction != null)
+        {
+            if (sinkingInteraction.TextEncoding is NoEncoding)
+            {
+                using var fileStream = fileInfo.OpenRead();
+                fileStream.CopyTo(sinkingInteraction.SinkBuffer);
             }
             else
             {
-                LastValidData = null;
+                using var textStream = new StreamReader(preferredFilename, detectEncodingFromByteOrderMarks: true);
+                sinkingInteraction.CopyTextFrom(textStream);
             }
-        }
-
-        var writer = interaction.ResurfaceStream();
-        if (!writer.RequireUpdate(LastFileInfo!.LastWriteTime.Ticks))
-            return;
-        if (LastValidData != null)
-        {
-            writer.TaggedData.Data.Write(LastValidData, 0, LastValidData.Length);
         }
         else
         {
-            using var fileReader = LastFileInfo.OpenRead();
-            fileReader.CopyTo(writer.TaggedData.Data);
+            OnException?.Invoke(this, new CommonInteraction(interaction, "no sink found to write the file contents to"));
         }
     }
 }

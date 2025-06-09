@@ -1,7 +1,10 @@
 ﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Interactions;
-public class CallingInteraction(IInteraction offset, Action<IInteraction> continued) : IInteraction
+public class CallingInteraction(IInteraction offset, IReadOnlyDictionary<string, object> extra) : IInteraction
 {
-    public IInteraction Parent => offset;
-    public IReadOnlyDictionary<string, object> Variables => offset.Variables;
-    public void Continue(IInteraction interaction) => continued(interaction);
+    public event EventHandler<IInteraction> OnThen, OnElse;
+    public void InvokeOnThen(IInteraction interaction) => OnThen?.Invoke(this, interaction);
+    public void InvokeOnElse(IInteraction interaction) => OnElse?.Invoke(this, interaction);
+    public IInteraction Stack => offset;
+    public object Register => offset.Register;
+    public IReadOnlyDictionary<string, object> Memory => extra;
 }

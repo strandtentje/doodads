@@ -1,11 +1,13 @@
-﻿
-namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 public class VoidService : IService
 {
-    public event EventHandler<IInteraction> OnError;
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction)
+    public event EventHandler<IInteraction> OnThen;
+    public event EventHandler<IInteraction> OnElse;
+    public event EventHandler<IInteraction> OnException;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
-        OnError?.Invoke(this, interaction);
+        OnElse?.Invoke(this, interaction);
     }
 }

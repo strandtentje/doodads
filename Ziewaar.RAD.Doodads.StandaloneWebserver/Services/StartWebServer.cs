@@ -2,9 +2,11 @@
 
 public class StartWebServer : IService
 {
-    public event EventHandler<IInteraction>? OnError;
-    [DefaultBranch]
-    public event EventHandler<IInteraction>? ToStart;
-    public void Enter(ServiceConstants serviceConstants, IInteraction interaction) =>
-        ToStart?.Invoke(this, new ServerCommandInteraction(interaction, ServerCommand.Start));
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>? OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        OnThen?.Invoke(this, new ServerCommandInteraction(interaction, ServerCommand.Start));
+    }
 }

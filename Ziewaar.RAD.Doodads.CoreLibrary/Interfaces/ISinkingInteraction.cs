@@ -1,7 +1,13 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+﻿using System.Text;
 
-public interface ISinkingInteraction<TDataType> : IInteraction
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+#nullable enable
+public interface ISinkingInteraction : IInteraction
 {
-    ITaggedData<TDataType> TaggedData { get; }
+    Encoding TextEncoding { get; }
+    Stream SinkBuffer { get; }
+    string[] SinkContentTypePattern { get; }
+    string? SinkTrueContentType { get; set; }
+    long LastSinkChangeTimestamp { get; set; }
     string Delimiter { get; }
 }

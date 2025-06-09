@@ -6,14 +6,10 @@ public class ResidentialInteraction : IInteraction, IDisposable
 {
     private readonly SemaphoreSlim Blocker;
     private bool IsDisposed;
-
     public string Name { get; }
-    public IInteraction Parent { get; }
-    public IReadOnlyDictionary<string, object> Variables => Parent.Variables;
     private ResidentialInteraction(IInteraction parent, string name, SemaphoreSlim blocker)
     {
-        this.Parent = parent;
-        this.Blocker = blocker;
+        this.Stack = parent;
         this.Name = name;
     }
     public static ResidentialInteraction CreateBlocked(IInteraction parent, string name) => new ResidentialInteraction(parent, name, new SemaphoreSlim(0, 1));
@@ -39,4 +35,7 @@ public class ResidentialInteraction : IInteraction, IDisposable
     }
 
     public void Leave() => Blocker.Release();
+    public IInteraction Stack { get; }
+    public object Register => Stack.Register;
+    public IReadOnlyDictionary<string, object> Memory => Stack.Memory;
 }

@@ -14,7 +14,7 @@ public class KnownProgram : IDisposable
     public IEntryPoint EntryPoint => serviceBuilder;
     public void Dispose()
     {
-        DescriptionRoot.UpdateFrom(ref CursorText.Empty);
+        DescriptionRoot.UpdateFrom("", ref CursorText.Empty);
         serviceBuilder.Cleanup();
     }
     public void Reload()
@@ -28,7 +28,7 @@ public class KnownProgram : IDisposable
             {
                 Console.WriteLine("Reloading program {0}", FileInfo.Name);
                 var cursor = CursorText.Create(FileInfo.Directory, FileInfo.Name, File.ReadAllText(FileInfo.FullName));
-                DescriptionRoot.UpdateFrom(ref cursor);
+                DescriptionRoot.UpdateFrom(FileInfo.Name, ref cursor);
             }
             catch (IOException)
             {

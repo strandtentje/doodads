@@ -7,6 +7,7 @@ public interface IInstanceWrapper
     void SetDefinition<TResult>(
         CursorText atPosition,
         string typename,
+        object? primaryValue,
         SortedList<string, object> constants, 
         SortedList<string, ServiceExpression<TResult>> wrappers) 
         where TResult : class, IInstanceWrapper, new();
