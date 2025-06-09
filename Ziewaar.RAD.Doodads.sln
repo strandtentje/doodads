@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Standal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.RuntimeForDotnetCore", "Ziewaar.RAD.Doodads.RuntimeForDotnetCore\Ziewaar.RAD.Doodads.RuntimeForDotnetCore.csproj", "{4E438BC4-ADCA-4B71-8474-056BE9D45A58}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Hardcoding", "Ziewaar.RAD.Doodads.Hardcoding\Ziewaar.RAD.Doodads.Hardcoding.csproj", "{5C9C45FD-0E02-43EA-8D18-3F887354C09E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.Common.Aardvargs", "Ziewaar.Common.Aardvargs\Ziewaar.Common.Aardvargs.csproj", "{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.Common.Aardvargs.Tests", "Ziewaar.Common.Aardvargs.Tests\Ziewaar.Common.Aardvargs.Tests.csproj", "{6B30C773-5E94-40B2-B07D-44F3D76A499C}"
@@ -45,10 +43,6 @@ Global
 		{4E438BC4-ADCA-4B71-8474-056BE9D45A58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E438BC4-ADCA-4B71-8474-056BE9D45A58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E438BC4-ADCA-4B71-8474-056BE9D45A58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5C9C45FD-0E02-43EA-8D18-3F887354C09E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8DC3E646-08BA-4C1F-8BD1-435FE8A34767}.Release|Any CPU.ActiveCfg = Release|Any CPU
