@@ -42,7 +42,7 @@ internal class Program
             }
 
             var program = ProgramRepository.Instance.GetForFile(item);
-            program.EntryPoint.Run(new object(), rootInteraction);
+            program.EntryPoint.Run(rootInteraction);
         }
     }
 }

@@ -10,4 +10,5 @@ public abstract class TimerCommandSender(TimerCommand command) : IService
     {
         OnThen?.Invoke(this, new TimerCommandInteraction(interaction, command));
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

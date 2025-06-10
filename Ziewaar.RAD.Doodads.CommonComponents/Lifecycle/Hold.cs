@@ -42,4 +42,5 @@ public class Hold : IService, IDisposable
         History.Remove(currentResident);
         OnElse?.Invoke(this, interaction);
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

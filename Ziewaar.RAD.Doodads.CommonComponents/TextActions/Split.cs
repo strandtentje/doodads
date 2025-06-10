@@ -27,4 +27,5 @@ public class Split : IService
         OnThen?.Invoke(this, new CommonInteraction(
             interaction, toSplit.Split(splitChar, StringSplitOptions.RemoveEmptyEntries)));
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

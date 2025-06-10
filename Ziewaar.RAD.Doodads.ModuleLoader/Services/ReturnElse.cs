@@ -1,17 +1,16 @@
+#pragma warning disable 67
+#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
-
 public class ReturnElse : IService
 {
-    public event EventHandler<IInteraction> OnThen;
-    public event EventHandler<IInteraction> OnElse;
-    public event EventHandler<IInteraction> OnException;
-
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (FindCallerOfCurrentScope(interaction).TryGetClosest<CallingInteraction>(out var callingInteraction))
             callingInteraction!.InvokeOnElse(new ReturningInteraction(interaction, callingInteraction, constants.NamedItems));
     }
-
     /// <summary>
     /// This function deals with the fact that modules can call other modules,
     /// and if control is returned to another module, and that other higher-up
@@ -30,4 +29,5 @@ public class ReturnElse : IService
 
         return offset;
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

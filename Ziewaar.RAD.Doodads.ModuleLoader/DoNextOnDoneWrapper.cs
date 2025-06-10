@@ -1,3 +1,5 @@
+#pragma warning disable 67
+#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 public class DoNextOnDoneWrapper : IAmbiguousServiceWrapper
 {

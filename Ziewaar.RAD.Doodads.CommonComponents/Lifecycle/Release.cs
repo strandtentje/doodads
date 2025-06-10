@@ -33,4 +33,5 @@ public class Release : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "Cannot terminate non-existent residence."));
         }
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

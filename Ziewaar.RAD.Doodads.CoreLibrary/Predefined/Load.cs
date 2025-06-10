@@ -32,4 +32,5 @@ public class Load : IService
             OnElse?.Invoke(this, new CommonInteraction(interaction, DefaultValue));
         }
     }
+    public void HandleFatal(IInteraction source, Exception ex) => new CommonInteraction(source, ex.ToString());
 }

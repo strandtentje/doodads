@@ -2,5 +2,5 @@
 
 public interface IEntryPoint
 {
-    void Run(object sender, IInteraction interaction);
+    void Run(IInteraction interaction);
 }

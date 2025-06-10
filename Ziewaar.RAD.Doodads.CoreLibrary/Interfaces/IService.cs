@@ -7,4 +7,5 @@ public interface IService
     void Enter(
         StampedMap constants,
         IInteraction interaction);
+    void HandleFatal(IInteraction source, Exception ex);
 }

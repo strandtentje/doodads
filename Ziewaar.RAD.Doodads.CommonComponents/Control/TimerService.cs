@@ -62,5 +62,6 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control
                 }
             }
         }
+        public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
     }
 }

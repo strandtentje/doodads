@@ -27,4 +27,5 @@ public class Store : IService
             memory[KeyName] = DefaultValue;
         OnThen?.Invoke(this, new CommonInteraction(interaction, memory: memory));
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

@@ -5,7 +5,6 @@ namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 public class ServiceConstantExpression : IParityParser
 {
     public ConstantType ConstantType;
-    private ServiceConstantsDescription Set;
     public string TextValue;
     public FileInWorkingDirectory PathValue;
     public bool BoolValue;

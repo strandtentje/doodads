@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Security.Principal;
-using System.Text.RegularExpressions;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
@@ -87,7 +86,7 @@ public class UrlAccessGuarantor
 
         using (var p = Process.Start(psi))
         {
-            return p.StandardOutput.ReadToEnd();
+            return p!.StandardOutput.ReadToEnd();
         }
     }
 }

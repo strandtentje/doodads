@@ -11,4 +11,5 @@ public class ConsoleInput : IService
     {
         OnThen?.Invoke(this, new ConsoleSourceInteraction(interaction, StandardInput));
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

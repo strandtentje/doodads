@@ -22,4 +22,5 @@ public class IterateText : IService
             OnThen?.Invoke(this, new CommonInteraction(interaction, Enumerate()));
         }
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

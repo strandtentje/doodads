@@ -10,4 +10,5 @@ public class VoidService : IService
     {
         OnElse?.Invoke(this, interaction);
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

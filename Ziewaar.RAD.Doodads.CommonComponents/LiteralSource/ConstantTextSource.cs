@@ -24,5 +24,6 @@ public class ConstantTextSource : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "unable to find text sink"));
         }
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
 

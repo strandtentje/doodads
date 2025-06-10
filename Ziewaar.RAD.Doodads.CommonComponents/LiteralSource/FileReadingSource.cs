@@ -59,4 +59,5 @@ public class FileReadingSource : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "no sink found to write the file contents to"));
         }
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

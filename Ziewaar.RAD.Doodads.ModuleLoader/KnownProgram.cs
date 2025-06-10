@@ -1,12 +1,8 @@
-﻿using Ziewaar.RAD.Doodads.RKOP.Blocks;
+﻿#pragma warning disable CS0162 // Unreachable code detected
 using Ziewaar.RAD.Doodads.RKOP.Text;
-
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
-
 public class KnownProgram : IDisposable
 {
-    public event EventHandler RequiresSaving;
-
     public ServiceExpression<ServiceBuilder> DescriptionRoot;
     public DirectoryInfo DirectoryInfo;
     public FileInfo FileInfo;
@@ -20,11 +16,11 @@ public class KnownProgram : IDisposable
         DescriptionRoot.UpdateFrom("", ref CursorText.Empty);
         serviceBuilder.Cleanup();
     }
-    public void Reload()
+    public void Reload(bool force = false, int attempts = 0)
     {
         if (CurrentlyReloading)
             return;
-        lock(FileRefreshLock)
+        lock (FileRefreshLock)
         {
             this.CurrentlyReloading = true;
             try
@@ -35,17 +31,24 @@ public class KnownProgram : IDisposable
             }
             catch (IOException)
             {
-                Console.WriteLine("file still in use. postponing reload job...");
-                var x = new Timer(new TimerCallback(_ =>
+                if (attempts < 6)
                 {
-                    Reload();
-                }), null, 200, Timeout.Infinite);
+                    Console.WriteLine("file still in use. postponing reload job attempt {0}", attempts);
+                    var x = new Timer(new TimerCallback(_ =>
+                    {
+                        Reload(attempts: attempts + 1);
+                    }), null, 2500, Timeout.Infinite);
+                }
+                else
+                {
+                    Console.WriteLine("failed to reload file after {0} attempts.", attempts);
+                }
             }
             catch (Exception ex)
             {
-    #if DEBUG
+#if DEBUG
                 throw;
-    #endif
+#endif
                 Console.WriteLine(ex);
             }
             finally
@@ -54,5 +57,46 @@ public class KnownProgram : IDisposable
                 GC.Collect();
             }
         }
+    }
+    public void Save(int attempts = 0)
+    {
+        lock (FileRefreshLock)
+        {
+            try
+            {
+                Console.WriteLine("Saving program {0}", FileInfo.FullName);
+                using (var writer = new StreamWriter(FileInfo.FullName))
+                {
+                    DescriptionRoot.WriteTo(writer);
+                }
+            }
+            catch (IOException)
+            {
+                if (attempts < 6)
+                {
+                    Console.WriteLine("file in use, can't save. planning attempt {0}", attempts);
+                    var x = new Timer(new TimerCallback(_ =>
+                    {
+                        Save(attempts + 1);
+                    }), null, 2500, Timeout.Infinite);
+                }
+                else
+                {
+                    Console.WriteLine("failed to save after {0} attempts", attempts);
+                }
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                throw;
+#endif
+                Console.WriteLine(ex);
+            }
+            finally
+            {
+                GC.Collect();
+            }
+        }
+        Reload(force: true);
     }
 }

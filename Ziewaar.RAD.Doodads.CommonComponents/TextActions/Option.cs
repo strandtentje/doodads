@@ -55,4 +55,5 @@ public class Option : IService
         else
             OnElse?.Invoke(this, interaction);
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

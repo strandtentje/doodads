@@ -1,5 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-
+﻿#pragma warning disable 67
+#nullable enable
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 public class StartWebServer : IService
 {
     public event EventHandler<IInteraction>? OnThen;
@@ -9,4 +10,5 @@ public class StartWebServer : IService
     {
         OnThen?.Invoke(this, new ServerCommandInteraction(interaction, ServerCommand.Start));
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

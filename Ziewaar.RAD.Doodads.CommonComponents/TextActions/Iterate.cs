@@ -15,4 +15,5 @@ public class Iterate : IService
         else 
             OnException?.Invoke(this, new CommonInteraction(interaction, "Cannot iterate non-enumerable"));
     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

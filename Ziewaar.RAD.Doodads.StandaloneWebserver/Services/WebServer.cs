@@ -3,8 +3,6 @@
 public class WebServer : IService, IDisposable
 {
     private HttpListener? CurrentListener = null;
-    private long LastUpdateFromBranch;
-    private long LastUpdateFromConstants;
     private string[]? Prefixes;
     private IInteraction? StartingInteraction;
     public event EventHandler<IInteraction>? OnThen;
@@ -15,7 +13,7 @@ public class WebServer : IService, IDisposable
         HandleStopCommand(interaction);
         UpdatePrefixes(constants, interaction);
 
-        if (Prefixes.Length == 0)
+        if (Prefixes == null || Prefixes.Length == 0)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "no prefixes were configured"));
             return;
@@ -116,4 +114,5 @@ public class WebServer : IService, IDisposable
         }
     }
     public void Dispose() => CurrentListener?.Close();
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

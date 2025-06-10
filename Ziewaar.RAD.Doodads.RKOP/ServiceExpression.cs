@@ -6,7 +6,7 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
 {
     public string? CurrentNameInScope { get; private set; }
     public TResultSink? ResultSink { get; protected set; }
-    public ParityParsingState UpdateFrom(string givenScopeName, ref CursorText text)
+    public ParityParsingState UpdateFrom(string givenScopeName, ref CursorText text, bool forceReload = false)
     {
         this.CurrentNameInScope = givenScopeName;
         var state = ProtectedUpdateFrom(ref text);
@@ -17,6 +17,7 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
                 ResultSink = null;                
                 break;
             case ParityParsingState.Unchanged:
+                if (forceReload) HandleChanges();
                 break;
             default:
                 text[this.CurrentNameInScope] = this;
