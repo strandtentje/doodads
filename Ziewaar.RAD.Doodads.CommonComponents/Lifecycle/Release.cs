@@ -1,5 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
+﻿#pragma warning disable 67
 #nullable enable
+namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 public class Release : IService
 {
     private readonly UpdatingPrimaryValue LockNameConstant = new();

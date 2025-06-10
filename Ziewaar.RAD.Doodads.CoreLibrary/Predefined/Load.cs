@@ -1,8 +1,7 @@
+#pragma warning disable 67
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
-
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-
 public class Load : IService
 {
     private readonly UpdatingPrimaryValue KeyConstant = new();
@@ -24,13 +23,13 @@ public class Load : IService
             return;
         }
 
-        if (interaction.TryFindVariable(KeyName, out object candidate))
+        if (interaction.TryFindVariable(KeyName, out object? candidate) && candidate != null)
         {
             OnThen?.Invoke(this, new CommonInteraction(interaction, candidate));
         }
         else
         {
-            OnThen?.Invoke(this, new CommonInteraction(interaction, candidate));
+            OnElse?.Invoke(this, new CommonInteraction(interaction, DefaultValue));
         }
     }
 }

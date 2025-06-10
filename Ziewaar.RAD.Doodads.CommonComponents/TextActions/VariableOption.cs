@@ -1,16 +1,24 @@
-﻿using System.Collections;
+﻿#pragma warning disable 67
+#nullable enable
+using System.Collections;
 
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
 
 public class VariableOption : IService
 {
     private readonly UpdatingPrimaryValue VariableName = new();
-    public event EventHandler<IInteraction> OnThen;
-    public event EventHandler<IInteraction> OnElse;
-    public event EventHandler<IInteraction> OnException;
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        (constants, VariableName).IsRereadRequired(out string variableName);
+        (constants, VariableName).IsRereadRequired(out string? variableName);
+
+        if (variableName == null)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "variable name required for variable option"));
+            return;
+        }
 
         if (interaction.Register is IEnumerable enumerable)
         {

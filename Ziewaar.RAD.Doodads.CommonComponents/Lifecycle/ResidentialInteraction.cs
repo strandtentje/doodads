@@ -11,6 +11,7 @@ public class ResidentialInteraction : IInteraction, IDisposable
     {
         this.Stack = parent;
         this.Name = name;
+        this.Blocker = blocker;
     }
     public static ResidentialInteraction CreateBlocked(IInteraction parent, string name) => new ResidentialInteraction(parent, name, new SemaphoreSlim(0, 1));
     public void Dispose()

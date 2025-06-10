@@ -1,5 +1,5 @@
-// Global using directives
-
+#pragma warning disable 67
+#nullable enable
 global using System;
 global using System.Collections.Generic;
 global using System.Data;

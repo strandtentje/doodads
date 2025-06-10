@@ -2,7 +2,7 @@
 namespace Ziewaar.RAD.Doodads.RKOP;
 public abstract class ServiceExpression<TResultSink> where TResultSink : class, IInstanceWrapper, new()
 {
-    public string CurrentNameInScope { get; private set; }
+    public string? CurrentNameInScope { get; private set; }
     public TResultSink? ResultSink { get; protected set; }
     public ParityParsingState UpdateFrom(string givenScopeName, ref CursorText text)
     {

@@ -13,5 +13,8 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio
         public string SinkTrueContentType { get; set; }
         public long LastSinkChangeTimestamp { get; set; }
         public string Delimiter => "";
+        public void SetContentLength64(long contentLength)
+        {
+        }
     }
 }

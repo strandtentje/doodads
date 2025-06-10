@@ -1,6 +1,6 @@
+#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-
 public class Store : IService
 {
     private readonly UpdatingPrimaryValue KeyConstant = new();

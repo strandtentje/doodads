@@ -1,3 +1,5 @@
+#pragma warning disable 67
+#nullable enable
 using System.Collections;
 
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
@@ -5,13 +7,13 @@ namespace Define.Content.AutomationKioskShell.ValidationNodes;
 public class Option : IService
 {
     private readonly UpdatingPrimaryValue MatchStringConst = new();
-    public event EventHandler<IInteraction> OnThen;
-    public event EventHandler<IInteraction> OnElse;
-    public event EventHandler<IInteraction> OnException;
+    public event EventHandler<IInteraction>? OnThen;
+    public event EventHandler<IInteraction>? OnElse;
+    public event EventHandler<IInteraction>?OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        (constants, MatchStringConst).IsRereadRequired(out string matchString);
+        (constants, MatchStringConst).IsRereadRequired(out string? matchString);
 
         if (interaction.Register is IEnumerable enumerable)
         {

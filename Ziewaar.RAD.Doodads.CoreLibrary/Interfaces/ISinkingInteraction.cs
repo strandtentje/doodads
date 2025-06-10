@@ -10,4 +10,5 @@ public interface ISinkingInteraction : IInteraction
     string? SinkTrueContentType { get; set; }
     long LastSinkChangeTimestamp { get; set; }
     string Delimiter { get; }
+    void SetContentLength64(long contentLength);
 }

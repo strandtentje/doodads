@@ -4,11 +4,13 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private Type? CurrentType;
     private SortedList<string, List<Delegate>> ExistingEventHandlers = new();
-    private EventInfo? OnThenEventInfo, OnElseEventInfo;
+    private EventInfo? OnThenEventInfo, OnElseEventInfo, OnExceptionEventInfo;
     private Delegate? DoneDelegate;
+
     public string? TypeName { get; private set; }
     public IService? Instance { get; private set; }
     public StampedMap? Constants { get; private set; }
+    public event EventHandler<IInteraction>? DiagnosticOnThen, DiagnosticOnElse, DiagnosticOnException;
     public void Update(
         CursorText atPosition,
         string typename,
@@ -24,12 +26,17 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         }
         this.Constants = new StampedMap(constants);
 
+        this.Instance.OnThen += DiagnosticOnThen;
+        this.Instance.OnElse += DiagnosticOnElse;
+        this.Instance.OnException += DiagnosticOnException;
+
         var allEvents = CurrentType.GetEvents().ToArray();
         var newEventHandlers = new SortedList<string, List<Delegate>>();
         foreach (var item in allEvents)
         {
             if (item.Name == "OnThen") this.OnThenEventInfo = item;
             if (item.Name == "OnElse") this.OnElseEventInfo = item;
+            if (item.Name == "OnException") this.OnExceptionEventInfo = item;
 
             if (ExistingEventHandlers.TryGetValue(item.Name, out var handlers))
                 foreach (var handler in handlers)

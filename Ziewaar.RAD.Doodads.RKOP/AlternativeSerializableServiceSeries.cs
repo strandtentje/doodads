@@ -13,6 +13,8 @@ public class AlternativeSerializableServiceSeries<TResultSink> :
     {
         if (Children == null || Children.Count < 1)
             throw new ArgumentException("no children", nameof(Children));
+        if (CurrentNameInScope == null)
+            throw new ArgumentException("no name", nameof(CurrentNameInScope));
         Children.ElementAt(0).WriteTo(writer, indentation);
         var nameIndentation = CurrentNameInScope.Length;
         for (var i = 1; i < Children.Count; i++)
