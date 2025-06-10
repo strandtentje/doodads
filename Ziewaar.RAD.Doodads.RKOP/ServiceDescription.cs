@@ -1,4 +1,5 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿
+namespace Ziewaar.RAD.Doodads.RKOP;
 #nullable enable
 public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
@@ -8,26 +9,30 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     public CursorText TextScope = CursorText.Empty;
     protected override ParityParsingState ProtectedUpdateFrom(ref CursorText text)
     {
-        var state = ResultSink == null ? ParityParsingState.New : ParityParsingState.Unchanged;
+        TextScope = text;
+        var state = Constructor.UpdateFrom(ref text);
+        if (state == ParityParsingState.Void)
+            return ParityParsingState.Void;
+
+        state = ResultSink == null ? ParityParsingState.New : ParityParsingState.Unchanged;
         if (state == ParityParsingState.New)
             ResultSink = new TResultSink();
-        TextScope = text;
-        return state | Constructor.UpdateFrom(ref text) | Children.UpdateFrom(ref text);
+
+        state |= Children.UpdateFrom(ref text);
+        return state;
     }
     public override void HandleChanges()
-    {
+    {        
         if (ResultSink == null)
             throw new ArgumentException("no result sink", nameof(ResultSink));
         if (Constructor.ServiceTypeName == null)
             throw new ArgumentException("no service type", nameof(Constructor.ServiceTypeName));
-        if (Children.Branches == null)
-            throw new ArgumentException("no branches", nameof(Children.Branches));
         ResultSink.SetDefinition(
             TextScope,
             Constructor.ServiceTypeName,
             Constructor.PrimaryExpression.GetValue(),
             Constructor.Constants.ToSortedList(),
-            Children.Branches);
+            new SortedList<string, ServiceExpression<TResultSink>>((Children.Branches ?? []).ToDictionary(x => x.key, x => x.value)));
     }
     public override void Purge()
     {
@@ -38,12 +43,14 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
         Constructor.WriteTo(writer, indentation);
         Children.WriteTo(writer, indentation);
     }
-    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(Func<TDesiredResultSink, bool>? predicate = null)
-        where TDesiredResultSink : class
+    public override IEnumerable<TResult> Query<TResult>(Func<TResult, bool>? predicate = null)
     {
-        if (this is TDesiredResultSink selfDesired && (predicate == null || predicate(selfDesired)))
-            return selfDesired;
-        else 
-            return Children.Branches?.Values.Select(x => x.GetSingleOrDefault(predicate)).SingleOrDefault();
+        predicate ??= x => true;
+        IEnumerable<TResult> results = [];
+        if (this is TResult maybe && predicate(maybe))
+            results = [maybe];
+        if (Children.Branches != null)
+            results = results.Concat(Children.Branches.SelectMany(x => x.value.Query(predicate)));
+        return results;
     }
 }

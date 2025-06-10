@@ -5,7 +5,7 @@ public class ServiceConstantExpression : IParityParser
     public ConstantType ConstantType;
     private ServiceConstantsDescription Set;
     public string TextValue;
-    public (string WorkingDirectory, string RelativePath) PathValue;
+    public FileInWorkingDirectory PathValue;
     public bool BoolValue;
     public decimal NumberValue;
     private ServiceConstantExpression[] ArrayItems = [];
@@ -15,7 +15,7 @@ public class ServiceConstantExpression : IParityParser
         ConstantType.String => TextValue,
         ConstantType.Bool => BoolValue,
         ConstantType.Number => NumberValue,
-        ConstantType.Path => Path.Combine(PathValue.WorkingDirectory, PathValue.RelativePath),
+        ConstantType.Path => PathValue,
         ConstantType.Array => ArrayItems.Select(x => x.GetValue()).ToArray(),
         _ => throw new InvalidOperationException(),
     };
@@ -23,6 +23,16 @@ public class ServiceConstantExpression : IParityParser
     public ParityParsingState UpdateFrom(ref CursorText inText)
     {
         var text = inText.SkipWhile(char.IsWhiteSpace);
+
+        text = text.TakeToken(TokenDescription.TrueOrFalse, out var bln);
+        if (bln.IsValid)
+        {
+            var newValue = bool.Parse(bln.Text);
+            var state = ConstantType != ConstantType.Bool || newValue != BoolValue ? ParityParsingState.Changed : ParityParsingState.Unchanged;
+            SetBoolValue(newValue);
+            inText = text;
+            return state;
+        }
 
         text = text.TakeToken(TokenDescription.ArrayOpen, out var aop);
         if (aop.IsValid)

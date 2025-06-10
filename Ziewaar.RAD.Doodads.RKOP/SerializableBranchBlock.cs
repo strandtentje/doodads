@@ -3,27 +3,27 @@ namespace Ziewaar.RAD.Doodads.RKOP;
 public class SerializableBranchBlock<TResultSink> : IParityParser
     where TResultSink : class, IInstanceWrapper, new()
 {
-    public SortedList<string, ServiceExpression<TResultSink>>? Branches;
+    public List<(string key, ServiceExpression<TResultSink> value)>? Branches;
     private ParityParsingState GetWorkingSet(
-        out SortedList<string, ServiceExpression<TResultSink>> set,
+        out List<(string key, ServiceExpression<TResultSink> value)> set,
         out SortedSet<string> keys)
     {
         if (Branches == null)
         {
             set = Branches = new();
-            keys = new(set.Keys);
+            keys = [.. set.Select(x => x.key)];
             return ParityParsingState.New;
         }
         else
         {
             set = Branches;
-            keys = new(set.Keys);
+            keys = [.. set.Select(x => x.key)];
             return ParityParsingState.Unchanged;
         }
     }
     private CursorText RecurseThroughBranches(
         CursorText text,
-        SortedList<string, ServiceExpression<TResultSink>> branches,
+        List<(string key, ServiceExpression<TResultSink> value)> branches,
         SortedSet<string> toRemove,
         ref ParityParsingState state)
     {
@@ -32,19 +32,20 @@ public class SerializableBranchBlock<TResultSink> : IParityParser
         {
             foreach (var key in toRemove)
             {
-                branches[key].Purge();
-                branches.Remove(key);
+                branches.Single(x => x.key == key).value.Purge();
+                branches.RemoveAll(x => x.key == key);
             }
             state = branches.Count == 0 ? ParityParsingState.Void : state;
             return text;
         }
-        if (branches.TryGetValue(seenKey.BranchName, out var serviceExpression))
+        if (branches.SingleOrDefault(x => x.key == seenKey.BranchName).value is ServiceExpression<TResultSink> serviceExpression)
         {
             toRemove.Remove(seenKey.BranchName);
         }
         else
         {
-            serviceExpression = branches[seenKey.BranchName] = new UnconditionalSerializableServiceSeries<TResultSink>();
+            serviceExpression = new UnconditionalSerializableServiceSeries<TResultSink>();
+            branches.Add((seenKey.BranchName, serviceExpression));
             state |= ParityParsingState.Changed;
         }
         state |= serviceExpression.UpdateFrom(seenKey.BranchName, ref text);
@@ -64,17 +65,17 @@ public class SerializableBranchBlock<TResultSink> : IParityParser
         {
             var state = GetWorkingSet(out var workingSet, out var purgeKeys);
 
-            text = RecurseThroughBranches(text.EnterScope(), workingSet, purgeKeys, ref state)
-                .SkipWhile(char.IsWhiteSpace)
-                .ValidateToken(TokenDescription.BlockClose, out var _)
-                .ExitScope();
+            text = RecurseThroughBranches(text.EnterScope(), workingSet, purgeKeys, ref state);
+            text = text.SkipWhile(char.IsWhiteSpace);
+            text = text.ValidateToken(TokenDescription.BlockClose, out var _);
+            text = text.ExitScope();
 
             return state;
         }
         else if (Branches is { Count: > 0 })
         {
             foreach (var branch in Branches)
-                branch.Value.Purge();
+                branch.value.Purge();
             Branches.Clear();
             Branches = null;
             return ParityParsingState.Void;
@@ -89,13 +90,13 @@ public class SerializableBranchBlock<TResultSink> : IParityParser
         if (Branches?.Count > 0)
         {
             indentation += 4;
-            writer.Write(" {");
+            writer.WriteLine(" {");
             foreach (var branch in Branches)
             {
                 writer.Write(new string(' ', indentation));
-                writer.Write(branch.Key);
+                writer.Write(branch.key);
                 writer.Write("->");
-                branch.Value.WriteTo(writer, indentation);
+                branch.value.WriteTo(writer, indentation);
                 writer.WriteLine(";");
             }
             indentation -= 4;

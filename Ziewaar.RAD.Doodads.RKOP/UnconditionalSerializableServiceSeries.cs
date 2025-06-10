@@ -21,7 +21,7 @@ public class UnconditionalSerializableServiceSeries<TResultSink> :
             writer.WriteLine();
             writer.Write(new string(' ', indentation + nameIndentation));
             writer.Write("& ");
-            child.WriteTo(writer, indentation + nameIndentation + 2);
+            child.WriteTo(writer, indentation + nameIndentation);
         }
     }
 }

@@ -13,12 +13,11 @@ public class ConditionalSerializableServiceSeries<TResultSink> :
     {
         if (Children == null || Children.Count < 1)
             throw new ArgumentException("no children", nameof(Children));
-        Children.ElementAt(0).WriteTo(writer, indentation);
-        var nameIndentation = CurrentNameInScope.Length;
+        Children.ElementAt(0).WriteTo(writer, indentation);        
         for (var i = 1; i < Children.Count; i++)
         {
             writer.Write(':');
-            Children.ElementAt(i).WriteTo(writer, indentation + nameIndentation + 2);
+            Children.ElementAt(i).WriteTo(writer, indentation);
         }
     }
 }

@@ -12,8 +12,7 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
         {
             case ParityParsingState.Void:
                 Purge();
-                ResultSink = null;
-                HandleChanges();
+                ResultSink = null;                
                 break;
             case ParityParsingState.Unchanged:
                 break;
@@ -28,7 +27,7 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
     public abstract void HandleChanges();
     public abstract void Purge();
     public abstract void WriteTo(StreamWriter writer, int indentation = 0);
-    public abstract TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(
-        Func<TDesiredResultSink, bool>? predicate = null)
-        where TDesiredResultSink : ServiceExpression<TResultSink>;
+    public abstract IEnumerable<TResult> Query<TResult>(
+        Func<TResult, bool>? predicate = null)
+        where TResult : ServiceExpression<TResultSink>;
 }

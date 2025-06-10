@@ -7,14 +7,18 @@ public class SerializableConstructor : IParityParser
     public ServiceConstantsDescription Constants { get; private set; } = new();
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
-        text = text.SkipWhile(char.IsWhiteSpace)
-            .ValidateToken(TokenDescription.IdentifierWithoutUnderscore,
-                out var typeIdentifier)
+        text = text
+            .SkipWhile(char.IsWhiteSpace)
+            .TakeToken(TokenDescription.IdentifierWithoutUnderscore,
+                out var typeIdentifier);
+
+        if (!typeIdentifier.IsValid)
+            return ParityParsingState.Void;
+
+        text = text
             .SkipWhile(char.IsWhiteSpace)
             .ValidateToken(TokenDescription.StartOfArguments,
-                out var _);
-
-        
+                out var _);        
         
         var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
 

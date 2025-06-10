@@ -59,6 +59,14 @@ public class TokenDescription(
         ArrayClose = DescribeSingleCharacter(']', "End of array with blocky bracket"),
         AmpersandP = DescribeSingleCharacter('&', "Et sign"),
         Pipe = DescribeSingleCharacter('|', "Or pipe"),
+        TrueOrFalse = new TokenDescription(
+            (pos, chr) =>
+            {
+                var uchar = char.ToUpper(chr);
+                return
+                    uchar == "FALSE".ElementAtOrDefault(pos) ||
+                    uchar == "TRUE".ElementAtOrDefault(pos);
+            }, x => bool.TryParse(x, out var _), "expected true or false"),
         NextOrCloseArray = new TokenDescription(
             (pos, chr) => pos switch
             {

@@ -1,4 +1,5 @@
 #nullable enable
+
 namespace Ziewaar.RAD.Doodads.RKOP;
 public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
@@ -58,15 +59,14 @@ public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultS
         writer.Write(RefersToService?.CurrentNameInScope);
     }
 
-    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(Func<TDesiredResultSink, bool>? predicate = null) 
-        where TDesiredResultSink : class
+    public override IEnumerable<TResult> Query<TResult>(Func<TResult, bool>? predicate = null)
     {
         predicate ??= x => true;
-        if (this is TDesiredResultSink selfDesired && predicate(selfDesired))
-            return selfDesired;
-        else if (RefersToService is TDesiredResultSink referalDesired && predicate(referalDesired))
-            return referalDesired;
-        else 
-            return null;
+        IEnumerable<TResult> result = [];
+        if (this is TResult maybe && predicate(maybe))
+            result = [maybe];
+        if (RefersToService != null)
+            result = result.Concat(RefersToService.Query(predicate));
+        return result;
     }
 }

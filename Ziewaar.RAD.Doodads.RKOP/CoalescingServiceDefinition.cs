@@ -1,4 +1,5 @@
 #nullable enable
+
 namespace Ziewaar.RAD.Doodads.RKOP;
 public class CoalescingServiceDefinition<TResultSink> :
     ServiceExpression<TResultSink>
@@ -8,17 +9,28 @@ public class CoalescingServiceDefinition<TResultSink> :
     private ServiceDescription<TResultSink>? Description;
     protected override ParityParsingState ProtectedUpdateFrom(ref CursorText text)
     {
+        var wasNew = ResultSink == null;
+        if (wasNew)
+            ResultSink = new();
+
         if (Redirection == null)
             Redirection = new();
         var state = Redirection.UpdateFrom($"r_{this.CurrentNameInScope}", ref text);
         if (state == ParityParsingState.Void)
             Redirection = null;
+        else if (wasNew)
+            return ParityParsingState.New;
         else
             return state;
 
         if (Description == null)
             Description = new();
-        return Description.UpdateFrom($"d_{this.CurrentNameInScope}", ref text);
+
+        state = Description.UpdateFrom($"d_{this.CurrentNameInScope}", ref text);
+        if (wasNew)
+            return ParityParsingState.New;
+        else
+            return state;
     }
     public override void HandleChanges()
     {
@@ -47,17 +59,16 @@ public class CoalescingServiceDefinition<TResultSink> :
         else 
             throw new ArgumentException("no redirection or description");
     }
-    public override TDesiredResultSink? GetSingleOrDefault<TDesiredResultSink>(
-        Func<TDesiredResultSink, bool>? predicate = null) where TDesiredResultSink : class
+    public override IEnumerable<TResult> Query<TResult>(Func<TResult, bool>? predicate = null)
     {
         predicate ??= x => true;
-        if (this is TDesiredResultSink selfDesired && predicate(selfDesired))
-            return selfDesired;
-        if (Redirection is TDesiredResultSink desirableRedirection && predicate(desirableRedirection))
-            return desirableRedirection;
-        else if (Description is TDesiredResultSink desirableDescription && predicate(desirableDescription))
-            return desirableDescription;
-        else
-            return null;
+        IEnumerable<TResult> result = [];
+        if (this is TResult maybe && predicate(maybe))
+            result = [maybe];
+        if (Redirection != null)
+            result = result.Concat(Redirection.Query(predicate));
+        if (Description != null)
+            result = result.Concat(Description.Query(predicate));
+        return result;
     }
 }

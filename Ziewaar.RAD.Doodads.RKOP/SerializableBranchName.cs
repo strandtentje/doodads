@@ -5,7 +5,7 @@ public class SerializableBranchName : IParityParser, IComparable, IComparable<Se
     public string BranchName { get; private set; } = "";
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
-        text = text.TakeToken(TokenDescription.IdentifierWithoutUnderscore, out var referenceIdentifier);
+        text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.Identifier, out var referenceIdentifier);
         if (!referenceIdentifier.IsValid)
             return ParityParsingState.Void;
 
