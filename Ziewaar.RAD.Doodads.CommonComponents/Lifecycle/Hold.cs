@@ -14,20 +14,23 @@ public class Hold : IService, IDisposable
             item.Dispose();
     }
     private readonly UpdatingPrimaryValue LockNameConstant = new();
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? Name;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? Name;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, LockNameConstant).IsRereadRequired(out string? lockName);
-        var nameSource = new TextSinkingInteraction(interaction);
-        Name?.Invoke(this, interaction);
         string? desiredName = lockName;
-        using (var rd = nameSource.GetDisposingSinkReader())
+        if (desiredName == null)
         {
-            desiredName ??= rd.ReadToEnd();
+            var nameSource = new TextSinkingInteraction(interaction);
+            Name?.Invoke(this, interaction);
+            using (var rd = nameSource.GetDisposingSinkReader())
+            {
+                desiredName ??= rd.ReadToEnd();
+            }
         }
         if (string.IsNullOrWhiteSpace(desiredName))
         {

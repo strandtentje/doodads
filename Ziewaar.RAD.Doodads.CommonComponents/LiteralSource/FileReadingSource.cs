@@ -4,9 +4,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 public class FileReadingSource : IService
 {
     private readonly UpdatingPrimaryValue ConstantFilename = new();
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, ConstantFilename).IsRereadRequired<string>(out var constantFilename);

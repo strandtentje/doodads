@@ -4,9 +4,9 @@ using System.Collections;
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
 public class None : IService
 {
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (interaction.Register is IEnumerable enumerable)

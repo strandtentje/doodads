@@ -3,9 +3,9 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 public class ReturnElse : IService
 {
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (FindCallerOfCurrentScope(interaction).TryGetClosest<CallingInteraction>(out var callingInteraction))

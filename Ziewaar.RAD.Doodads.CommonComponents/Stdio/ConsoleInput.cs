@@ -4,9 +4,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 public class ConsoleInput : IService
 {
     private static readonly Stream StandardInput = System.Console.OpenStandardInput();
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         OnThen?.Invoke(this, new ConsoleSourceInteraction(interaction, StandardInput));

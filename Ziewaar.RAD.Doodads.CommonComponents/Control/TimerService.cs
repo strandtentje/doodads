@@ -10,9 +10,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control
         private readonly UpdatingKeyValue PeriodConstant = new("period");
         private readonly UpdatingKeyValue DueConstant = new("due");
         private decimal Period, Due;
-        public event EventHandler<IInteraction>? OnThen;
-        public event EventHandler<IInteraction>? OnElse;
-        public event EventHandler<IInteraction>? OnException;
+        public event CallForInteraction? OnThen;
+        public event CallForInteraction? OnElse;
+        public event CallForInteraction? OnException;
         public void Enter(StampedMap constants, IInteraction interaction)
         {
             ValidateConstants(constants);

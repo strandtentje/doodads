@@ -1,18 +1,20 @@
+#nullable enable
 using Newtonsoft.Json;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
-#nullable enable
+
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
+    private static readonly object NullBuster = new();
     private Type? CurrentType;
-    private SortedList<string, List<Delegate>> ExistingEventHandlers = new();
+    private SortedList<string, List<CallForInteraction>> ExistingEventHandlers = new();
     private EventInfo? OnThenEventInfo, OnElseEventInfo;
-    private Delegate? DoneDelegate;
+    private CallForInteraction? DoneDelegate;
     private CursorText? CurrentPosition;
     public string? TypeName { get; private set; }
     public IService? Instance { get; private set; }
     public StampedMap? Constants { get; private set; }
-    public event EventHandler<IInteraction>? DiagnosticOnThen, DiagnosticOnElse, DiagnosticOnException;
+    public event CallForInteraction? DiagnosticOnThen, DiagnosticOnElse, DiagnosticOnException;
     public void Update(
         CursorText atPosition,
         string typename,
@@ -27,18 +29,19 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             this.TypeName = typename;
             this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, out this.CurrentType);
         }
-        this.Constants = new StampedMap(constants);
+        this.Constants = new StampedMap(primaryValue ?? NullBuster, constants);
 
         this.Instance.OnThen += DiagnosticOnThen;
         this.Instance.OnElse += DiagnosticOnElse;
         this.Instance.OnException += DiagnosticOnException;
+        this.Instance.OnException += Instance_OnException;
 
         var allEvents = CurrentType.GetEvents().ToArray();
-        var newEventHandlers = new SortedList<string, List<Delegate>>();
+        var newEventHandlers = new SortedList<string, List<CallForInteraction>>();
         foreach (var item in allEvents)
         {
             if (item.Name == "OnThen") this.OnThenEventInfo = item;
-            if (item.Name == "OnElse") this.OnElseEventInfo = item;            
+            if (item.Name == "OnElse") this.OnElseEventInfo = item;
 
             if (ExistingEventHandlers.TryGetValue(item.Name, out var handlers))
                 foreach (var handler in handlers)
@@ -52,9 +55,19 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         }
         ExistingEventHandlers = newEventHandlers;
     }
-    public void OnThen(Delegate dlg) => OnThenEventInfo!.AddEventHandler(Instance!, dlg);
-    public void OnElse(Delegate dlg) => OnElseEventInfo!.AddEventHandler(Instance!, dlg);
-    public void OnDone(Delegate dlg) => this.DoneDelegate =
+    private void Instance_OnException(object sender, IInteraction interaction)
+    {
+        Console.WriteLine(
+            "Service indicates exceptional situation; {0}", 
+            JsonConvert.SerializeObject(
+                new ExceptionPayload(
+                    Constants,
+                    CurrentType, CurrentPosition, interaction), 
+                Formatting.Indented));
+    }
+    public void OnThen(CallForInteraction dlg) => OnThenEventInfo!.AddEventHandler(Instance!, dlg);
+    public void OnElse(CallForInteraction dlg) => OnElseEventInfo!.AddEventHandler(Instance!, dlg);
+    public void OnDone(CallForInteraction dlg) => this.DoneDelegate =
         dlg == null ? dlg : throw new InvalidOperationException("Cant have two dones");
     public void Cleanup()
     {
@@ -76,27 +89,21 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             Console.Write($"While disposing: {e}");
         }
     }
-    public void Run(IInteraction interaction)
+    public void Run(object sender, IInteraction interaction)
     {
         try
         {
             Instance!.Enter(Constants, interaction);
-        } catch(Exception ex)
+        }
+        catch (Exception ex)
         {
             Console.WriteLine("Fatal on {0}", CurrentType?.Name ?? "Unknown Type");
             try
             {
-                var errorPayload = new SortedList<string, object>
-                {
-                    { "type", CurrentType?.Name ?? "Unknown Type" },
-                    { "directory", CurrentPosition?.WorkingDirectory.FullName ?? "?" },
-                    { "file", CurrentPosition?.BareFile ?? "?" },
-                    { "line", CurrentPosition?.GetCurrentLine() ?? -1 },
-                    { "column", CurrentPosition?.GetCurrentCol() ?? -1 },
-                };
-                Console.WriteLine("Dump of Fatal {0}", JsonConvert.SerializeObject(errorPayload, Formatting.Indented));
-                Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString(), errorPayload), ex);
-            } catch(Exception metaEx)
+                Console.WriteLine("Dump of Fatal {0}", JsonConvert.SerializeObject(ex, Formatting.Indented));
+                Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
+            }
+            catch (Exception metaEx)
             {
                 Console.WriteLine("Exception while handling exception {0}; {1}", ex, metaEx);
 #if DEBUG
@@ -109,8 +116,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         }
         finally
         {
-            DoneDelegate!.DynamicInvoke(this, interaction);
+            DoneDelegate?.DynamicInvoke(this, interaction);
         }
     }
 }
-	

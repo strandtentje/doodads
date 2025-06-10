@@ -71,8 +71,8 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
         CurrentService = wrapper;
     }
-    public void Run(IInteraction interaction)
+    public void Run(object sender, IInteraction interaction)
     {
-        CurrentService!.Run(interaction);
+        CurrentService!.Run(sender, interaction);
     }
 }

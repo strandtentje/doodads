@@ -36,13 +36,21 @@ internal class Program
                 using (var cfg = File.CreateText(item))
                 {
                     cfg.Write("""
-                        Definition():Hold():ConsoleOutput():ConstantTextSource(text = "Doodads"):ConsoleInput():First():Release();
+                        Definition():Hold("boot") {
+                            OnThen->ConsoleOutput():ConstantTextSource("Doodads") 
+                                  & StartLineReader():Repeat() {
+                                      OnThen->First():Option("exit") {
+                                        OnThen->StopLineReader():Release("boot");
+                                        OnElse->Continue();
+                                      };
+                                  };
+                        };
                         """);
                 }
             }
 
             var program = ProgramRepository.Instance.GetForFile(item);
-            program.EntryPoint.Run(rootInteraction);
+            program.EntryPoint.Run(new object(), rootInteraction);
         }
     }
 }

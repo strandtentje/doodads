@@ -5,9 +5,9 @@ public class WebServer : IService, IDisposable
     private HttpListener? CurrentListener = null;
     private string[]? Prefixes;
     private IInteraction? StartingInteraction;
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         HandleStopCommand(interaction);

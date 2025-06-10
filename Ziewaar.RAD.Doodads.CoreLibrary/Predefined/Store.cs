@@ -7,9 +7,9 @@ public class Store : IService
     private readonly UpdatingKeyValue StoreValueConstant = new("constant");
     private string? KeyName;
     private object? DefaultValue;
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, KeyConstant).IsRereadRequired(out this.KeyName);

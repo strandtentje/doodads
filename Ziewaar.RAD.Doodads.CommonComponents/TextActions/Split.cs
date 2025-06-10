@@ -4,9 +4,9 @@ namespace Define.Content.AutomationKioskShell.ValidationNodes;
 public class Split : IService
 {
     private readonly UpdatingPrimaryValue SplitCharacter = new();
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, SplitCharacter).IsRereadRequired(out string? splitChar);

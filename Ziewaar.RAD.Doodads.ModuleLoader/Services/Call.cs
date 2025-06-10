@@ -4,10 +4,10 @@ public class Call : IService
 {
     private readonly UpdatingPrimaryValue ModuleNameConstant = new();
     private string? CurrentModuleName;
-    public event EventHandler<IInteraction>? ModuleName;
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? ModuleName;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, ModuleNameConstant).IsRereadRequired(out this.CurrentModuleName);
@@ -26,7 +26,7 @@ public class Call : IService
         var ci = new CallingInteraction(interaction, constants.NamedItems);
         ci.OnThen += OnThen;
         ci.OnElse += OnElse;
-        ProgramRepository.Instance.GetEntryPointForFile(desiredModuleName).Run(ci);
+        ProgramRepository.Instance.GetEntryPointForFile(desiredModuleName).Run(this, ci);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

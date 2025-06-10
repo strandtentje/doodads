@@ -4,9 +4,9 @@ public class Template : IService
 {
     private TextSinkingInteraction? templatefile = null;
     private readonly TemplateParser Parser = new();
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {

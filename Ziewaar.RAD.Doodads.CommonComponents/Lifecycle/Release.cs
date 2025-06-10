@@ -4,10 +4,10 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 public class Release : IService
 {
     private readonly UpdatingPrimaryValue LockNameConstant = new();
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? Name;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? Name;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, LockNameConstant).IsRereadRequired(out string? lockName);

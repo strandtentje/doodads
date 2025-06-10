@@ -3,17 +3,17 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
 {
-    private Delegate? ElseDelegate, DoneDelegate;
+    private CallForInteraction? ElseDelegate, DoneDelegate;
     private IAmbiguousServiceWrapper[]? ServiceSequence;
-    public void OnThen(Delegate dlg)=>
+    public void OnThen(CallForInteraction dlg)=>
         throw new InvalidOperationException("Cannot do then/else on alternative services");
-    public void OnElse(Delegate dlg)
+    public void OnElse(CallForInteraction dlg)
     {
         if (this.ElseDelegate != null)
             throw new InvalidOperationException("Cannot handle done twice");
         this.ElseDelegate = dlg;
     }
-    public void OnDone(Delegate dlg)
+    public void OnDone(CallForInteraction dlg)
     {
         if (this.DoneDelegate != null)
             throw new InvalidOperationException("Cannot handle done twice");
@@ -29,15 +29,15 @@ public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
             ambiguousServiceWrapper.Cleanup();
         ServiceSequence = null;
     }
-    public void Run(IInteraction interaction)
+    public void Run(object sender, IInteraction interaction)
     {
-        this.ServiceSequence!.ElementAt(0).Run(interaction);
+        this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
         this.DoneDelegate?.DynamicInvoke(this, interaction);
     }
     public void SetTarget(ServiceBuilder[] toArray)
     {
         this.ServiceSequence = toArray.Select(x => x.CurrentService!).ToArray();
-        var handleElse = new Action<object, IInteraction>((s, e) =>
+        var handleElse = new CallForInteraction((s, e) =>
         {
             this.ElseDelegate?.DynamicInvoke(s, e);
         });

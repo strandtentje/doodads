@@ -4,11 +4,11 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader;
 public class DoNextOnDoneWrapper : IAmbiguousServiceWrapper
 {
     private IAmbiguousServiceWrapper[]? ServiceSequence;
-    public void OnThen(Delegate dlg) =>
+    public void OnThen(CallForInteraction dlg) =>
         throw new InvalidOperationException("Cannot do then/else/done on concatenated services");
-    public void OnElse(Delegate dlg) =>
+    public void OnElse(CallForInteraction dlg) =>
         throw new InvalidOperationException("Cannot do then/else/done on concatenated services");
-    public void OnDone(Delegate dlg) =>
+    public void OnDone(CallForInteraction dlg) =>
         throw new InvalidOperationException("Cannot do then/else/done on concatenated services");
     public void Cleanup()
     {
@@ -18,7 +18,7 @@ public class DoNextOnDoneWrapper : IAmbiguousServiceWrapper
             ambiguousServiceWrapper.Cleanup();
         ServiceSequence = null;
     }
-    public void Run(IInteraction interaction) => this.ServiceSequence!.ElementAt(0).Run(interaction);
+    public void Run(object sender, IInteraction interaction) => this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
     public void SetTarget(ServiceBuilder[] toArray)
     {
         this.ServiceSequence = toArray.Select(x => x.CurrentService!).ToArray();

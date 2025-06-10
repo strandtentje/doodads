@@ -2,14 +2,15 @@
 #nullable enable
 using System.Collections;
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
-public class First : IService
+public class Pop : IService
 {
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    private readonly UpdatingPrimaryValue ListSourceNameConstant
+
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        
+    {        
         if (interaction.Register is IEnumerable enumerable)
         {
             var tor = enumerable.GetEnumerator();

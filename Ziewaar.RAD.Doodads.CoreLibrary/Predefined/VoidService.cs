@@ -3,12 +3,14 @@
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public class VoidService : IService
 {
-    public event EventHandler<IInteraction>? OnThen;
-    public event EventHandler<IInteraction>? OnElse;
-    public event EventHandler<IInteraction>? OnException;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         OnElse?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
+
+public delegate void CallForInteraction(object sender, IInteraction interaction);
