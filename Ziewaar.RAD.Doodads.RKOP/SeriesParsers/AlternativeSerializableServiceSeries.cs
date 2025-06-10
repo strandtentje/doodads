@@ -1,5 +1,8 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.RKOP;
+using Ziewaar;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
 public class AlternativeSerializableServiceSeries<TResultSink> :
     SerializableServiceSeries<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()

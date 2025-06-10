@@ -1,4 +1,8 @@
 ﻿using System.Xml.Resolvers;
+using Ziewaar.RAD.Doodads.RKOP.Blocks;
+using Ziewaar.RAD.Doodads.RKOP.Constructor;
+using Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
+using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Testing
 {

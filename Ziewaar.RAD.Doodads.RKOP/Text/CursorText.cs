@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP.Text;
 
 public class CursorText(
     DirectoryInfo workingDirectory,
@@ -8,7 +8,7 @@ public class CursorText(
     SortedList<string, object> localScope,
     int position = 0)
 {
-    private static readonly CursorText FixedEmpty = CursorText.Create(
+    private static readonly CursorText FixedEmpty = Create(
         new DirectoryInfo(Environment.CurrentDirectory),
         "deleted", "");
     public static CursorText Empty = FixedEmpty.AdvanceTo(0);

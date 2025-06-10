@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿using Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class ProgramFactory
 {
@@ -11,7 +13,7 @@ public class ProgramFactory
 
         var result = new KnownProgram()
         {
-            DescriptionRoot = new ServiceDescription<ServiceBuilder>(),
+            DescriptionRoot = new UnconditionalSerializableServiceSeries<ServiceBuilder>(),
             DirectoryInfo = programDirInfo,
             FileInfo = programFileInfo,
         };

@@ -1,5 +1,7 @@
-﻿
-namespace Ziewaar.RAD.Doodads.RKOP;
+﻿using Ziewaar.RAD.Doodads.RKOP.Constructor;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
 #nullable enable
 public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()

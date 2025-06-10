@@ -1,5 +1,8 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.RKOP;
+using Ziewaar;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
 public class SerializableBranchName : IParityParser, IComparable, IComparable<SerializableBranchName>
 {
     public string BranchName { get; private set; } = "";
@@ -11,14 +14,14 @@ public class SerializableBranchName : IParityParser, IComparable, IComparable<Se
 
         text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.BranchAnnouncement, out var assignment);
 
-        if (string.IsNullOrWhiteSpace(this.BranchName))
+        if (string.IsNullOrWhiteSpace(BranchName))
         {
-            this.BranchName = referenceIdentifier.Text;
+            BranchName = referenceIdentifier.Text;
             return ParityParsingState.New;
         }
-        else if (this.BranchName != referenceIdentifier.Text)
+        else if (BranchName != referenceIdentifier.Text)
         {
-            this.BranchName = referenceIdentifier.Text;
+            BranchName = referenceIdentifier.Text;
             return ParityParsingState.Changed;
         }
         else
@@ -28,8 +31,8 @@ public class SerializableBranchName : IParityParser, IComparable, IComparable<Se
     }
     public int CompareTo(object obj) =>
         obj is SerializableBranchName sbn
-            ? String.Compare(this.BranchName, sbn.BranchName, StringComparison.Ordinal)
+            ? string.Compare(BranchName, sbn.BranchName, StringComparison.Ordinal)
             : 1;
     public int CompareTo(SerializableBranchName other) =>
-        String.Compare(this.BranchName, other.BranchName, StringComparison.Ordinal);
+        string.Compare(BranchName, other.BranchName, StringComparison.Ordinal);
 }

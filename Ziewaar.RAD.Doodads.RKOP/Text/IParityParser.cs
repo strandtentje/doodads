@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP.Text;
 
 public interface IParityParser
 {

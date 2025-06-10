@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 public class ServiceConstantsDescription : IParityParser
 {
     public List<ServiceConstantsMember> Members = new();

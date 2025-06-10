@@ -1,6 +1,9 @@
 #nullable enable
 
-namespace Ziewaar.RAD.Doodads.RKOP;
+using Ziewaar;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
 public class CoalescingServiceDefinition<TResultSink> :
     ServiceExpression<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
@@ -15,7 +18,7 @@ public class CoalescingServiceDefinition<TResultSink> :
 
         if (Redirection == null)
             Redirection = new();
-        var state = Redirection.UpdateFrom($"r_{this.CurrentNameInScope}", ref text);
+        var state = Redirection.UpdateFrom($"r_{CurrentNameInScope}", ref text);
         if (state == ParityParsingState.Void)
             Redirection = null;
         else if (wasNew)
@@ -26,7 +29,7 @@ public class CoalescingServiceDefinition<TResultSink> :
         if (Description == null)
             Description = new();
 
-        state = Description.UpdateFrom($"d_{this.CurrentNameInScope}", ref text);
+        state = Description.UpdateFrom($"d_{CurrentNameInScope}", ref text);
         if (wasNew)
             return ParityParsingState.New;
         else
@@ -37,9 +40,9 @@ public class CoalescingServiceDefinition<TResultSink> :
         if (ResultSink == null)
             throw new ArgumentException("no result sink", nameof(ResultSink));
         else if (Redirection != null)
-            ResultSink.SetSoftLink(this.Redirection);
+            ResultSink.SetSoftLink(Redirection);
         else if (Description != null)
-            ResultSink.SetHardLink(this.Description);
+            ResultSink.SetHardLink(Description);
         else
             throw new ArgumentException("no redirection or description");
     }

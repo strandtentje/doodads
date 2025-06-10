@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #nullable enable
 public class ServiceBuilder : IInstanceWrapper, IEntryPoint
 {

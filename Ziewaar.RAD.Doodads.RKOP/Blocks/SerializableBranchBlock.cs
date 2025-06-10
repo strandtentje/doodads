@@ -1,5 +1,9 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.RKOP;
+using Ziewaar;
+using Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
 public class SerializableBranchBlock<TResultSink> : IParityParser
     where TResultSink : class, IInstanceWrapper, new()
 {

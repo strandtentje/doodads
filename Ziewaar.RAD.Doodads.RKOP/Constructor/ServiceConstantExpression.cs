@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 
 public class ServiceConstantExpression : IParityParser
 {
@@ -74,7 +76,7 @@ public class ServiceConstantExpression : IParityParser
                         out decimal decimalValue))
                 {
                     inText = text;
-                    return this.SetDecimalValue(candidate + decimalValue);
+                    return SetDecimalValue(candidate + decimalValue);
                 }
                 else
                 {
@@ -113,24 +115,24 @@ public class ServiceConstantExpression : IParityParser
             } while (comma.IsValid);
         }
         ParityParsingState state = ParityParsingState.Unchanged;
-        if (this.ConstantType != ConstantType.Array)
+        if (ConstantType != ConstantType.Array)
             state = ParityParsingState.Changed;
-        else if (this.ArrayItems.Length != newArrayExpressions.Count)
+        else if (ArrayItems.Length != newArrayExpressions.Count)
             state = ParityParsingState.Changed;
-        else if (this.ArrayItems.Zip(newArrayExpressions, (x, y) => (x, y)).Any(p => p.x.Mismatches(p.y)))
+        else if (ArrayItems.Zip(newArrayExpressions, (x, y) => (x, y)).Any(p => p.x.Mismatches(p.y)))
             state = ParityParsingState.Changed;
-        this.ConstantType = ConstantType.Array;
-        this.ArrayItems = newArrayExpressions.ToArray();
+        ConstantType = ConstantType.Array;
+        ArrayItems = newArrayExpressions.ToArray();
         return state;
     }
 
     private ParityParsingState SetPathValue(DirectoryInfo workingDirectory, string x)
     {
         var state = ParityParsingState.Unchanged;
-        if (this.ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
-        if (this.PathValue != (workingDirectory.FullName, x)) state |= ParityParsingState.Changed;
-        this.ConstantType = ConstantType.Path;
-        this.PathValue = (workingDirectory.FullName, x);
+        if (ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
+        if (PathValue != (workingDirectory.FullName, x)) state |= ParityParsingState.Changed;
+        ConstantType = ConstantType.Path;
+        PathValue = (workingDirectory.FullName, x);
 
         return state;
     }
@@ -138,22 +140,22 @@ public class ServiceConstantExpression : IParityParser
     private ParityParsingState SetDecimalValue(decimal v)
     {
         var state = ParityParsingState.Unchanged;
-        if (this.ConstantType != ConstantType.Number) state |= ParityParsingState.Changed;
-        if (this.NumberValue != v) state |= ParityParsingState.Changed;
+        if (ConstantType != ConstantType.Number) state |= ParityParsingState.Changed;
+        if (NumberValue != v) state |= ParityParsingState.Changed;
 
-        this.ConstantType = ConstantType.Number;
-        this.NumberValue = v;
+        ConstantType = ConstantType.Number;
+        NumberValue = v;
 
         return state;
     }
     private ParityParsingState SetBoolValue(bool resultBool)
     {
         var state = ParityParsingState.Unchanged;
-        if (this.ConstantType != ConstantType.Bool) state |= ParityParsingState.Changed;
-        if (this.BoolValue != resultBool) state |= ParityParsingState.Changed;
+        if (ConstantType != ConstantType.Bool) state |= ParityParsingState.Changed;
+        if (BoolValue != resultBool) state |= ParityParsingState.Changed;
 
-        this.ConstantType = ConstantType.Bool;
-        this.BoolValue = resultBool;
+        ConstantType = ConstantType.Bool;
+        BoolValue = resultBool;
 
         return state;
     }
@@ -183,66 +185,66 @@ public class ServiceConstantExpression : IParityParser
     private ParityParsingState SetStringValue(string v)
     {
         var state = ParityParsingState.Unchanged;
-        if (this.ConstantType != ConstantType.String) state |= ParityParsingState.Changed;
-        if (this.TextValue != v) state |= ParityParsingState.Changed;
+        if (ConstantType != ConstantType.String) state |= ParityParsingState.Changed;
+        if (TextValue != v) state |= ParityParsingState.Changed;
 
-        this.ConstantType = ConstantType.String;
-        this.TextValue = v;
+        ConstantType = ConstantType.String;
+        TextValue = v;
 
         return state;
     }
 
     internal bool Mismatches(ServiceConstantExpression value)
     {
-        if (this.ConstantType != value.ConstantType) return true;
+        if (ConstantType != value.ConstantType) return true;
 
-        switch (this.ConstantType)
+        switch (ConstantType)
         {
             case ConstantType.String:
-                return this.TextValue != value.TextValue;
+                return TextValue != value.TextValue;
             case ConstantType.Bool:
-                return this.BoolValue != value.BoolValue;
+                return BoolValue != value.BoolValue;
             case ConstantType.Number:
-                return this.NumberValue != value.NumberValue;
+                return NumberValue != value.NumberValue;
             case ConstantType.Path:
-                return this.PathValue != value.PathValue;
+                return PathValue != value.PathValue;
             case ConstantType.Array:
-                if (this.ArrayItems.Length != value.ArrayItems.Length)
+                if (ArrayItems.Length != value.ArrayItems.Length)
                     return true;
-                return this.ArrayItems.Zip(value.ArrayItems, (x, y) => (x, y)).Any(p => p.x.Mismatches(p.y));
+                return ArrayItems.Zip(value.ArrayItems, (x, y) => (x, y)).Any(p => p.x.Mismatches(p.y));
             default:
                 return true;
         }
     }
     public void WriteTo(StreamWriter writer)
     {
-        switch (this.ConstantType)
+        switch (ConstantType)
         {
             case ConstantType.String:
                 writer.Write('"');
-                writer.Write(this.TextValue.Replace(@"\", @"\\").Replace(@"""", @"\"""));
+                writer.Write(TextValue.Replace(@"\", @"\\").Replace(@"""", @"\"""));
                 writer.Write('"');
                 break;
             case ConstantType.Bool:
-                writer.Write(this.BoolValue ? "True" : "False");
+                writer.Write(BoolValue ? "True" : "False");
                 break;
             case ConstantType.Number:
-                if (Math.Floor(this.NumberValue) == this.NumberValue)
-                    writer.Write(((int)this.NumberValue).ToString());
+                if (Math.Floor(NumberValue) == NumberValue)
+                    writer.Write(((int)NumberValue).ToString());
                 else
-                    writer.Write(this.NumberValue.ToString(CultureInfo.InvariantCulture));
+                    writer.Write(NumberValue.ToString(CultureInfo.InvariantCulture));
                 break;
             case ConstantType.Path:
                 writer.Write(@"f""");
-                writer.Write(this.PathValue.RelativePath.Replace(@"\", @"\\").Replace(@"""", @"\"""));
+                writer.Write(PathValue.RelativePath.Replace(@"\", @"\\").Replace(@"""", @"\"""));
                 writer.Write(@"""");
                 break;
             case ConstantType.Array:
                 writer.Write("[");
-                for (int i = 0; i < this.ArrayItems.Length; i++)
+                for (int i = 0; i < ArrayItems.Length; i++)
                 {
-                    this.ArrayItems[i].WriteTo(writer);
-                    if (i + 1 < this.ArrayItems.Length)
+                    ArrayItems[i].WriteTo(writer);
+                    if (i + 1 < ArrayItems.Length)
                         writer.Write(", ");
                 }
                 writer.Write("]");

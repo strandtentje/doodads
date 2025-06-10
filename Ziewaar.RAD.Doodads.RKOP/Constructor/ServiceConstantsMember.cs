@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 
 public class ServiceConstantsMember : IParityParser
 {
@@ -22,11 +24,11 @@ public class ServiceConstantsMember : IParityParser
         if (state == ParityParsingState.Void)
             throw new ParsingException("Expected value for assignment");
 
-        if (string.IsNullOrWhiteSpace(this.Key))
+        if (string.IsNullOrWhiteSpace(Key))
             state |= ParityParsingState.New;
-        else if (this.Key != identifier.Text)
+        else if (Key != identifier.Text)
             state |= ParityParsingState.Changed;
-            this.Key = identifier.Text;
+            Key = identifier.Text;
 
         inText = text;
         return state;            

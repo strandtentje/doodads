@@ -1,10 +1,13 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿using Ziewaar.RAD.Doodads.RKOP.Blocks;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class KnownProgram : IDisposable
 {
     public event EventHandler RequiresSaving;
 
-    public ServiceDescription<ServiceBuilder> DescriptionRoot;
+    public ServiceExpression<ServiceBuilder> DescriptionRoot;
     public DirectoryInfo DirectoryInfo;
     public FileInfo FileInfo;
     private bool CurrentlyReloading = false;

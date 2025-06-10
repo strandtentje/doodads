@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP.Text;
 
 public class Token(TokenDescription description, string text, bool valid)
 {

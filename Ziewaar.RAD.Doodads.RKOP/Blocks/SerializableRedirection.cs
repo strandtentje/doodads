@@ -1,6 +1,9 @@
 #nullable enable
 
-namespace Ziewaar.RAD.Doodads.RKOP;
+using Ziewaar;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
 public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
 {
@@ -18,35 +21,35 @@ public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultS
         var candidateName = $"_{referenceNameWithoutUnderscore.Text}";
         var candidateReference = text[candidateName] as ServiceExpression<TResultSink>;
 
-        if (this.RefersToService == null || this.RefersToName == null || this.ResultSink == null)
+        if (RefersToService == null || RefersToName == null || ResultSink == null)
         {
-            this.ResultSink = new();
-            this.RefersToService = candidateReference;
-            this.RefersToName = candidateName;
+            ResultSink = new();
+            RefersToService = candidateReference;
+            RefersToName = candidateName;
             return ParityParsingState.New;
         }
-        else if (this.RefersToName != candidateName)
+        else if (RefersToName != candidateName)
         {
-            this.RefersToService = candidateReference;
-            this.RefersToName = candidateName;
+            RefersToService = candidateReference;
+            RefersToName = candidateName;
             return ParityParsingState.Changed;
         }
-        else if (this.RefersToService == candidateReference)
+        else if (RefersToService == candidateReference)
         {
-            this.RefersToService = candidateReference;
-            this.RefersToName = candidateName;
+            RefersToService = candidateReference;
+            RefersToName = candidateName;
             return ParityParsingState.Unchanged;
         }
         else
         {
-            this.RefersToService = candidateReference;
-            this.RefersToName = candidateName;
+            RefersToService = candidateReference;
+            RefersToName = candidateName;
             return ParityParsingState.Changed;
         }
     }
     public override void HandleChanges()
     {
-        this.ResultSink?.SetSoftLink(RefersToService ?? throw new ArgumentException("no refer service"));
+        ResultSink?.SetSoftLink(RefersToService ?? throw new ArgumentException("no refer service"));
     }
     public override void Purge()
     {

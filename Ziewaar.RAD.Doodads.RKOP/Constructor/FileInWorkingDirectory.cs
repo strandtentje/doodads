@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 
 public record struct FileInWorkingDirectory(string WorkingDirectory, string RelativePath)
 {

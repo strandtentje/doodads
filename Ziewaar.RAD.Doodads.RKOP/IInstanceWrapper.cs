@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP;
+﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP;
 
 public interface IInstanceWrapper
 {

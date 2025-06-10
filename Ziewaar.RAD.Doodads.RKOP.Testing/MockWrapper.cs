@@ -1,3 +1,5 @@
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
 namespace Ziewaar.RAD.Doodads.RKOP.Testing;
 
 public class MockWrapper : IInstanceWrapper

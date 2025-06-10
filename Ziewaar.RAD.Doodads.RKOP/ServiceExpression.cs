@@ -1,4 +1,6 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
 namespace Ziewaar.RAD.Doodads.RKOP;
 public abstract class ServiceExpression<TResultSink> where TResultSink : class, IInstanceWrapper, new()
 {

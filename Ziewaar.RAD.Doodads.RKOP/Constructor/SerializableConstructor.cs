@@ -1,5 +1,8 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.RKOP;
+using Ziewaar;
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 public class SerializableConstructor : IParityParser
 {
     public string? ServiceTypeName { get; private set; }
@@ -24,14 +27,14 @@ public class SerializableConstructor : IParityParser
 
         text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.EndOfArguments, out var _);
 
-        if (string.IsNullOrWhiteSpace(this.ServiceTypeName))
+        if (string.IsNullOrWhiteSpace(ServiceTypeName))
         {
-            this.ServiceTypeName = typeIdentifier.Text;
+            ServiceTypeName = typeIdentifier.Text;
             return state | ParityParsingState.New;
         }
-        else if (this.ServiceTypeName != typeIdentifier.Text)
+        else if (ServiceTypeName != typeIdentifier.Text)
         {
-            this.ServiceTypeName = typeIdentifier.Text;
+            ServiceTypeName = typeIdentifier.Text;
             return state | ParityParsingState.Changed;
         }
         else

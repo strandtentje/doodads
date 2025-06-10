@@ -1,3 +1,5 @@
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #nullable enable
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
