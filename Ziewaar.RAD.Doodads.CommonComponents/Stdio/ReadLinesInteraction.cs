@@ -7,9 +7,7 @@ public class ReadLinesInteraction(IInteraction parent, string name, StreamReader
     public string Name => name;
     public event EventHandler<object>? EndOfStream;
     public IInteraction Stack => parent;
-#pragma warning disable CS8974 // Converting method group to non-delegate type is exactly what we're doing here.
-    public object Register => Enumerate;
-#pragma warning restore CS8974 // Go on, call the police, i dare u.
+    public object Register => Enumerate();
     private IEnumerable<string> Enumerate()
     {
         string currentLine = "";

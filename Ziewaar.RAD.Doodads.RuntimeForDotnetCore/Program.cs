@@ -1,5 +1,6 @@
 ﻿using Ziewaar.Common.Aardvargs;
 using Ziewaar.RAD.Doodads.CommonComponents;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.ModuleLoader;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
@@ -21,6 +22,7 @@ internal class Program
         }
 
         TypeRepository.Instance.
+            PopulateWith(typeof(IService).Assembly).
             PopulateWith(typeof(WebServer).Assembly).
             PopulateWith(typeof(Template).Assembly).
             PopulateWith(typeof(Definition).Assembly);

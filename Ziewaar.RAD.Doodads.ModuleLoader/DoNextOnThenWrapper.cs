@@ -9,14 +9,10 @@ public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
         throw new InvalidOperationException("Cannot do then/else on alternative services");
     public void OnElse(CallForInteraction dlg)
     {
-        if (this.ElseDelegate != null)
-            throw new InvalidOperationException("Cannot handle done twice");
         this.ElseDelegate = dlg;
     }
     public void OnDone(CallForInteraction dlg)
     {
-        if (this.DoneDelegate != null)
-            throw new InvalidOperationException("Cannot handle done twice");
         this.DoneDelegate = dlg;
     }
     public void Cleanup()
@@ -34,17 +30,16 @@ public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
         this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
         this.DoneDelegate?.DynamicInvoke(this, interaction);
     }
+    private void HandleElse(object sender, IInteraction interaction)
+    {
+        this.ElseDelegate?.DynamicInvoke(sender, interaction);
+    }
     public void SetTarget(ServiceBuilder[] toArray)
     {
         this.ServiceSequence = toArray.Select(x => x.CurrentService!).ToArray();
-        var handleElse = new CallForInteraction((s, e) =>
-        {
-            this.ElseDelegate?.DynamicInvoke(s, e);
-        });
+        for (var i = 0; i < toArray.Length; i++)
+            toArray[i].CurrentService!.OnElse(HandleElse);
         for (var i = 0; i < toArray.Length - 1; i++)
-        {
             toArray[i].CurrentService!.OnThen(toArray[i + 1].Run);
-            toArray[i].CurrentService!.OnElse(handleElse);
-        }
     }
 }

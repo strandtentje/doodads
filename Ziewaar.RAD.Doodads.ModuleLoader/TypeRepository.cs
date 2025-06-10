@@ -15,7 +15,9 @@ public class TypeRepository
     }
     public TypeRepository PopulateWith(Assembly assembly)
     {
-        var serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x));
+        var serviceTypes = assembly.
+            GetTypes().
+            Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
         foreach (var serviceType in serviceTypes)
         {
             NamedServiceTypes.Add(serviceType.Name, serviceType);

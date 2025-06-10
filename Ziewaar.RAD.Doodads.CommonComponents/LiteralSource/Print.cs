@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
-public class ConstantTextSource : IService
+public class Print : IService
 {
     private readonly UpdatingPrimaryValue PlainTextValue = new();
     private readonly UpdatingKeyValue ContentType = new("contenttype");
@@ -18,6 +18,7 @@ public class ConstantTextSource : IService
             sinkInteraction != null)
         {
             sinkInteraction.WriteSegment(plainText ?? "", contentType);
+            OnThen?.Invoke(this, interaction);
         }
         else
         {

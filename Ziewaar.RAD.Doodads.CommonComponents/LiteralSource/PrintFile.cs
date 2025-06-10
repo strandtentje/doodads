@@ -1,7 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
-public class FileReadingSource : IService
+public class PrintFile : IService
 {
     private readonly UpdatingPrimaryValue ConstantFilename = new();
     public event CallForInteraction? OnThen;

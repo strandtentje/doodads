@@ -16,11 +16,13 @@ public class ExceptionPayload
         File = text?.BareFile ?? "No File";
         Line = text?.GetCurrentLine() ?? -1;
         Column = text?.GetCurrentCol() ?? -1;
-        Memory = interaction?.Memory ?? EmptyReadOnlyDictionary.Instance;
+        Memory = (interaction?.Memory ?? EmptyReadOnlyDictionary.Instance).
+            Select(x => (x.Key, x.Value.ToString())).
+            ToDictionary(x => x.Key, x => x.Item2);
     }
     public readonly string Register, Type, Directory, File, PrimaryConstant;
     public readonly long PrimaryConstantStamp, CurrentTimeStamp;
     public readonly int Line, Column;
-    public readonly IReadOnlyDictionary<string, object> Memory;
+    public readonly IReadOnlyDictionary<string, string> Memory;
     public readonly IEnumerable<DiagnosticConstant> Constants;
 }

@@ -4,14 +4,27 @@ using System.Collections;
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
 public class Pop : IService
 {
-    private readonly UpdatingPrimaryValue ListSourceNameConstant
+    private readonly UpdatingPrimaryValue ListSourceNameConstant = new();
 
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
-    {        
-        if (interaction.Register is IEnumerable enumerable)
+    {
+        (constants, ListSourceNameConstant).IsRereadRequired(out string? listSourceName);
+
+        IEnumerable? list = null;
+        bool passOnEnumerable = false;
+        
+        if (listSourceName == null)
+            list = interaction.Register as IEnumerable;
+        else if (interaction.TryFindVariable<IEnumerable>(listSourceName, out var candidate))
+        {
+            list = candidate;
+            passOnEnumerable = true;
+        }
+        
+        if (list is IEnumerable enumerable)
         {
             var tor = enumerable.GetEnumerator();
             try
@@ -24,8 +37,17 @@ public class Pop : IService
 
                 if (tor.MoveNext())
                 {
-                    OnThen?.Invoke(this, new CommonInteraction(interaction, tor.Current));
-                    OnElse?.Invoke(this, new CommonInteraction(interaction, Continue()));
+                    if (passOnEnumerable)
+                    {
+                        OnThen?.Invoke(this, new CommonInteraction(interaction, tor.Current, new (1)
+                        {
+                            { listSourceName!, Continue() }
+                        }));
+                    }
+                    else
+                    {
+                        OnThen?.Invoke(this, new CommonInteraction(interaction, tor.Current));
+                    }
                 }
                 else
                 {

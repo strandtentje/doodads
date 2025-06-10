@@ -11,8 +11,6 @@ public class DoNextOnElseWrapper : IAmbiguousServiceWrapper
         throw new InvalidOperationException("Cannot do then/else on alternative services");
     public void OnDone(CallForInteraction dlg)
     {
-        if (this.DoneDelegate != null)
-            throw new InvalidOperationException("Cannot handle done twice");
         this.DoneDelegate = dlg;
     }
     public void Cleanup()

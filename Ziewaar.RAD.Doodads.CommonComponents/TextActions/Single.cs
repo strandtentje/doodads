@@ -2,7 +2,7 @@
 #nullable enable
 using System.Collections;
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
-public class None : IService
+public class Single : IService
 {
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
@@ -14,10 +14,16 @@ public class None : IService
             var tor = enumerable.GetEnumerator();
             try
             {
-                if (!tor.MoveNext())
-                    OnThen?.Invoke(this, interaction);
-                else 
-                    OnElse?.Invoke(this, interaction);
+                if (tor.MoveNext())
+                {
+                    var item = tor.Current;
+                    if (!tor.MoveNext())
+                    {
+                        OnThen?.Invoke(this, new CommonInteraction(interaction, item));
+                        return;
+                    }
+                }
+                OnElse?.Invoke(this, interaction);
             }
             finally
             {

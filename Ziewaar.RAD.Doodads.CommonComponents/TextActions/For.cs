@@ -2,7 +2,7 @@
 #nullable enable
 using System.Collections;
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
-public class Iterate : IService
+public class For : IService
 {
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
