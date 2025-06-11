@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+﻿using Microsoft.VisualBasic;
+
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #nullable enable
 public class WebServer : IService, IDisposable
 {
@@ -51,10 +53,11 @@ public class WebServer : IService, IDisposable
             var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
             OnThen?.Invoke(this, responseInteraction);
             httpContext.Response.Close();
-        } catch(HttpListenerException ex)
+        } catch(Exception ex)
         {
-            OnException?.Invoke(this, new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message));
-            TerminateListener();
+            var terminatingInteraction = new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message);
+            OnException?.Invoke(this, terminatingInteraction);
+            TerminateListener(terminatingInteraction);
         }
     }
     private void HandleStopCommand(IInteraction interaction)
@@ -64,22 +67,26 @@ public class WebServer : IService, IDisposable
                 stopper => stopper.Command == ServerCommand.Stop) &&
             CurrentListener != null && CurrentListener.IsListening)
         {
-            OnStopping?.Invoke(this, new CommonInteraction(interaction));
             stopper!.Consume();
-            TerminateListener();
+            TerminateListener(interaction);
         }
     }
 
     private readonly object terminationLock = new();
     private bool isTerminating = false;
 
-    private void TerminateListener()
+    private void TerminateListener(IInteraction interaction)
     {
         if (isTerminating) return;
         lock (terminationLock)
         {
             if (isTerminating) return;
+            if (CurrentListener == null)
+            {
+                return;
+            }
             isTerminating = true;
+            OnStopping?.Invoke(this, interaction);
             try
             {
                 CurrentListener?.Stop();
@@ -148,6 +155,6 @@ public class WebServer : IService, IDisposable
             return false;
         }
     }
-    public void Dispose() => TerminateListener();
+    public void Dispose() => TerminateListener(StopperInteraction.Instance);
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

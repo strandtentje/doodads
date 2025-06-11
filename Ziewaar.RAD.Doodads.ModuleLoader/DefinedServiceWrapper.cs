@@ -59,6 +59,12 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                 item.AddEventHandler(this.Instance, newEvent);
             }
         }
+        var strangeBranches = branches.Keys.ToList();
+        var serviceBranches = allEvents.Select(x => x.Name).ToList();
+        foreach (var item in serviceBranches)
+            strangeBranches.Remove(item);
+        if (strangeBranches.FirstOrDefault() is string strangeName)
+            throw new ExceptionAtPositionInFile(atPosition, $"Branch {strangeName} does not exist on service {Type.Name}");
     }
     private void Instance_OnException(object sender, IInteraction interaction)
     {

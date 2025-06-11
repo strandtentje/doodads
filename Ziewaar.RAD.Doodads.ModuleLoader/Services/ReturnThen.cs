@@ -8,8 +8,10 @@ public class ReturnThen : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (FindCallerOfCurrentScope(interaction).TryGetClosest<CallingInteraction>(out var callingInteraction))
-            callingInteraction!.InvokeOnThen(new ReturningInteraction(interaction, callingInteraction, constants.NamedItems));
+        if (FindCallerOfCurrentScope(interaction, 0) is CallingInteraction ci)
+            ci.InvokeOnThen(new ReturningInteraction(interaction, ci, constants.NamedItems));
+        else
+            OnException?.Invoke(this, new CommonInteraction(interaction, "illegal double return"));
     }
     /// <summary>
     /// This function deals with the fact that modules can call other modules,
@@ -19,15 +21,29 @@ public class ReturnThen : IService
     /// </summary>
     /// <param name="interaction"></param>
     /// <returns>A free calling interaction that belongs to the caller of this module</returns>
-    private static IInteraction FindCallerOfCurrentScope(IInteraction interaction)
+    private static CallingInteraction? FindCallerOfCurrentScope(IInteraction interaction, int skip)
     {
-        var offset = interaction;
-        while (offset.TryGetClosest<ReturningInteraction>(out var candidateOffset))
+        if (interaction is CallingInteraction ci)
         {
-            offset = candidateOffset!.Cause.Stack;
+            if (skip == 0)
+                return ci;
+            else if (skip > 0)
+                return FindCallerOfCurrentScope(ci.Stack, skip - 1);
+            else
+                return null;
         }
-
-        return offset;
+        else if (interaction is ReturningInteraction ri)
+        {
+            return FindCallerOfCurrentScope(ri.Stack, skip + 1);
+        }
+        else if (interaction is StopperInteraction)
+        {
+            return null;
+        }
+        else
+        {
+            return FindCallerOfCurrentScope(interaction.Stack, skip);
+        }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

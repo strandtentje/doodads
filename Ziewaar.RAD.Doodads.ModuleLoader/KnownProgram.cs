@@ -33,6 +33,12 @@ public class KnownProgram : IDisposable
                 throw new ArgumentNullException(nameof(FileInfo));
             try
             {
+                if (!FileInfo.Exists)
+                {
+                    FileInfo.Create();
+                    Console.WriteLine("Creating empty file");
+                }
+
                 Console.WriteLine("Reloading program {0}", FileInfo.Name);
                 var cursor = CursorText.Create(FileInfo.Directory, FileInfo.Name, File.ReadAllText(FileInfo.FullName));
 

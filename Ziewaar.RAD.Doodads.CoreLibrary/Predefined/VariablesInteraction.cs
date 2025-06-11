@@ -29,5 +29,5 @@ public class StopperInteraction : IInteraction
     [JsonIgnore]
     public object Register => throw new ArgumentOutOfRangeException("This is the stopper interaction");
     [JsonIgnore]
-    public IReadOnlyDictionary<string, object> Memory => throw new ArgumentOutOfRangeException("This is the stopper interaction"); 
+    public IReadOnlyDictionary<string, object> Memory => EmptyReadOnlyDictionary.Instance;
 }
