@@ -10,16 +10,15 @@ public class Call : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        (constants, ModuleNameConstant).IsRereadRequired(out this.CurrentModuleName);
+        (constants, ModuleNameConstant).IsRereadRequired(out object? candidateModuleName);
+        this.CurrentModuleName = candidateModuleName?.ToString();
         var desiredModuleName = this.CurrentModuleName;
         if (desiredModuleName == "*")
             desiredModuleName = interaction.Register as string;
         if (desiredModuleName == null)
         {
-            var textSink = new TextSinkingInteraction(interaction);
-            ModuleName?.Invoke(this, textSink);
-            using var textReader = textSink.GetDisposingSinkReader();
-            desiredModuleName = textReader.ReadToEnd();
+            OnException?.Invoke(this, new CommonInteraction(interaction, "configure a file for a Call"));
+            return;
         }
         if (string.IsNullOrWhiteSpace(desiredModuleName))
             OnException?.Invoke(this, new CommonInteraction(interaction, "no module name provided"));

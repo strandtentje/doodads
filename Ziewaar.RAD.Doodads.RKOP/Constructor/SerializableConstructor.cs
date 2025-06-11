@@ -3,12 +3,12 @@ using Ziewaar;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
-public class SerializableConstructor : IParityParser
+public class SerializableConstructor
 {
     public string? ServiceTypeName { get; private set; }
     public ServiceConstantExpression PrimaryExpression { get; private set; } = new();
     public ServiceConstantsDescription Constants { get; private set; } = new();
-    public ParityParsingState UpdateFrom(ref CursorText text)
+    public bool UpdateFrom(ref CursorText text)
     {
         text = text
             .SkipWhile(char.IsWhiteSpace)
@@ -16,7 +16,7 @@ public class SerializableConstructor : IParityParser
                 out var typeIdentifier);
 
         if (!typeIdentifier.IsValid)
-            return ParityParsingState.Void;
+            return false;
 
         text = text
             .SkipWhile(char.IsWhiteSpace)
@@ -27,20 +27,8 @@ public class SerializableConstructor : IParityParser
 
         text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.EndOfArguments, out var _);
 
-        if (string.IsNullOrWhiteSpace(ServiceTypeName))
-        {
-            ServiceTypeName = typeIdentifier.Text;
-            return state | ParityParsingState.New;
-        }
-        else if (ServiceTypeName != typeIdentifier.Text)
-        {
-            ServiceTypeName = typeIdentifier.Text;
-            return state | ParityParsingState.Changed;
-        }
-        else
-        {
-            return state;
-        }
+        ServiceTypeName = typeIdentifier.Text;
+        return true;
     }
     public void WriteTo(StreamWriter writer, int indentation)
     {

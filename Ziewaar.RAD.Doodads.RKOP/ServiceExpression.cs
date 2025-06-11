@@ -6,27 +6,22 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
 {
     public string? CurrentNameInScope { get; private set; }
     public TResultSink? ResultSink { get; protected set; }
-    public ParityParsingState UpdateFrom(string givenScopeName, ref CursorText text, bool forceReload = false)
+    public bool UpdateFrom(string givenScopeName, ref CursorText text, bool forceReload = false)
     {
         this.CurrentNameInScope = givenScopeName;
-        var state = ProtectedUpdateFrom(ref text);
-        switch (state)
+        if (ProtectedUpdateFrom(ref text))
         {
-            case ParityParsingState.Void:
-                Purge();
-                ResultSink = null;                
-                break;
-            case ParityParsingState.Unchanged:
-                if (forceReload) HandleChanges();
-                break;
-            default:
-                text[this.CurrentNameInScope] = this;
-                HandleChanges();
-                break;
+            text[CurrentNameInScope] = this;
+            HandleChanges();
+            return true;
         }
-        return state;
+        else
+        {
+            Purge();
+            return false;
+        }
     }
-    protected abstract ParityParsingState ProtectedUpdateFrom(ref CursorText text);
+    protected abstract bool ProtectedUpdateFrom(ref CursorText text);
     public abstract void HandleChanges();
     public abstract void Purge();
     public abstract void WriteTo(StreamWriter writer, int indentation = 0);

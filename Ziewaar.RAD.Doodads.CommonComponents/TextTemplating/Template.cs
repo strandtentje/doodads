@@ -40,7 +40,7 @@ public class Template : IService
 
         foreach (var segment in Parser.TemplateCommands)
         {
-            switch (segment.Type | TemplateCommandType.AllSources)
+            switch (segment.Type & TemplateCommandType.AllSources)
             {
                 case TemplateCommandType.LiteralSource:
                     writer.Write(segment.Payload);

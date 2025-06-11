@@ -9,19 +9,14 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     public SerializableConstructor Constructor = new();
     public SerializableBranchBlock<TResultSink> Children = new();
     public CursorText TextScope = CursorText.Empty;
-    protected override ParityParsingState ProtectedUpdateFrom(ref CursorText text)
+    protected override bool ProtectedUpdateFrom(ref CursorText text)
     {
         TextScope = text;
-        var state = Constructor.UpdateFrom(ref text);
-        if (state == ParityParsingState.Void)
-            return ParityParsingState.Void;
-
-        state = ResultSink == null ? ParityParsingState.New : ParityParsingState.Unchanged;
-        if (state == ParityParsingState.New)
-            ResultSink = new TResultSink();
-
-        state |= Children.UpdateFrom(ref text);
-        return state;
+        if (!Constructor.UpdateFrom(ref text))
+            return false;
+        ResultSink ??= new();
+        Children.UpdateFrom(ref text);
+        return true;
     }
     public override void HandleChanges()
     {        
@@ -38,6 +33,7 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     }
     public override void Purge()
     {
+        Children.Purge();
         ResultSink?.Cleanup();
     }
     public override void WriteTo(StreamWriter writer, int indentation = 0)

@@ -8,6 +8,9 @@ public class WebServer : IService, IDisposable
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
+    public event CallForInteraction? OnHead;
+    public event CallForInteraction? OnStarted;
+    public event CallForInteraction? OnStopping;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         HandleStopCommand(interaction);
@@ -23,6 +26,7 @@ public class WebServer : IService, IDisposable
         {
             StartingInteraction = interaction;
             CurrentListener!.Start();
+            OnStarted?.Invoke(this, new CommonInteraction(interaction));
             CurrentListener.BeginGetContext(NewIncomingContext, CurrentListener);
         }
     }
@@ -40,8 +44,11 @@ public class WebServer : IService, IDisposable
 
         var httpContext = servingListener.EndGetContext(ar);
         CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
-        var httpInteraction = new HttpInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
-        OnThen?.Invoke(this, httpInteraction);
+        var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
+        OnHead?.Invoke(this, headInteraction);
+        var requestInteraction = new HttpRequestInteraction(headInteraction, httpContext);
+        var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
+        OnThen?.Invoke(this, responseInteraction);
         httpContext.Response.Close();
     }
     private void HandleStopCommand(IInteraction interaction)
@@ -51,6 +58,7 @@ public class WebServer : IService, IDisposable
                 stopper => stopper.Command == ServerCommand.Stop) &&
             CurrentListener != null && CurrentListener.IsListening)
         {
+            OnStopping?.Invoke(this, new CommonInteraction(interaction));
             stopper!.Consume();
             CurrentListener.Stop();
             CurrentListener = null;
@@ -64,15 +72,7 @@ public class WebServer : IService, IDisposable
         Prefixes = prefixObjArr?.OfType<string>().ToArray();
 
         if (Prefixes == null || Prefixes.Length == 0)
-        {
-            var tsi = new TextSinkingInteraction(interaction, delimiter: "\n");
-            OnElse?.Invoke(this, tsi);
-            using var rdr = tsi.GetDisposingSinkReader();
-            var newList = new List<string>();
-            while (!rdr.EndOfStream && rdr.ReadLine() is { } line)
-                newList.Add(line);
-            Prefixes = newList.ToArray();
-        }
+            OnException?.Invoke(this, new CommonInteraction(interaction, "no array of prefixes configured for the WebServer"));
     }
     private bool ValidateStartCommand(IInteraction interaction)
     {

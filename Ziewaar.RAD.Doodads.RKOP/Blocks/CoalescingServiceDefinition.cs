@@ -10,30 +10,20 @@ public class CoalescingServiceDefinition<TResultSink> :
 {
     private SerializableRedirection<TResultSink>? Redirection;
     private ServiceDescription<TResultSink>? Description;
-    protected override ParityParsingState ProtectedUpdateFrom(ref CursorText text)
+    protected override bool ProtectedUpdateFrom(ref CursorText text)
     {
-        var wasNew = ResultSink == null;
-        if (wasNew)
-            ResultSink = new();
-
-        if (Redirection == null)
-            Redirection = new();
-        var state = Redirection.UpdateFrom($"r_{CurrentNameInScope}", ref text);
-        if (state == ParityParsingState.Void)
+        ResultSink ??= new();
+        Redirection ??= new();
+        if (Redirection.UpdateFrom($"r_{CurrentNameInScope}", ref text))
+            return true;
+        else
             Redirection = null;
-        else if (wasNew)
-            return ParityParsingState.New;
-        else
-            return state;
 
-        if (Description == null)
-            Description = new();
-
-        state = Description.UpdateFrom($"d_{CurrentNameInScope}", ref text);
-        if (wasNew)
-            return ParityParsingState.New;
-        else
-            return state;
+        Description ??= new();
+        if (Description.UpdateFrom($"d_{CurrentNameInScope}", ref text))
+            return true;
+        Description = null;
+        return false;
     }
     public override void HandleChanges()
     {
@@ -48,6 +38,7 @@ public class CoalescingServiceDefinition<TResultSink> :
     }
     public override void Purge()
     {
+        ResultSink?.Cleanup();
         Redirection?.Purge();
         Description?.Purge();
         Redirection = null;

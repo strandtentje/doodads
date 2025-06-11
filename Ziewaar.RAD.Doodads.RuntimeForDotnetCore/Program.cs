@@ -38,16 +38,21 @@ internal class Program
                 using (var cfg = File.CreateText(item))
                 {
                     cfg.Write("""
-                        Definition():Hold("boot") {
-                            OnThen->ConsoleOutput():ConstantTextSource("Doodads") 
-                                  & StartLineReader():Repeat() {
-                                      OnThen->First():Option("exit") {
-                                        OnThen->StopLineReader():Release("boot");
-                                        OnElse->Continue();
-                                      };
-                                  };
-                        };
-                        """);
+Definition():Hold("Lock against shutting down") {
+  OnThen->ConsoleOutput()
+        : Print("Doodads. Type help for commands.")
+        : ConsoleInput()
+        : Open("Console Input for Reading Commands")
+        : Store("Command Reader")
+        : Repeat("To stay interactive")
+        : Pop("Command Reader") {
+            OnThen->
+                  Case("exit"):Close("Console Input for Reading Commands"):Release("Lock against shutting down")
+                | Case("ver"):Print("version -1"):Continue("To stay interactive")
+                | Print("exit: stop runtime"):Print("ver:  version information"):Continue("To stay interactive");
+  };    
+}; 
+""");
                 }
             }
 

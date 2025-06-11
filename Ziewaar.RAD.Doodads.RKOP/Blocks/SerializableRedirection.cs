@@ -9,43 +9,23 @@ public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultS
 {
     private string? RefersToName;
     private ServiceExpression<TResultSink>? RefersToService;
-    protected override ParityParsingState ProtectedUpdateFrom(ref CursorText text)
+    protected override bool ProtectedUpdateFrom(ref CursorText text)
     {
         var newPosition = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.Underscore, out var token);
 
         if (!token.IsValid)
-            return ParityParsingState.Void;
+            return false;
 
         text = newPosition.ValidateToken(TokenDescription.IdentifierWithoutUnderscore,
             out var referenceNameWithoutUnderscore);
         var candidateName = $"_{referenceNameWithoutUnderscore.Text}";
         var candidateReference = text[candidateName] as ServiceExpression<TResultSink>;
+        
+        ResultSink ??= new();
+        RefersToService = candidateReference;
+        RefersToName = candidateName;
 
-        if (RefersToService == null || RefersToName == null || ResultSink == null)
-        {
-            ResultSink = new();
-            RefersToService = candidateReference;
-            RefersToName = candidateName;
-            return ParityParsingState.New;
-        }
-        else if (RefersToName != candidateName)
-        {
-            RefersToService = candidateReference;
-            RefersToName = candidateName;
-            return ParityParsingState.Changed;
-        }
-        else if (RefersToService == candidateReference)
-        {
-            RefersToService = candidateReference;
-            RefersToName = candidateName;
-            return ParityParsingState.Unchanged;
-        }
-        else
-        {
-            RefersToService = candidateReference;
-            RefersToName = candidateName;
-            return ParityParsingState.Changed;
-        }
+        return true;
     }
     public override void HandleChanges()
     {

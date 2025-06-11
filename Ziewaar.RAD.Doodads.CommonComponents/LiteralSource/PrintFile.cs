@@ -35,14 +35,14 @@ public class PrintFile : IService
         }
         
         if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) && 
-            checkUpdateRequiredInteraction != null &&
-            checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != fileInfo.LastWriteTime.Ticks
-            )
+            checkUpdateRequiredInteraction != null)
         {
-            checkUpdateRequiredInteraction.IsRequired = true;
+            checkUpdateRequiredInteraction.IsRequired =
+                checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != fileInfo.LastWriteTime.Ticks;
         } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkingInteraction) && 
                    sinkingInteraction != null)
         {
+            sinkingInteraction.LastSinkChangeTimestamp = fileInfo.LastWriteTime.Ticks;
             if (sinkingInteraction.TextEncoding is NoEncoding)
             {
                 using var fileStream = fileInfo.OpenRead();

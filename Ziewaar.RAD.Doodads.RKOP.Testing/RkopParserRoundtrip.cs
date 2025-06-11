@@ -18,7 +18,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 "test",
                 $"");
             var result = desc.UpdateFrom("test", ref empty);
-            Assert.AreEqual(ParityParsingState.Void, result);
+            Assert.IsFalse(result);
         }
         [TestMethod]
         public void TestSpaceFile()
@@ -32,7 +32,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 """);
             var result = desc.UpdateFrom("test", ref empty);
             Assert.AreEqual(0, empty.LocalScope.Count);
-            Assert.AreEqual(ParityParsingState.Void, result);
+            Assert.IsFalse(result);
         }
         [TestMethod]
         public void TestSimpleDeclaration()
@@ -45,7 +45,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 SomeService();
                 """);
             var result = desc.UpdateFrom("test", ref simple);
-            Assert.IsTrue(result > ParityParsingState.Unchanged);
+            Assert.IsTrue(result);
             Assert.IsTrue(simple.LocalScope.TryGetValue("test", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
 
@@ -64,7 +64,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt");
                 """);
             var result = desc.UpdateFrom("test", ref simple);
-            Assert.IsTrue(result > ParityParsingState.Unchanged);
+            Assert.IsTrue(result);
             var consts = desc.Constructor.Constants;
             Assert.IsTrue(consts.Members.Count == 4);
             Assert.AreEqual("oy!", consts.Members.Single(x => x.Key == "yotta").Value.GetValue());
@@ -93,7 +93,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 };
                 """);
             var result = desc.UpdateFrom("test", ref simple);
-            Assert.IsTrue(result > ParityParsingState.Unchanged);
+            Assert.IsTrue(result);
             Assert.IsTrue(simple.LocalScope.TryGetValue("test", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
 
@@ -141,7 +141,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 };
                 """);
             var result = desc.UpdateFrom("test", ref simple);
-            Assert.IsTrue(result > ParityParsingState.Unchanged);
+            Assert.IsTrue(result);
             Assert.IsTrue(simple.LocalScope.TryGetValue("test", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
 

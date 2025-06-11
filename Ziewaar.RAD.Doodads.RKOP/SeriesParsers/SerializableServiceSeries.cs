@@ -11,13 +11,10 @@ public abstract class SerializableServiceSeries<TResultSink> :
     protected abstract ServiceExpression<TResultSink> CreateChild();
     protected abstract TokenDescription CouplerToken { get; }
     protected abstract void SetChildren(TResultSink sink, ServiceExpression<TResultSink>[] children);
-    protected override ParityParsingState ProtectedUpdateFrom(ref CursorText text)
+    protected override bool ProtectedUpdateFrom(ref CursorText text)
     {
-        var state = ParityParsingState.Void;        
-        if (Children == null)
-            Children = new();
-        var wasNew = ResultSink == null;
-        if (wasNew) ResultSink = new();
+        Children ??= new();
+        ResultSink ??= new();
         Token couplerToken;
         int currentChildNumber = 0;
         do
@@ -31,19 +28,14 @@ public abstract class SerializableServiceSeries<TResultSink> :
             {
                 prelimChild = CreateChild();
             }
-            var childState = prelimChild.UpdateFrom($"{CurrentNameInScope}_{Children.Count}", ref text);
-            if (childState > ParityParsingState.Void)
+            if (prelimChild.UpdateFrom($"{CurrentNameInScope}_{Children.Count}", ref text))
             {
                 Children.Insert(currentChildNumber, prelimChild);
-                state |= childState;
             }
             text = text.SkipWhile(char.IsWhiteSpace).TakeToken(CouplerToken, out couplerToken);
             currentChildNumber++;
         } while (couplerToken.IsValid);
-        if (wasNew)
-            return ParityParsingState.New;
-        else 
-            return state;
+        return Children.Count > 0;
     }
     public override void HandleChanges()
     {

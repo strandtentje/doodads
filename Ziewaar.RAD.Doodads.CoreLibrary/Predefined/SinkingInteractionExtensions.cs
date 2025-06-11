@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public static class SinkingInteractionExtensions
 {
@@ -15,7 +16,8 @@ public static class SinkingInteractionExtensions
             AutoFlush = true,
         };
     }
-    public static TInteraction Write<TInteraction>(this TInteraction interaction, string text, string? contentType = null)
+    public static TInteraction Write<TInteraction>(this TInteraction interaction, string text,
+        string? contentType = null)
         where TInteraction : ISinkingInteraction
     {
         using var wr = interaction.GetWriter(contentType);
@@ -23,7 +25,8 @@ public static class SinkingInteractionExtensions
         wr.Flush();
         return interaction;
     }
-    public static TInteraction WriteSegment<TInteraction>(this TInteraction interaction, string text, string? contentType = null)
+    public static TInteraction WriteSegment<TInteraction>(this TInteraction interaction, string text,
+        string? contentType = null)
         where TInteraction : ISinkingInteraction
     {
         using var wr = interaction.GetWriter(contentType);
@@ -64,8 +67,13 @@ public static class SinkingInteractionExtensions
         }
         return interaction;
     }
-    public static StreamReader GetDisposingSinkReader<TInteraction>(this TInteraction interaction)
-        where TInteraction : ISinkingInteraction =>
-        new(interaction.SinkBuffer, interaction.TextEncoding, detectEncodingFromByteOrderMarks: false,
+    public static StreamReader GetDisposingSinkReader<TInteraction>(this TInteraction interaction, int? position = 0)
+        where TInteraction : ISinkingInteraction
+    {
+        if (position is int newPosition)
+            interaction.SinkBuffer.Position = newPosition;
+        return new StreamReader(interaction.SinkBuffer, interaction.TextEncoding,
+            detectEncodingFromByteOrderMarks: false,
             bufferSize: -1, leaveOpen: false);
+    }
 }

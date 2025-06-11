@@ -7,6 +7,7 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
     public void RefreshTemplateData(StreamReader reader)
     {
         var allTemplateText = reader.ReadToEnd();
+        CommandStack.Clear();
         for(int selectionHead = 0;
             selectionHead < allTemplateText.Length;
             selectionHead = FindNextHead(allTemplateText, selectionHead))
@@ -29,7 +30,7 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
 
         var dirtyPayload = allTemplateText.Substring(
             openerPosition + placeholderStart.Length,
-            cursor - openerPosition).Trim();
+            cursor - openerPosition - placeholderEnd.Length).Trim();
         var command = ParsePlaceholder(dirtyPayload);
 
         CommandStack.Add(command);

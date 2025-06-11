@@ -11,6 +11,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     private EventInfo? OnThenEventInfo, OnElseEventInfo;
     private CallForInteraction? DoneDelegate;
     private CursorText? CurrentPosition;
+    private CallForInteraction? PreviousOnThen, PreviousOnElse;
     public string? TypeName { get; private set; }
     public IService? Instance { get; private set; }
     public StampedMap? Constants { get; private set; }
@@ -46,6 +47,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             if (ExistingEventHandlers.TryGetValue(item.Name, out var handlers))
                 foreach (var handler in handlers)
                     item.RemoveEventHandler(this.Instance, handler);
+            item.
 
             if (branches.TryGetValue(item.Name, out var child))
             {
@@ -65,8 +67,22 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                     CurrentType, CurrentPosition, interaction), 
                 Formatting.Indented));
     }
-    public void OnThen(CallForInteraction dlg) => OnThenEventInfo!.AddEventHandler(Instance!, dlg);
-    public void OnElse(CallForInteraction dlg) => OnElseEventInfo!.AddEventHandler(Instance!, dlg);
+    public void OnThen(CallForInteraction dlg)
+    {
+        if (this.PreviousOnThen != null)
+            OnThenEventInfo!.RemoveEventHandler(Instance!, this.PreviousOnThen);
+        
+        OnThenEventInfo!.AddEventHandler(Instance!, dlg);
+        this.PreviousOnThen = dlg;
+    }
+    public void OnElse(CallForInteraction dlg)
+    {
+        if (this.PreviousOnElse != null)
+            OnThenEventInfo!.RemoveEventHandler(Instance!, this.PreviousOnElse);
+        
+        OnElseEventInfo!.AddEventHandler(Instance!, dlg);
+        this.PreviousOnElse = dlg;
+    }
     public void OnDone(CallForInteraction dlg) => this.DoneDelegate =
         dlg == null ? dlg : throw new InvalidOperationException("Cant have two dones");
     public void Cleanup()

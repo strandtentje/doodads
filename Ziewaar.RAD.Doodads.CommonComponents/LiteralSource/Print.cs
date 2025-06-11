@@ -13,11 +13,17 @@ public class Print : IService
     {
         (constants, PlainTextValue).IsRereadRequired(out string? plainText);
         (constants, ContentType).IsRereadRequired(() => "*/*", out var contentType);
-
-        if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkInteraction) && 
-            sinkInteraction != null)
+        
+        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) && 
+            checkUpdateRequiredInteraction != null)
+        {
+            checkUpdateRequiredInteraction.IsRequired =
+                checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != constants.PrimaryLog;
+        } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkInteraction) && 
+                  sinkInteraction != null)
         {
             sinkInteraction.WriteSegment(plainText ?? "", contentType);
+            sinkInteraction.LastSinkChangeTimestamp = constants.PrimaryLog;
             OnThen?.Invoke(this, interaction);
         }
         else
