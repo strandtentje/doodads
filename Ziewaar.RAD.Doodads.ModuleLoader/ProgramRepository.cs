@@ -9,6 +9,15 @@ public class ProgramRepository
     {
         if (!Programs.TryGetValue(filePath, out var known))
             known = Programs[filePath] = ProgramFactory.Instance.CreateFor(filePath, autoStartOnReloadParams);
+
+        var finf = new FileInfo(filePath);
+
+        if (known.LastReadTime != finf.LastWriteTime.Ticks)
+        {
+            known.LastReadTime = finf.LastWriteTime.Ticks;
+            known.Reload();
+        }
+
         return known;
     }
     public IEntryPoint? GetEntryPointForFile(string filePath) =>

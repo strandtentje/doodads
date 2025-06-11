@@ -14,6 +14,7 @@ public class KnownProgram : IDisposable
     public FileInfo? FileInfo;
     private bool CurrentlyReloading = false;
     internal IInteraction? AutoStartOnReloadParams;
+    internal long LastReadTime;
     private readonly object FileRefreshLock = new();
 
     private ServiceBuilder? serviceBuilder => (RootSeries?.ResultSink as IInstanceWrapper) as ServiceBuilder;

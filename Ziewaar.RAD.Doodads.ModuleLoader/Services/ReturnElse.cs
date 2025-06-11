@@ -1,33 +1,18 @@
 #pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
-public class ReturnElse : IService
-{
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        if (FindCallerOfCurrentScope(interaction).TryGetClosest<CallingInteraction>(out var callingInteraction))
-            callingInteraction!.InvokeOnElse(new ReturningInteraction(interaction, callingInteraction, constants.NamedItems));
-    }
-    /// <summary>
-    /// This function deals with the fact that modules can call other modules,
-    /// and if control is returned to another module, and that other higher-up
-    /// module tries to do a return, we don't return to that inner module invocation,
-    /// but rather the actual invocation that belongs to the scope we're looking at.
-    /// </summary>
-    /// <param name="interaction"></param>
-    /// <returns>A free calling interaction that belongs to the caller of this module</returns>
-    private static IInteraction FindCallerOfCurrentScope(IInteraction interaction)
-    {
-        var offset = interaction;
-        while (offset.TryGetClosest<ReturningInteraction>(out var candidateOffset))
-        {
-            offset = candidateOffset!.Cause.Stack;
-        }
 
-        return offset;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+public class ReturnElse : ReturningService
+{
+    public override event CallForInteraction? OnThen;
+    public override event CallForInteraction? OnElse;
+    public override event CallForInteraction? OnException;
+    public override void Enter(StampedMap constants, IInteraction interaction)
+    {
+        if (FindCallerOfCurrentScope(this, interaction, 0) is CallingInteraction ci)
+            ci.InvokeOnElse(new ReturningInteraction(this, interaction, ci, constants.NamedItems));
+        else
+            OnException?.Invoke(this, new CommonInteraction(interaction, "illegal double return"));
     }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    public override void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

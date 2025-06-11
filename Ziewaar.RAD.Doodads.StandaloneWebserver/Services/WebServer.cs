@@ -55,9 +55,12 @@ public class WebServer : IService, IDisposable
             httpContext.Response.Close();
         } catch(Exception ex)
         {
-            var terminatingInteraction = new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message);
-            OnException?.Invoke(this, terminatingInteraction);
-            TerminateListener(terminatingInteraction);
+            var exceptionalInteraction = new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message);
+            OnException?.Invoke(this, exceptionalInteraction);
+            if (CurrentListener == null || !CurrentListener.IsListening)
+                TerminateListener(exceptionalInteraction);
+            else
+                CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
         }
     }
     private void HandleStopCommand(IInteraction interaction)

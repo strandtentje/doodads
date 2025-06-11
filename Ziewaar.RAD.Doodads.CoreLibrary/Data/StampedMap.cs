@@ -5,6 +5,7 @@ public class StampedMap
 {
     private readonly SortedList<string, object> BackingStore;
     private readonly SortedList<string, long> BackingLog;
+    public SortedList<string, object> ToSortedList() => new SortedList<string, object>(BackingStore);
     public IReadOnlyDictionary<string, object> NamedItems => BackingStore;
     public IReadOnlyDictionary<string, long> ChangeLog => BackingLog;
     public object PrimaryConstant { get; private set; }

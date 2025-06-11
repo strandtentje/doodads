@@ -4,14 +4,21 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 public class PrintFile : IService
 {
     private readonly UpdatingPrimaryValue ConstantFilename = new();
+    private readonly UpdatingKeyValue PrintBinary = new("binary");
+    private readonly UpdatingKeyValue SetContentLength = new("setlength");
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        (constants, ConstantFilename).IsRereadRequired<string>(out var constantFilename);
+        (constants, ConstantFilename).IsRereadRequired<object>(out var constantFilename);
+        // if not set, we will let c# read the file in whatever encoding it has going on,
+        // and then write it in the encoding the sink has going on.
+        (constants, PrintBinary).IsRereadRequired<bool>(out var forceBinaryWriting);
+        // we may be printing multiple files for concatenation, then we wouldnt wanna set content length
+        (constants, SetContentLength).IsRereadRequired<bool>(out var setContentLength);
 
-        var preferredFilename = constantFilename ?? interaction.Register as string;
+        var preferredFilename = constantFilename?.ToString() ?? interaction.Register as string;
         if (preferredFilename == null)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "either set a constant filename, or provide one thru the primary value"));
@@ -33,17 +40,21 @@ public class PrintFile : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, ex.ToString()));
             return;
         }
-        
-        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) && 
+
+        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) &&
             checkUpdateRequiredInteraction != null)
         {
             checkUpdateRequiredInteraction.IsRequired =
                 checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != fileInfo.LastWriteTime.Ticks;
-        } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkingInteraction) && 
+        }
+        else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkingInteraction) &&
                    sinkingInteraction != null)
         {
+            if (setContentLength == true)
+                sinkingInteraction.SetContentLength64(fileInfo.Length);
+
             sinkingInteraction.LastSinkChangeTimestamp = fileInfo.LastWriteTime.Ticks;
-            if (sinkingInteraction.TextEncoding is NoEncoding)
+            if (sinkingInteraction.TextEncoding is NoEncoding || forceBinaryWriting == true)
             {
                 using var fileStream = fileInfo.OpenRead();
                 fileStream.CopyTo(sinkingInteraction.SinkBuffer);

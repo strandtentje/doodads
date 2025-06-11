@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+﻿using System.Diagnostics;
+using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #nullable enable
@@ -71,6 +72,7 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
         CurrentService = wrapper;
     }
+    [DebuggerHidden]
     public void Run(object sender, IInteraction interaction)
     {
         CurrentService!.Run(sender, interaction);

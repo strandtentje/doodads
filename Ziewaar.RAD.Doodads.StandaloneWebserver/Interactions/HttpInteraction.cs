@@ -1,15 +1,22 @@
 ﻿#nullable enable
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
-public class HttpHeadInteraction(IInteraction parent, HttpListenerContext context) : IInteraction
+public class HttpHeadInteraction : IInteraction
 {
-    public IInteraction Stack => parent;
-    public object Register => context.Request.RawUrl ?? "";
-    public IReadOnlyDictionary<string, object> Memory { get; } = new SortedList<string, object>
+    public HttpHeadInteraction(IInteraction parent, HttpListenerContext context)
     {
-        { "method", context.Request.HttpMethod },
-        { "query", context.Request.QueryString },
-        { "url", context.Request.RawUrl ?? "/" },
-        { "remoteip", context.Request.RemoteEndPoint.ToString() },
-        { "requesttime", DateTime.Now.ToString("yyMMdd HH:mm:ss") }
-    };
+        var urlHalves = context.Request.RawUrl?.Split("?") ?? ["/", ""];
+        this.Stack = parent;
+        this.Register = context.Request.RawUrl ?? "";
+        this.Memory = new SortedList<string, object>
+        {
+            { "method", context.Request.HttpMethod },
+            { "query", urlHalves.ElementAtOrDefault(1) ?? "" },
+            { "url", urlHalves.ElementAtOrDefault(0) ?? "" },
+            { "remoteip", context.Request.RemoteEndPoint.ToString() },
+            { "requesttime", DateTime.Now.ToString("yyMMdd HH:mm:ss") }
+        };
+    }
+    public IInteraction Stack { get; }
+    public object Register { get; }
+    public IReadOnlyDictionary<string, object> Memory { get; }
 }

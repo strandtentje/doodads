@@ -10,10 +10,10 @@ public class Definition : IService
     {
         if (interaction.TryGetClosest<CallingInteraction>(out var ci))
         {
-            OnThen?.Invoke(this, new CommonInteraction(interaction, constants.NamedItems));
+            OnThen?.Invoke(this, new CommonInteraction(interaction, memory: constants.ToSortedList()));
         } else if (interaction.TryGetClosest<ISelfStartingInteraction>(out var ss))
         {
-            OnThen?.Invoke(this, new CommonInteraction(interaction, constants.NamedItems));
+            OnThen?.Invoke(this, new CommonInteraction(interaction, memory: constants.ToSortedList()));
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
