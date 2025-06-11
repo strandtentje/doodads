@@ -17,12 +17,15 @@ public class ServiceConstantsMember : IParityParser
 
         text = text.
             SkipWhile(char.IsWhiteSpace).
-            ValidateToken(TokenDescription.AssignmentOperator, out var _);
+            ValidateToken(
+            TokenDescription.AssignmentOperator, 
+            "this may also happen if the primary constant of this service couldn't be processed",
+            out var _);
 
         var state = Value.UpdateFrom(ref text);
 
         if (state == ParityParsingState.Void)
-            throw new ParsingException("Expected value for assignment");
+            throw new ParsingException(text, "Expected value for assignment");
 
         if (string.IsNullOrWhiteSpace(Key))
             state |= ParityParsingState.New;

@@ -3,8 +3,7 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 public class Call : IService
 {
     private readonly UpdatingPrimaryValue ModuleNameConstant = new();
-    private string? CurrentModuleName;
-    public event CallForInteraction? ModuleName;
+    private string? CurrentModuleName;    
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -25,7 +24,20 @@ public class Call : IService
         var ci = new CallingInteraction(interaction, constants.NamedItems);
         ci.OnThen += OnThen;
         ci.OnElse += OnElse;
-        ProgramRepository.Instance.GetEntryPointForFile(desiredModuleName).Run(this, ci);
+        var program = ProgramRepository.Instance.GetForFile(desiredModuleName);
+        if (program.EntryPoint == null)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "non-critical, but program hasn't been loaded and will continue when it is."));
+            var previousOnReady = program.OnReady;
+            program.OnReady = () =>
+            {
+                if (previousOnReady != null) previousOnReady();
+                program.EntryPoint?.Run(this, ci);
+            };
+        } else
+        {
+            program.EntryPoint.Run(this, ci);
+        }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

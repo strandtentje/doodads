@@ -34,15 +34,17 @@ public static class ReaderExtensions
     public static CursorText ValidateToken(
         this CursorText text,
         TokenDescription description,
+        string hint,
         out Token token)
     {
         var continued = text.TakeToken(description, out token);
         if (token.IsValid)
             return continued;
         else
-            throw new SyntaxException($"""
+            throw new SyntaxException(text, $"""
                 Syntax error at {text.GetCurrentLine()}:{text.GetCurrentCol()}, 
                 Expected: {description.HumanReadable}
+                {hint}
                 """);
 
     }

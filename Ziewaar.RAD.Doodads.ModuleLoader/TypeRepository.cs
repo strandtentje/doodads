@@ -1,9 +1,11 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿#nullable enable
+namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class TypeRepository
 {
     public static readonly TypeRepository Instance = new();
     private readonly SortedList<string, Type> NamedServiceTypes = new();
+    private NameSuggestions? Names;
     public TypeRepository PopulateWith(params string[] assemblyFiles)
     {
         foreach (var assemblyPath in assemblyFiles)
@@ -26,9 +28,22 @@ public class TypeRepository
     }
     public IService CreateInstanceFor(string name, out Type foundType)
     {
-        foundType = NamedServiceTypes[name];
-        return (IService)Activator.CreateInstance(foundType ??
-            throw new MissingServiceTypeException(name));
+        if (NamedServiceTypes.TryGetValue(name, out var type))
+        {
+            foundType = NamedServiceTypes[name];
+            if (foundType == null)
+            {
+                if (Names == null)
+                    Names = new NameSuggestions(NamedServiceTypes.Keys);
+                throw new MissingServiceTypeException(name, Names.GetMostSimilar(name));
+            }
+            return (IService)Activator.CreateInstance(foundType);
+        } else
+        {
+            if (Names == null)
+                Names = new NameSuggestions(NamedServiceTypes.Keys);
+            throw new MissingServiceTypeException(name, Names.GetMostSimilar(name));
+        }
     }
     public string[] GetAvailableNames() => NamedServiceTypes.Keys.ToArray();
     public bool HasName(string newTypeName) => NamedServiceTypes.ContainsKey(newTypeName);

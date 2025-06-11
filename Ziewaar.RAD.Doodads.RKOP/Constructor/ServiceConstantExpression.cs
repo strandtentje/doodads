@@ -80,7 +80,7 @@ public class ServiceConstantExpression : IParityParser
                 }
                 else
                 {
-                    throw new ParsingException($"Saw decimal point, but no remaining decimals");
+                    throw new ParsingException(text, $"Saw decimal point, but no remaining decimals");
                 }
             }
             else
@@ -91,7 +91,7 @@ public class ServiceConstantExpression : IParityParser
         }
         else if (wholeNums.IsValid)
         {
-            throw new ParsingException($"Unable to parse number.");
+            throw new ParsingException(text, $"Unable to parse number.");
         }
 
         return ParityParsingState.Void;
@@ -172,7 +172,10 @@ public class ServiceConstantExpression : IParityParser
             text = text.TakeToken(TokenDescription.EscapeSequence, out var slash);
             if (!slash.IsValid)
             {
-                inText = text.ValidateToken(TokenDescription.DoubleQuotes, out var _);
+                inText = text.ValidateToken(
+                    TokenDescription.DoubleQuotes, 
+                    "this is an unlikely error. rob may need a coffee if you tell him about this.",
+                    out var _);
                 return process(guts.ToString());
             }
             else

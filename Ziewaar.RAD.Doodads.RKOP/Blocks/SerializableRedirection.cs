@@ -16,7 +16,9 @@ public class SerializableRedirection<TResultSink>() : ServiceExpression<TResultS
         if (!token.IsValid)
             return false;
 
-        text = newPosition.ValidateToken(TokenDescription.IdentifierWithoutUnderscore,
+        text = newPosition.ValidateToken(
+            TokenDescription.IdentifierWithoutUnderscore,
+            "keep in mind references may only start with a single underscore, and only a letter may come after the underscore.",
             out var referenceNameWithoutUnderscore);
         var candidateName = $"_{referenceNameWithoutUnderscore.Text}";
         var candidateReference = text[candidateName] as ServiceExpression<TResultSink>;

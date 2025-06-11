@@ -10,5 +10,6 @@ public class HttpHeadInteraction(IInteraction parent, HttpListenerContext contex
         { "query", context.Request.QueryString },
         { "url", context.Request.RawUrl ?? "/" },
         { "remoteip", context.Request.RemoteEndPoint.ToString() },
+        { "requesttime", DateTime.Now.ToString("yyMMdd HH:mm:ss") }
     };
 }

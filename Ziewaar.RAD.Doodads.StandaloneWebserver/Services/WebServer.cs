@@ -41,15 +41,21 @@ public class WebServer : IService, IDisposable
                     "New incoming context from strange server"));
             return;
         }
-
-        var httpContext = servingListener.EndGetContext(ar);
-        CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
-        var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
-        OnHead?.Invoke(this, headInteraction);
-        var requestInteraction = new HttpRequestInteraction(headInteraction, httpContext);
-        var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
-        OnThen?.Invoke(this, responseInteraction);
-        httpContext.Response.Close();
+        try
+        {
+            var httpContext = servingListener.EndGetContext(ar);
+            CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
+            var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
+            OnHead?.Invoke(this, headInteraction);
+            var requestInteraction = new HttpRequestInteraction(headInteraction, httpContext);
+            var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
+            OnThen?.Invoke(this, responseInteraction);
+            httpContext.Response.Close();
+        } catch(HttpListenerException ex)
+        {
+            OnException?.Invoke(this, new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message));
+            TerminateListener();
+        }
     }
     private void HandleStopCommand(IInteraction interaction)
     {
@@ -60,11 +66,40 @@ public class WebServer : IService, IDisposable
         {
             OnStopping?.Invoke(this, new CommonInteraction(interaction));
             stopper!.Consume();
-            CurrentListener.Stop();
-            CurrentListener = null;
-            StartingInteraction = null;
+            TerminateListener();
         }
     }
+
+    private readonly object terminationLock = new();
+    private bool isTerminating = false;
+
+    private void TerminateListener()
+    {
+        if (isTerminating) return;
+        lock (terminationLock)
+        {
+            if (isTerminating) return;
+            isTerminating = true;
+            try
+            {
+                CurrentListener?.Stop();
+            } catch(Exception)
+            {
+                // its already broken
+            }
+            try
+            {
+                CurrentListener?.Close();
+            } catch(Exception)
+            {
+                // its already broken
+            }
+            CurrentListener = null;
+            StartingInteraction = null;
+            isTerminating = false;
+        }
+    }
+
     private readonly UpdatingPrimaryValue PrefixesConstant = new();
     private void UpdatePrefixes(StampedMap serviceConstants, IInteraction interaction)
     {
@@ -113,6 +148,6 @@ public class WebServer : IService, IDisposable
             return false;
         }
     }
-    public void Dispose() => CurrentListener?.Close();
+    public void Dispose() => TerminateListener();
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

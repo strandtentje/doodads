@@ -12,7 +12,10 @@ public class SerializableBranchName : IParityParser, IComparable, IComparable<Se
         if (!referenceIdentifier.IsValid)
             return ParityParsingState.Void;
 
-        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.BranchAnnouncement, out var assignment);
+        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(
+            TokenDescription.BranchAnnouncement, 
+            "only use the -> coupler here, and the dash wasn't forgotten. other operators aren't allowed.",
+            out var assignment);
 
         if (string.IsNullOrWhiteSpace(BranchName))
         {

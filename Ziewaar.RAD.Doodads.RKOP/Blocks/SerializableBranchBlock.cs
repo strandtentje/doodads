@@ -65,7 +65,10 @@ public class SerializableBranchBlock<TResultSink>
             GetWorkingSet(out var workingSet, out var purgeKeys);
             text = RecurseThroughBranches(text.EnterScope(), workingSet, purgeKeys);
             text = text.SkipWhile(char.IsWhiteSpace);
-            text = text.ValidateToken(TokenDescription.BlockClose, out var _);
+            text = text.ValidateToken(
+                TokenDescription.BlockClose,
+                "This may also happen if for example a semicolon was forgotten",
+                out var _);
             text = text.ExitScope();
 
             return true;

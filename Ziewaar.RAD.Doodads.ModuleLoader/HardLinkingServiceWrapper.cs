@@ -9,6 +9,7 @@ public class HardLinkingServiceWrapper : IAmbiguousServiceWrapper
     public void OnDone(CallForInteraction dlg) => Target!.OnDone(dlg);
     public void Cleanup()
     {
+        this.Target?.Cleanup();
         this.Target = null;
     }
     public void Run(object sender, IInteraction interaction) => this.Target!.Run(sender, interaction);

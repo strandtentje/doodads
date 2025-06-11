@@ -21,11 +21,15 @@ public class SerializableConstructor
         text = text
             .SkipWhile(char.IsWhiteSpace)
             .ValidateToken(TokenDescription.StartOfArguments,
-                out var _);        
+            "even when a service has no arguments, it still needs a coconut () at the end",
+            out var _);        
         
         var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
 
-        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.EndOfArguments, out var _);
+        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(
+            TokenDescription.EndOfArguments, 
+            "this may also happen because the value at this position wasn't recognized",
+            out var _);
 
         ServiceTypeName = typeIdentifier.Text;
         return true;

@@ -1,18 +1,19 @@
 #nullable enable
 using Newtonsoft.Json;
+using Ziewaar.RAD.Doodads.RKOP.Exceptions;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private static readonly object NullBuster = new();
-    private Type? CurrentType;
-    private SortedList<string, List<CallForInteraction>> ExistingEventHandlers = new();
+    private Type? Type;
     private EventInfo? OnThenEventInfo, OnElseEventInfo;
     private CallForInteraction? DoneDelegate;
-    private CursorText? CurrentPosition;
-    private CallForInteraction? PreviousOnThen, PreviousOnElse;
+    private CursorText? Position;
+    private SortedList<string, CallForInteraction>? EventHandlers;
     public string? TypeName { get; private set; }
+    private List<Action>? CleanupPropagation;
     public IService? Instance { get; private set; }
     public StampedMap? Constants { get; private set; }
     public event CallForInteraction? DiagnosticOnThen, DiagnosticOnElse, DiagnosticOnException;
@@ -23,13 +24,22 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         SortedList<string, object> constants,
         IDictionary<string, ServiceBuilder> branches)
     {
-        this.CurrentPosition = atPosition;
-        if (this.TypeName != typename || this.Instance == null || this.CurrentType == null || this.TypeName == null)
+        if (this.Type != null || this.Position != null || this.Instance != null || this.Constants != null)
+            throw new InvalidOperationException("cannot update dirty service");
+        this.Position = atPosition;
+        this.TypeName = typename;
+        this.CleanupPropagation = [.. branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup)];
+        try
         {
-            Cleanup();
-            this.TypeName = typename;
-            this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, out this.CurrentType);
+            this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, out this.Type);
+        } catch(MissingServiceTypeException ex)
+        {
+            throw new ExceptionAtPositionInFile(atPosition, $"""
+                In ({atPosition.BareFile}) {atPosition.WorkingDirectory} [{atPosition.GetCurrentLine()}:{atPosition.GetCurrentCol()}]
+                {ex.Message}
+                """);
         }
+
         this.Constants = new StampedMap(primaryValue ?? NullBuster, constants);
 
         this.Instance.OnThen += DiagnosticOnThen;
@@ -37,65 +47,72 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         this.Instance.OnException += DiagnosticOnException;
         this.Instance.OnException += Instance_OnException;
 
-        var allEvents = CurrentType.GetEvents().ToArray();
-        var newEventHandlers = new SortedList<string, List<CallForInteraction>>();
+        var allEvents = Type.GetEvents().ToArray();
+        this.EventHandlers = new SortedList<string, CallForInteraction>();
         foreach (var item in allEvents)
         {
             if (item.Name == "OnThen") this.OnThenEventInfo = item;
             if (item.Name == "OnElse") this.OnElseEventInfo = item;
-
-            if (ExistingEventHandlers.TryGetValue(item.Name, out var handlers))
-                foreach (var handler in handlers)
-                    item.RemoveEventHandler(this.Instance, handler);
-            item.
-
             if (branches.TryGetValue(item.Name, out var child))
             {
-                var newEvent = newEventHandlers[item.Name] = [child.Run];
-                item.AddEventHandler(this.Instance, newEvent[0]);
+                var newEvent = EventHandlers[item.Name] = child.Run;
+                item.AddEventHandler(this.Instance, newEvent);
             }
         }
-        ExistingEventHandlers = newEventHandlers;
     }
     private void Instance_OnException(object sender, IInteraction interaction)
     {
         Console.WriteLine(
-            "Service indicates exceptional situation; {0}", 
+            "Service indicates exceptional situation; {0}",
             JsonConvert.SerializeObject(
                 new ExceptionPayload(
                     Constants,
-                    CurrentType, CurrentPosition, interaction), 
+                    Type, Position, interaction),
                 Formatting.Indented));
     }
     public void OnThen(CallForInteraction dlg)
     {
-        if (this.PreviousOnThen != null)
-            OnThenEventInfo!.RemoveEventHandler(Instance!, this.PreviousOnThen);
-        
+        if (dlg.Target is IAmbiguousServiceWrapper asw)
+        {
+            CleanupPropagation!.Add(asw.Cleanup);
+        }
         OnThenEventInfo!.AddEventHandler(Instance!, dlg);
-        this.PreviousOnThen = dlg;
     }
     public void OnElse(CallForInteraction dlg)
     {
-        if (this.PreviousOnElse != null)
-            OnThenEventInfo!.RemoveEventHandler(Instance!, this.PreviousOnElse);
-        
+        if (dlg.Target is IAmbiguousServiceWrapper asw)
+        {
+            CleanupPropagation!.Add(asw.Cleanup);
+        }
         OnElseEventInfo!.AddEventHandler(Instance!, dlg);
-        this.PreviousOnElse = dlg;
     }
     public void OnDone(CallForInteraction dlg) => this.DoneDelegate =
         dlg == null ? dlg : throw new InvalidOperationException("Cant have two dones");
+    bool isInCleanLoop = false;
+    private readonly object cleanLock = new();
     public void Cleanup()
     {
-        this.DoneDelegate = null;
-        if (CurrentType != null && this.Instance != null)
+        if (isInCleanLoop) return;
+        if (CleanupPropagation != null)
         {
-            var allEvents = CurrentType.GetEvents().ToArray();
-            foreach (var item in allEvents)
-                if (ExistingEventHandlers.TryGetValue(item.Name, out var handlers))
-                    foreach (var handler in handlers)
-                        item.RemoveEventHandler(this.Instance, handler);
+            lock (cleanLock)
+            {
+                isInCleanLoop = true;
+                foreach (var item in CleanupPropagation)
+                {
+                    item();
+                }
+                isInCleanLoop = false;
+            }
         }
+
+        if (Instance == null || EventHandlers == null || Type == null)
+            throw new InvalidOperationException("Cant cleanup uninitialized service");
+        this.DoneDelegate = null;
+        var allEvents = Type.GetEvents().ToArray();
+        foreach (var item in allEvents)
+            if (EventHandlers.TryGetValue(item.Name, out var handler))
+                item.RemoveEventHandler(this.Instance, handler);        
         try
         {
             if (this.Instance is IDisposable disposable) disposable.Dispose();
@@ -113,7 +130,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Fatal on {0}", CurrentType?.Name ?? "Unknown Type");
+            Console.WriteLine("Fatal on {0}", Type?.Name ?? "Unknown Type");
             try
             {
                 Console.WriteLine("Dump of Fatal {0}", JsonConvert.SerializeObject(ex, Formatting.Indented));

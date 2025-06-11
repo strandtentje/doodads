@@ -1,21 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP.Exceptions;
+﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Exceptions;
 
 [Serializable]
-public class ParsingException : Exception
-{
-    public ParsingException()
-    {
-    }
-
-    public ParsingException(string message) : base(message)
-    {
-    }
-
-    public ParsingException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
-
-    protected ParsingException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
-}
+public class ParsingException(CursorText text, string message) : ExceptionAtPositionInFile(text, message);
