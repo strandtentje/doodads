@@ -5,6 +5,11 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 public class NoEncoding : Encoding
 {
+    public static readonly NoEncoding Instance = new();
+    private NoEncoding()
+    {
+
+    }
     public override int GetByteCount(char[] chars, int index, int count) =>
         throw new InvalidOperationException("Cannot write text to binary encoding stream");
 

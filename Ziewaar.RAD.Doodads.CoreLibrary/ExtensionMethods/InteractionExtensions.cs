@@ -5,7 +5,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 public static class InteractionExtensions
 {
     public static bool TryGetClosest<TInteraction>(
-        this IInteraction childInteraction,
+        this IInteraction childInteraction,        
         out TInteraction? candidateParentInteraction,
         Func<TInteraction, bool>? predicate = null)
         where TInteraction : IInteraction

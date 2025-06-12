@@ -76,4 +76,18 @@ public static class SinkingInteractionExtensions
             detectEncodingFromByteOrderMarks: false,
             bufferSize: -1, leaveOpen: false);
     }
+    public static string ReadAllText(this ISinkingInteraction interaction)
+    {
+        using (var x = interaction.GetDisposingSinkReader())
+        {
+            return x.ReadToEnd();
+        }
+    }
+    public static byte[] ReadAllBytes(this ISinkingInteraction interaction)
+    {
+        interaction.SinkBuffer.Position = 0;
+        var buf = new byte[interaction.SinkBuffer.Length];
+        interaction.SinkBuffer.Read(buf, 0, buf.Length);
+        return buf;
+    }
 }
