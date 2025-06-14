@@ -27,6 +27,7 @@ public class DoNextOnElseWrapper : IAmbiguousServiceWrapper
         this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
         this.DoneDelegate?.DynamicInvoke(this, interaction);
     }
+    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices() => ServiceSequence?.SelectMany(x => x.GetAllServices()) ?? [];
     public void SetTarget(ServiceBuilder[] toArray)
     {
         this.ServiceSequence = toArray.Select(x => x.CurrentService!).ToArray();

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection
 {
     public class ProgDirs : IService
     {
@@ -14,7 +10,7 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection
         {
             var allDirs = ProgramRepository.Instance.
                 GetKnownPrograms().
-                Select(x => (x.DirectoryInfo.FullName, x.DirectoryInfo));
+                Select(x => (x.Emitter.DirectoryInfo!.FullName, x.Emitter.DirectoryInfo));
             var sortedDistinctDirs = allDirs.
                 Distinct(new FullNameComparer()).
                 OrderBy(x => x.FullName);

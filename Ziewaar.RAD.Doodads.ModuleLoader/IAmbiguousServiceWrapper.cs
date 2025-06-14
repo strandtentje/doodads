@@ -1,3 +1,4 @@
+#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 public interface IAmbiguousServiceWrapper
 {
@@ -6,4 +7,5 @@ public interface IAmbiguousServiceWrapper
     void OnDone(CallForInteraction dlg);
     void Cleanup();
     void Run(object sender, IInteraction interaction);
+    IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices();
 }

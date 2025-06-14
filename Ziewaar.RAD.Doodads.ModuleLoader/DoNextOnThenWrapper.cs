@@ -30,6 +30,7 @@ public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
         this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
         this.DoneDelegate?.DynamicInvoke(this, interaction);
     }
+    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices() => ServiceSequence?.SelectMany(x => x.GetAllServices()) ?? [];
     private void HandleElse(object sender, IInteraction interaction)
     {
         this.ElseDelegate?.DynamicInvoke(sender, interaction);

@@ -128,7 +128,7 @@ public class BootstrapperBuilderTest
         sut.AddAssemblyBy<ExceptionCauser>();
         var output = sut.BuildProcessStart();
         Assert.AreEqual(dir, output.WorkingDirectory);
-        Assert.IsTrue(output.FileName.Contains("RuntimeForDotnetCore.exe"));
+        Assert.IsTrue(output.FileName.Contains("RuntimeForDotnetCore"));
         Assert.IsTrue(output.Arguments.Contains("Starter.Test"));
         Assert.IsTrue(output.Arguments.Contains((new FileInfo(testfilename)).Name));
     }

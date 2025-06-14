@@ -25,5 +25,6 @@ public class SoftLinkingServiceWrapper : IAmbiguousServiceWrapper
         this.Target!.Run(sender, interaction);
         this.DoneDelegate?.DynamicInvoke(this, interaction);
     }
+    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices() => Target?.GetAllServices() ?? [];
     public void SetTarget(ServiceBuilder target) => this.Target = target.CurrentService!;
 }

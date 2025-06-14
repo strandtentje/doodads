@@ -147,11 +147,17 @@ public class BootstrappedStartBuilder
         RedirectStandardInput = true,
         RedirectStandardOutput = true,
     };
+    private string[] RequireFullyQualifiedDefinitionFilePaths() =>
+        FileDefinitions.Select(x => x.name.QualifyFullPath(WorkingDirectory)).ToArray();
+    private string RequireFullyQualifiedStarterFilePath() =>
+        (StarterFile ?? FileDefinitions.LastOrDefault().name ??
+            throw new ArgumentException("start file required", nameof(StarterFile))).
+        QualifyFullPath(WorkingDirectory);
     public BootstrappedStart Build() => new BootstrappedStart(
         workingDirectory: _workingDirectory,
         populateAssemblies: AssembliesToPopulate.Select(x => x.assembly).ToArray(),
-        loadFiles: FileDefinitions.Select(x => x.name).ToArray(),
-        startFile: StarterFile ?? FileDefinitions.LastOrDefault().name ?? throw new ArgumentException("start file required", nameof(StarterFile)),
+        loadFiles: RequireFullyQualifiedDefinitionFilePaths(),
+        startFile: RequireFullyQualifiedStarterFilePath(),
         rootInteractionMemory: _rootContext
         );
 }

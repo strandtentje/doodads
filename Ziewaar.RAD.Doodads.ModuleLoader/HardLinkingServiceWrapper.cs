@@ -13,5 +13,6 @@ public class HardLinkingServiceWrapper : IAmbiguousServiceWrapper
         this.Target = null;
     }
     public void Run(object sender, IInteraction interaction) => this.Target!.Run(sender, interaction);
+    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices() => this.Target?.GetAllServices() ?? [];
     public void SetTarget(ServiceBuilder target) => this.Target = target.CurrentService!;
 }

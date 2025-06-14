@@ -1,16 +1,12 @@
 #nullable enable
-using Newtonsoft.Json;
-using Ziewaar.RAD.Doodads.RKOP.Exceptions;
-using Ziewaar.RAD.Doodads.RKOP.Text;
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
-
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private static readonly object NullBuster = new();
     private Type? Type;
     private EventInfo? OnThenEventInfo, OnElseEventInfo;
     private CallForInteraction? DoneDelegate;
-    private CursorText? Position;
+    public CursorText? Position { get; private set; }
     private SortedList<string, CallForInteraction>? EventHandlers;
     public string? TypeName { get; private set; }
     private List<Action>? CleanupPropagation;
@@ -32,12 +28,14 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         try
         {
             this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, out this.Type);
-        } catch(MissingServiceTypeException ex)
+        }
+        catch (MissingServiceTypeException ex)
         {
-            throw new ExceptionAtPositionInFile(atPosition, $"""
-                In ({atPosition.BareFile}) {atPosition.WorkingDirectory} [{atPosition.GetCurrentLine()}:{atPosition.GetCurrentCol()}]
-                {ex.Message}
-                """);
+            throw new ExceptionAtPositionInFile(
+                atPosition, $"""
+                             In ({atPosition.BareFile}) {atPosition.WorkingDirectory} [{atPosition.GetCurrentLine()}:{atPosition.GetCurrentCol()}]
+                             {ex.Message}
+                             """);
         }
 
         this.Constants = new StampedMap(primaryValue ?? NullBuster, constants);
@@ -64,7 +62,8 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         foreach (var item in serviceBranches)
             strangeBranches.Remove(item);
         if (strangeBranches.FirstOrDefault() is string strangeName)
-            throw new ExceptionAtPositionInFile(atPosition, $"Branch {strangeName} does not exist on service {Type.Name}");
+            throw new ExceptionAtPositionInFile(atPosition,
+                $"Branch {strangeName} does not exist on service {Type.Name}");
     }
     private void Instance_OnException(object sender, IInteraction interaction)
     {
@@ -118,7 +117,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         var allEvents = Type.GetEvents().ToArray();
         foreach (var item in allEvents)
             if (EventHandlers.TryGetValue(item.Name, out var handler))
-                item.RemoveEventHandler(this.Instance, handler);        
+                item.RemoveEventHandler(this.Instance, handler);
         try
         {
             if (this.Instance is IDisposable disposable) disposable.Dispose();
@@ -157,5 +156,12 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         {
             DoneDelegate?.DynamicInvoke(this, interaction);
         }
+    }
+    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices()
+    {
+        if (Instance != null)
+            return [(this, Instance)];
+        else
+            return [];
     }
 }
