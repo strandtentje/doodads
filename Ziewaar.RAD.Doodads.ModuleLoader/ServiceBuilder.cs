@@ -34,20 +34,6 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         wrapper.Update(atPosition, typename, primaryValue, constants, castWrappers);
         CurrentService = wrapper;
     }
-    public void SetSoftLink<TResult>(ServiceExpression<TResult> redirectsTo)
-        where TResult : class, IInstanceWrapper, new()
-    {
-        var wrapper = EnsureCurrent<SoftLinkingServiceWrapper>();
-        wrapper.SetTarget(Cast(redirectsTo.ResultSink));
-        CurrentService = wrapper;
-    }
-    public void SetHardLink<TResult>(ServiceExpression<TResult> redirectsTo)
-        where TResult : class, IInstanceWrapper, new()
-    {
-        var wrapper = EnsureCurrent<HardLinkingServiceWrapper>();
-        wrapper.SetTarget(Cast(redirectsTo.ResultSink));
-        CurrentService = wrapper;
-    }
     public void SetUnconditionalSequence<TResult>(ServiceExpression<TResult>[] sequence)
         where TResult : class, IInstanceWrapper, new()
     {

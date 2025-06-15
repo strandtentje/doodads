@@ -9,7 +9,7 @@ public class ConditionalSerializableServiceSeries<TResultSink> :
     where TResultSink : class, IInstanceWrapper, new()
 {
     protected override ServiceExpression<TResultSink> CreateChild() =>
-        new CoalescingServiceDefinition<TResultSink>();
+        new ServiceDescription<TResultSink>();
     protected override TokenDescription CouplerToken => TokenDescription.DefaultBranchCoupler;
     protected override void SetChildren(TResultSink sink, ServiceExpression<TResultSink>[] children) =>
         sink.SetContinueSequence(children);
