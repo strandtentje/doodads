@@ -1,11 +1,22 @@
-﻿#pragma warning disable 67
+﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+
+#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+[Title("Open input text stream for reading its lines")]
+[Description("""
+             Useful for example with console or CSV; takes the lines of the file
+             and exposes them as a list, without loading them into memory directly.
+             """)]
 public class Open : IService
 {
+    [PrimarySetting("Name to use for this line reader; must be the same for the Close")]
     private readonly UpdatingPrimaryValue LineReaderNameConstant = new();
+    [EventOccasion("List of lines comes out here. Useful in conjunction with ie. Pop.")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Happens when no more lines were left to read.")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens because no name was set.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

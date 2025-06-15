@@ -1,11 +1,21 @@
-﻿#pragma warning disable 67
+﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+
+#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+[Title("Close the line reader")]
+[Description("""
+             Use in conjunction with Open, for example when you've seen enough lines, or when you've run out.
+             """)]
 public class Close : IService
 {
+    [PrimarySetting("Name also given to Open")]
     private readonly UpdatingPrimaryValue LineReaderNameConstant = new();
+    [EventOccasion("When the close was successful")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens because there was no preceding open.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

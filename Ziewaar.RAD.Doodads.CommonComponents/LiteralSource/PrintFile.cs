@@ -1,13 +1,30 @@
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+[Title("Works like Print, but uses the contents of a file instead")]
+[Description("""
+             Provide a file path as the primary setting to write its contents to the output. Unless specified otherwise,
+             this will also take notice of the File encoding, and Output encoding. It will then translate if necessary
+             to prevent weird characters.
+             """)]
 public class PrintFile : IService
 {
+    [PrimarySetting("File name to read data from")]
     private readonly UpdatingPrimaryValue ConstantFilename = new();
+    [NamedSetting("binary", "Set this to true to force reading the file as bytes")]
     private readonly UpdatingKeyValue PrintBinary = new("binary");
+    [NamedSetting("setlength", """
+                               Set this to true to pass down the length of the file as well. Only do this if this file 
+                               is big, and the only output component.
+                               """)]
     private readonly UpdatingKeyValue SetContentLength = new("setlength");
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens if the file was not found or accessible, or there was no output to write to.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

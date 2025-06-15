@@ -1,12 +1,19 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Title("Find the originating Repeat call, and invoke its children again.")]
+[Description("""Read the docs on Repeat, for Continue will behave according to its definition. """)]
 public class Continue : IService
 {
+    [PrimarySetting("Name of the Repeat block to fall back to.")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
+    [EventOccasion("Is never invoked; Continue is terminating for a block.")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Is never invoked; Continue is terminating for a block.")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens if the Repeat name was missing, or no Repeat with the configured name could be found.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

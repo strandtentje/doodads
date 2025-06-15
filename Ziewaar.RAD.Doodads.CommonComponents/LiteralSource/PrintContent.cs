@@ -1,16 +1,29 @@
-﻿#pragma warning disable 67
-#nullable enable
-using System.Collections;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
+#pragma warning disable 67
+#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
+[Title("Print a File as Content")]
+[Description("""
+             Combines Print and PrintFile such that the content type of the file is figured out based
+             on its extension, and pushed to the output, along with the file size in bytes.
+             Then, the file contents are printed.
+             """)]
 public class PrintContent : IService
 {
+    [PrimarySetting("Filename to read from")]
     private readonly UpdatingPrimaryValue ConstantFilename = new();
+    [NamedSetting("setlength", """
+                               Set this to true, to pass down the length of the file as well. Don't do this when 
+                               there's multiple files, or they're not too big.
+                               """)]
     private readonly UpdatingKeyValue SetContentLength = new("setlength");
-
+    [EventOccasion("Happens when the file was written to output")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when there was no file or it couldn't be written.")]
     public event CallForInteraction? OnException;
 
     private readonly Print ContentService = new Print();
@@ -54,41 +67,5 @@ public class PrintContent : IService
         OnThen?.Invoke(this, interaction);
     }
 
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-}
-
-public class PrintContentByFilenames : IService
-{
-    private readonly UpdatingPrimaryValue AllowedFileConst = new();
-    private string[] FileFilter = [];
-    private SortedList<string, (PrintContent printer, StampedMap config)> Printers = new();
-
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        if ((constants, AllowedFileConst).IsRereadRequired<IEnumerable>(out var filter))
-        {
-            this.FileFilter = filter?.OfType<object>().Select(x => x.ToString()).ToArray() ?? [];
-            if (this.FileFilter.Length == 0)
-            {
-                OnException?.Invoke(this, new CommonInteraction(interaction, "this wont work until you whitelist at least one file in the primary constant array"));
-                return;
-            }
-            Printers.Clear();
-            foreach (var item in FileFilter)
-            {
-                var newPrinter = new PrintContent();
-                newPrinter.OnException += OnException;
-                Printers.Add(item, (newPrinter, new StampedMap(item)));               
-            }
-        }
-        var requestedFilename = interaction.Register.ToString();
-        if (Printers.TryGetValue(requestedFilename, out var combination))
-            combination.printer.Enter(combination.config, interaction);
-        else
-            OnElse?.Invoke(this, new CommonInteraction(interaction, $"file {requestedFilename} not whitelisted"));
-    }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
