@@ -1,10 +1,9 @@
 ﻿#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
-
 public class TypeRepository
 {
     public static readonly TypeRepository Instance = new();
-    private readonly SortedList<string, Type> NamedServiceTypes = new();
+    public readonly SortedList<string, Type> NamedServiceTypes = new();
     private NameSuggestions? Names;
     public TypeRepository PopulateWith(params string[] assemblyFiles)
     {
@@ -17,9 +16,7 @@ public class TypeRepository
     }
     public TypeRepository PopulateWith(Assembly assembly)
     {
-        var serviceTypes = assembly.
-            GetTypes().
-            Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+        var serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
         foreach (var serviceType in serviceTypes)
         {
             NamedServiceTypes.Add(serviceType.Name, serviceType);
@@ -38,7 +35,8 @@ public class TypeRepository
                 throw new MissingServiceTypeException(name, Names.GetMostSimilar(name));
             }
             return (IService)Activator.CreateInstance(foundType);
-        } else
+        }
+        else
         {
             if (Names == null)
                 Names = new NameSuggestions(NamedServiceTypes.Keys);
@@ -48,4 +46,5 @@ public class TypeRepository
     public string[] GetAvailableNames() => NamedServiceTypes.Keys.ToArray();
     public bool HasName(string newTypeName) => NamedServiceTypes.ContainsKey(newTypeName);
     public bool TryGetByName(string name, out Type type) => NamedServiceTypes.TryGetValue(name, out type);
+
 }

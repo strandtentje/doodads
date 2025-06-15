@@ -1,9 +1,8 @@
-using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
-
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
+[Category("Output to Sink")]
 [Title("Outputs text to the closest output stream")]
 [Description("""
              Almost behaves like you would expect. For example, when used in conjunction with a webserver,
@@ -13,7 +12,7 @@ public class Print : IService
 {
     [PrimarySetting("Text to print to output")]
     private readonly UpdatingPrimaryValue PlainTextValue = new();
-    [PrimarySetting("Optionally, content type filter this text fits with. Defaults to */*.")]
+    [NamedSetting("contenttype", "Optionally, content type filter this text fits with. Defaults to */*.")]
     private readonly UpdatingKeyValue ContentType = new("contenttype");
     [EventOccasion("Happens when the print was successful; preserves the interaction for more printing.")]
     public event CallForInteraction? OnThen;

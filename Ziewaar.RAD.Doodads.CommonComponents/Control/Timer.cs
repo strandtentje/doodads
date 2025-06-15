@@ -1,9 +1,8 @@
 ﻿using System.Threading;
-using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
-
+[Category("Flow Control")]
 [Title("""
        Will delay or intermittently repeat the underlying block.
        Be ware when using this with blocks that produce transient interactions, like HTTP servers.

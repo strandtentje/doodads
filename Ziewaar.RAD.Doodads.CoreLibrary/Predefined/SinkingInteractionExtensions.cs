@@ -1,7 +1,5 @@
 ﻿#pragma warning disable 67
 #nullable enable
-using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
-
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public static class SinkingInteractionExtensions
 {

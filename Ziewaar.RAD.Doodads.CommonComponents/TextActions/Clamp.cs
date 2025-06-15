@@ -1,16 +1,32 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
+[Category("Validation")]
+[Title("Clamp numeric value in registry to a range")]
+[Description("""
+             Does a best effort at turning the Register contents into a decimal number,
+             and attempt to limit that numeric value between min and max. If the value
+             cannot be retrieved, default is used.
+             """)]
 public class Clamp : IService
 {
-    private IUpdatingValue
-        DefaultValue = new UpdatingKeyValue("default"),
-        MinValue = new UpdatingKeyValue("min"),
-        MaxValue = new UpdatingKeyValue("max"),
-        MinMaxRange = new UpdatingPrimaryValue();
+    [NamedSetting("default", "Default numeric value to fall back to.")]
+    private readonly UpdatingKeyValue DefaultValue = new ("default");
+    [NamedSetting("min", "Minimum numeric value to clamp to")]
+    private readonly UpdatingKeyValue MinValue = new("min");
+    [NamedSetting("max", "Maximum numeric value to clamp to")]
+    private readonly UpdatingKeyValue MaxValue = new("max");
+    [PrimarySetting("""
+                    An expression of numbers with one or two <'s ie. 0<5<10. Outer numbers go to min/max, middle number 
+                    to default. When a single value is provided, 0<0<x is presumed.
+                    """)]
+    private readonly UpdatingPrimaryValue MinMaxRange = new ();
     private decimal Min, Default, Max;
+    [EventOccasion("After the clamped value was put into register")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

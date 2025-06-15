@@ -1,10 +1,10 @@
 #nullable enable
 using System.Collections;
-using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 #pragma warning disable 67
 
+[Category("Output to Sink")]
 [Title("Select a file based on its name in the Register, and print its contents to output.")]
 [Description("""
              Useful for hosting multiple whitelisted files, based on their name. 

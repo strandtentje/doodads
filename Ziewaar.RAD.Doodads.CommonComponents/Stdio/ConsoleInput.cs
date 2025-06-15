@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+[Category("Input from source")]
 public class ConsoleInput : IService
 {
     private static readonly Stream StandardInput = System.Console.OpenStandardInput();

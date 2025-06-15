@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 #nullable enable
 public static class InteractionExtensions
 {

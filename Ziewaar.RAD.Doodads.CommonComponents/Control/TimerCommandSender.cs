@@ -1,6 +1,4 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
-
-#pragma warning disable 67
+﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 

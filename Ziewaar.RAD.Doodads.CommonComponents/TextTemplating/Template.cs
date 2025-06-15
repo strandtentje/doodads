@@ -1,11 +1,46 @@
 ﻿namespace Ziewaar.RAD.Doodads.CommonComponents;
 #nullable enable
+[Category("Output to Sink")]
+[Title("Templating service")]
+[Description("""
+             This service will use the OnThen-branch to buffer some text, and passes it 
+             down to the closest sink. In case this buffered text contains template tags, templating
+             will happen. The basic construction of template tags is {% tagname %}
+             Keys in the template tags may be prefixed with modifiers to alter behaviour of 
+             the templating routine;
+             
+             Source modifiers: 
+              - `<` : Prefixing with a left arrow will restrict sourcing to taking from memory; t
+                agnames become memory names.
+              - `>` : Prefixing with a right arrow will restrict sourcing to letting an OnElse-
+                service write based on the Register-content; tagname will be put into register.
+              - `#` : Prefixing with a pound sign restricts value sources to the service constants 
+                ie. Template(tagname = "cheese") 
+              - No source modifier means it will first look in memory, then call out.
+             
+             Filter modifiers:
+              - `&` : Prefixing with an ampersand will escape strings to be safe for HTML pages.
+              - `%` : Prefixing with a percent sign will escape strings to be safe for URL usage.
+              - `=` : Prefixing with an equals-sign will escape strings to be safe for HTML attribute usage.
+              - `;` : Prefixing with a semicolon will escape strings to be safe for JS string literal usage.
+              
+             Exactly one filter modifier and one source modifier may be combined. When omitted, the engine
+             defaults to sourcing from memory first, and never filtering.
+             """)]
 public class Template : IService
 {
     private TextSinkingInteraction? templatefile = null;
     private readonly TemplateParser Parser = new();
+    [EventOccasion("When the template needs to buffer an updated version of the template text")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("""
+                   For tags that started with an `>`, or didn't start with anything and weren't found in memory. 
+                   Will put the tag name in Register.
+                   """)]
     public event CallForInteraction? OnElse;
+    [EventOccasion("""
+                   Likely happens when the template couldn't find a place to write the result to.
+                   """)]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

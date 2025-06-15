@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 #nullable enable
 
 public class NoEncoding : Encoding

@@ -14,4 +14,8 @@
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.RKOP\Ziewaar.RAD.Doodads.RKOP.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Programs\" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+[Category("Call Definition Return")]
 public class Call : IService
 {
     private readonly UpdatingPrimaryValue ModuleNameConstant = new();

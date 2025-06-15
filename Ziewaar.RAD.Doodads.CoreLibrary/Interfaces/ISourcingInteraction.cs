@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
 public interface ISourcingInteraction : IInteraction
 {

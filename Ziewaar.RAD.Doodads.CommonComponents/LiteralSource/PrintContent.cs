@@ -1,9 +1,8 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
-
-#pragma warning disable 67
+﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
+[Category("Output to Sink")]
 [Title("Print a File as Content")]
 [Description("""
              Combines Print and PrintFile such that the content type of the file is figured out based

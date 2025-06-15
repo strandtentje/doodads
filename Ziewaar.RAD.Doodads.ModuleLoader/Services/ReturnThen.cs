@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
-
+[Category("Call Definition Return")]
 public class ReturnThen : ReturningService
 {
     public override event CallForInteraction? OnThen;

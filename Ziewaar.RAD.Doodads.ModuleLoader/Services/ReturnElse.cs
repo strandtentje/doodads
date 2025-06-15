@@ -2,6 +2,7 @@
 #nullable enable
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+[Category("Call Definition Return")]
 public class ReturnElse : ReturningService
 {
     public override event CallForInteraction? OnThen;

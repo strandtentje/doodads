@@ -12,6 +12,7 @@ global using System.Text;
 global using System.Threading;
 global using Newtonsoft.Json;
 global using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+global using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 global using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 global using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 global using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
 public interface IEntryPoint
 {

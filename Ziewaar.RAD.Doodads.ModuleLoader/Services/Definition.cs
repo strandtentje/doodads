@@ -1,6 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
+[Category("Call Definition Return")]
 public class Definition : IService
 {    
     public event CallForInteraction? OnThen;

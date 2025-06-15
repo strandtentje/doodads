@@ -1,6 +1,4 @@
-﻿
-using System.Collections.ObjectModel;
-using static System.Array;
+﻿using static System.Array;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 #nullable enable

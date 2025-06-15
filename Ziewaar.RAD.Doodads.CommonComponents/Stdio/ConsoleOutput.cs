@@ -1,6 +1,8 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+
+[Category("Input from source")]
 public class ConsoleOutput : IService
 {
     public static Stream StandardOutput = Console.OpenStandardOutput();

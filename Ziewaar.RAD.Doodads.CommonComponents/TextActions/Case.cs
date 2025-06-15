@@ -3,11 +3,21 @@
 using System.Collections;
 
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
+[Category("Lists and Items")]
+[Title("Conditional branch on register value")]
+[Description("""
+             Checks if the register's string-converted value is an exact match with the provided primary
+             setting text. 
+             """)]
 public class Case : IService
 {
+    [PrimarySetting("String value to match the Register against")]
     private readonly UpdatingPrimaryValue MatchStringConst = new();
+    [EventOccasion("When the string representation of the register matches the setting")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When there was no match")]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

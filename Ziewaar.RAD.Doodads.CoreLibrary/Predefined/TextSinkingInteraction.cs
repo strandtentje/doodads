@@ -1,6 +1,5 @@
 #pragma warning disable 67
 #nullable enable
-using System.Text;
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public class TextSinkingInteraction(
     IInteraction parent,

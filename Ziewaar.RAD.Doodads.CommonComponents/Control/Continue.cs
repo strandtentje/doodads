@@ -1,8 +1,7 @@
 ﻿#nullable enable
-using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
-
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Flow Control")]
 [Title("Find the originating Repeat call, and invoke its children again.")]
 [Description("""Read the docs on Repeat, for Continue will behave according to its definition. """)]
 public class Continue : IService

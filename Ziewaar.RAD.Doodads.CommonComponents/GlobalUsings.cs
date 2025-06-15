@@ -7,6 +7,7 @@ global using System.Linq;
 global using System.Web;
 global using Ziewaar.RAD.Doodads.CoreLibrary;
 global using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+global using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 global using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 global using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 global using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
