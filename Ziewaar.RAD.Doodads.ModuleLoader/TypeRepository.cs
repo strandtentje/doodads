@@ -47,4 +47,5 @@ public class TypeRepository
     }
     public string[] GetAvailableNames() => NamedServiceTypes.Keys.ToArray();
     public bool HasName(string newTypeName) => NamedServiceTypes.ContainsKey(newTypeName);
+    public bool TryGetByName(string name, out Type type) => NamedServiceTypes.TryGetValue(name, out type);
 }
