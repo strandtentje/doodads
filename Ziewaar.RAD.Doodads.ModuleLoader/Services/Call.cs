@@ -30,7 +30,7 @@ public class Call : IService
         var requestedFileComponent = callComponents.ElementAtOrDefault(0);
         var requestedDefComponent = callComponents.ElementAtOrDefault(1);
         
-        if (string.IsNullOrWhiteSpace(requestedFileComponent))
+        if (string.IsNullOrWhiteSpace(requestedFileComponent) || !File.Exists(requestedFileComponent) && Directory.Exists(requestedFileComponent))
         {
             if (string.IsNullOrWhiteSpace(requestedDefComponent))
             {

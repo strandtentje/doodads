@@ -10,8 +10,7 @@ public class ProgramRepository
             filePath += ".rkop";
         if (!Programs.TryGetValue(filePath, out var known))
             known = Programs[filePath] = ProgramFactory.Instance.CreateFor(filePath, autoStartOnReloadParams);
-        var fileInfo = new FileInfo(filePath);
-        if (known.Emitter.LastReadTime != fileInfo.LastWriteTime.Ticks)
+        else 
             known.Reload();
 
         return known;

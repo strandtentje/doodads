@@ -12,14 +12,14 @@ public class ProgramFactory
             AutoStartOnReloadParams = autoStartOnReloadParams,
         };
 
-        if (programFileInfo.Directory != null)
+      /*  if (programFileInfo.Directory != null)
             FileWatcherFactory.Instance.Watch(
                 programFileInfo.Directory.FullName,
                 programFileInfo.Name,
                 () => result.Reload(),
                 result.Dispose);
         else
-            Console.WriteLine($"cannot enable filesystem watcher; no parent directory on {programFileInfo}");
+            Console.WriteLine($"cannot enable filesystem watcher; no parent directory on {programFileInfo}"); */
 
         result.Reload();
         return result;

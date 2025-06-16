@@ -25,8 +25,11 @@ public class CategoryServices : IService
                 new CommonInteraction(interaction, "category name required via register or primary setting"));
             return;
         }
+        var categoryTypes = DocumentationRepository.Instance.GetCategoryTypes(categoryName);
+        var commonInteraction =
+            new CommonInteraction(interaction, categoryTypes);
         OnThen?.Invoke(this,
-            new CommonInteraction(interaction, DocumentationRepository.Instance.GetCategoryTypes(categoryName)));
+            commonInteraction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

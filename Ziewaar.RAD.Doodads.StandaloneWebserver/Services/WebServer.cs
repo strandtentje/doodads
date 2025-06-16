@@ -43,23 +43,36 @@ public class WebServer : IService, IDisposable
                     "New incoming context from strange server"));
             return;
         }
+        var httpContext = servingListener.EndGetContext(ar);
+        CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
         try
         {
-            var httpContext = servingListener.EndGetContext(ar);
-            CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
             var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
             OnHead?.Invoke(this, headInteraction);
             var requestInteraction = new HttpRequestInteraction(headInteraction, httpContext);
             var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
             OnThen?.Invoke(this, responseInteraction);
-            httpContext.Response.Close();
-        } catch(Exception ex)
+        }
+#if !DEBUG
+        catch (Exception ex)
         {
-            var exceptionalInteraction = new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message);
+            var exceptionalInteraction =
+                new CommonInteraction(StartingInteraction ?? StopperInteraction.Instance, ex.Message);
             OnException?.Invoke(this, exceptionalInteraction);
             if (CurrentListener == null || !CurrentListener.IsListening)
                 TerminateListener(exceptionalInteraction);
             else
+                CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
+        }
+#endif
+        finally
+        {
+            httpContext.Response.Close();
+#if DEBUG
+            if (CurrentListener == null || !CurrentListener.IsListening)
+                TerminateListener(StopperInteraction.Instance);
+            else
+#endif
                 CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
         }
     }
@@ -74,10 +87,8 @@ public class WebServer : IService, IDisposable
             TerminateListener(interaction);
         }
     }
-
     private readonly object terminationLock = new();
     private bool isTerminating = false;
-
     private void TerminateListener(IInteraction interaction)
     {
         if (isTerminating) return;
@@ -93,14 +104,16 @@ public class WebServer : IService, IDisposable
             try
             {
                 CurrentListener?.Stop();
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 // its already broken
             }
             try
             {
                 CurrentListener?.Close();
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 // its already broken
             }
@@ -109,7 +122,6 @@ public class WebServer : IService, IDisposable
             isTerminating = false;
         }
     }
-
     private readonly UpdatingPrimaryValue PrefixesConstant = new();
     private void UpdatePrefixes(StampedMap serviceConstants, IInteraction interaction)
     {
@@ -117,7 +129,8 @@ public class WebServer : IService, IDisposable
         Prefixes = prefixObjArr?.OfType<string>().ToArray();
 
         if (Prefixes == null || Prefixes.Length == 0)
-            OnException?.Invoke(this, new CommonInteraction(interaction, "no array of prefixes configured for the WebServer"));
+            OnException?.Invoke(this,
+                new CommonInteraction(interaction, "no array of prefixes configured for the WebServer"));
     }
     private bool ValidateStartCommand(IInteraction interaction)
     {

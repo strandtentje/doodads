@@ -8,7 +8,8 @@ public class DocumentationRepository
         NamedServiceTypes.Values.Select(x => x.GetCustomAttribute<CategoryAttribute>()?.Name).OfType<string>()
             .Distinct().ToArray();
     public string[] GetCategoryTypes(string category) =>
-        NamedServiceTypes.Values.Where(x => x.GetCustomAttribute<CategoryAttribute>().Name == category)
+        NamedServiceTypes.Values.Where(x =>
+                x.GetCustomAttributes().OfType<CategoryAttribute>().SingleOrDefault()?.Name == category)
             .Select(x => x.Name).ToArray();
     public string GetTypeTitle(string typeName) =>
         NamedServiceTypes[typeName].GetCustomAttribute<TitleAttribute>().Title;

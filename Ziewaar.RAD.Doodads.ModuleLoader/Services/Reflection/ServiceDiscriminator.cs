@@ -89,11 +89,6 @@ public class ServiceDiscriminator : IService
                 OnException?.Invoke(this, new CommonInteraction(interaction, "service had no scope name"));
                 return;
             }
-            if (description.Children.Branches == null)
-            {
-                OnException?.Invoke(this, new CommonInteraction(interaction, "service had no children"));
-                return;
-            }
 
             OnThen?.Invoke(this, new CommonInteraction(interaction, description.Constructor.ServiceTypeName,
                 new SortedList<string, object>()
@@ -101,10 +96,10 @@ public class ServiceDiscriminator : IService
                     { "expression", description },
                     { "servicetype", description.Constructor.ServiceTypeName },
                     { "scopename", description.CurrentNameInScope },
-                    { "primarysetting", description.Constructor.PrimaryExpression.GetValue().ToString() },
+                    { "primarysetting", description.Constructor.PrimaryExpression.GetValue()?.ToString() ?? "" },
                     { "workingdir", description.TextScope.WorkingDirectory },
                     { "constnames", description.Constructor.Constants.Members.Select(x => x.Key).ToArray() },
-                    { "childnames", description.Children.Branches.Select(x => x.key).ToArray() },
+                    { "childnames", description.Children.Branches?.Select(x => x.key).ToArray() ?? [] },
                 }));
         }
     }

@@ -10,7 +10,8 @@ public class ResilientCursorTextEmitter(FileInfo file)
     public long LastReadTime { get; private set; }
     private void LockCatchRetry(Action readCallback, int attemptNumber = 0, int maxAttempts = 6)
     {
-        if (!WorkingState.TryDoWorkOrWait())
+        file.Refresh();
+        if (!WorkingState.TryDoWorkOrWait() || LastReadTime == file.LastWriteTime.Ticks)
             return;
         try
         {
@@ -24,37 +25,38 @@ public class ResilientCursorTextEmitter(FileInfo file)
             LastReadTime = file.LastWriteTime.Ticks;
             WorkingState.WorkHasCeased();
         }
-        catch (IOException iox)
+#if !DEBUG
+        catch (Exception ex)
         {
-            Console.Write(iox.Message);
-            if (attemptNumber < maxAttempts)
+            if (ex is IOException || ex is UnauthorizedAccessException)
             {
-                Console.WriteLine("file not accessible. postponing reload job attempt {0}", attemptNumber);
-                var x = new Timer(
-                    new TimerCallback(_ => { LockCatchRetry(readCallback, attemptNumber + 1, maxAttempts); }), null,
-                    2500,
-                    Timeout.Infinite);
+                Console.Write(ex.Message);
+                if (attemptNumber < maxAttempts)
+                {
+                    Console.WriteLine("file not accessible. postponing reload job attempt {0}", attemptNumber);
+                    var x = new Timer(
+                        new TimerCallback(_ => { LockCatchRetry(readCallback, attemptNumber + 1, maxAttempts); }), null,
+                        2500,
+                        Timeout.Infinite);
+                }
+                else
+                {
+                    Console.WriteLine("failed to reload file after {0} attempts.", attemptNumber);
+                    WorkingState.WorkHasCeased();
+                }
+            } else if (ex is ExceptionAtPositionInFile pos)
+            {
+                Console.WriteLine(ex.Message);
+                WorkingState.WorkHasCeased();
             }
             else
             {
-                Console.WriteLine("failed to reload file after {0} attempts.", attemptNumber);
+                Console.WriteLine(ex);
                 WorkingState.WorkHasCeased();
+                throw;
             }
         }
-        catch (ExceptionAtPositionInFile fex)
-        {
-            Console.WriteLine(fex.Message);
-            WorkingState.WorkHasCeased();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            WorkingState.WorkHasCeased();
-#if DEBUG
-            throw;
 #endif
-            return;
-        }
         finally
         {
             GC.Collect();

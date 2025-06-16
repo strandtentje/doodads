@@ -41,9 +41,13 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         this.Constants = new StampedMap(primaryValue ?? NullBuster, constants);
 
         this.Instance.OnThen += DiagnosticOnThen;
+        CleanupPropagation.Add(() => this.Instance.OnThen -= DiagnosticOnThen);
         this.Instance.OnElse += DiagnosticOnElse;
+        CleanupPropagation.Add(() => this.Instance.OnElse -= DiagnosticOnElse);
         this.Instance.OnException += DiagnosticOnException;
+        CleanupPropagation.Add(() => this.Instance.OnException -= DiagnosticOnException);
         this.Instance.OnException += Instance_OnException;
+        CleanupPropagation.Add(() => this.Instance.OnException -= Instance_OnException);
 
         var allEvents = Type.GetEvents().ToArray();
         this.EventHandlers = new SortedList<string, CallForInteraction>();
@@ -55,6 +59,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             {
                 var newEvent = EventHandlers[item.Name] = child.Run;
                 item.AddEventHandler(this.Instance, newEvent);
+                CleanupPropagation.Add(() => item.RemoveEventHandler(this.Instance, newEvent));
             }
         }
         var strangeBranches = branches.Keys.ToList();
@@ -82,6 +87,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             CleanupPropagation!.Add(asw.Cleanup);
         }
         OnThenEventInfo!.AddEventHandler(Instance!, dlg);
+        CleanupPropagation!.Add(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
     }
     public void OnElse(CallForInteraction dlg)
     {
@@ -90,6 +96,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             CleanupPropagation!.Add(asw.Cleanup);
         }
         OnElseEventInfo!.AddEventHandler(Instance!, dlg);
+        CleanupPropagation!.Add(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
     }
     public void OnDone(CallForInteraction dlg) => this.DoneDelegate =
         dlg == null ? dlg : throw new InvalidOperationException("Cant have two dones");
@@ -107,6 +114,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                 {
                     item();
                 }
+                CleanupPropagation.Clear();
                 isInCleanLoop = false;
             }
         }
@@ -133,6 +141,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         {
             Instance!.Enter(Constants, interaction);
         }
+#if !DEBUG
         catch (Exception ex)
         {
             Console.WriteLine("Fatal on {0}", Type?.Name ?? "Unknown Type");
@@ -144,14 +153,9 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             catch (Exception metaEx)
             {
                 Console.WriteLine("Exception while handling exception {0}; {1}", ex, metaEx);
-#if DEBUG
-                throw;
-#endif
             }
-#if DEBUG
-            throw;
-#endif
         }
+#endif
         finally
         {
             DoneDelegate?.DynamicInvoke(this, interaction);

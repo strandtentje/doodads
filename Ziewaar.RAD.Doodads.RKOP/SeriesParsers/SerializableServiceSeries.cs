@@ -15,25 +15,15 @@ public abstract class SerializableServiceSeries<TResultSink> :
     {
         Children ??= new();
         ResultSink ??= new();
+        if (Children.Any())
+            throw new Exception("oh no.");
         Token couplerToken;
-        int currentChildNumber = 0;
         do
         {
-            ServiceExpression<TResultSink> prelimChild;
-            if (Children.Count > currentChildNumber)
-            {
-                prelimChild = Children.ElementAt(currentChildNumber);
-                Children.RemoveAt(currentChildNumber);
-            } else
-            {
-                prelimChild = CreateChild();
-            }
+            var prelimChild = CreateChild();
             if (prelimChild.UpdateFrom($"{CurrentNameInScope}_{Children.Count}", ref text))
-            {
-                Children.Insert(currentChildNumber, prelimChild);
-            }
+                Children.Add(prelimChild);
             text = text.SkipWhile(char.IsWhiteSpace).TakeToken(CouplerToken, out couplerToken);
-            currentChildNumber++;
         } while (couplerToken.IsValid);
         return Children.Count > 0;
     }
