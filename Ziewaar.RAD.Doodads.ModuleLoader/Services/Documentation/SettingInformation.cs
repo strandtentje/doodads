@@ -1,4 +1,5 @@
 #nullable enable
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
 [Category("Reflection")]
 [Title("Get detailed settings information by service name and setting name")]

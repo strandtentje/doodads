@@ -1,3 +1,5 @@
+#nullable enable
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
 [Category("Reflection")]
 [Title("Get the service at the root of a definition")]

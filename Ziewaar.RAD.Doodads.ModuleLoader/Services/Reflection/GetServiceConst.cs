@@ -1,3 +1,4 @@
+#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
 [Category("Reflection")]
 [Title("Get value of a service constant")]

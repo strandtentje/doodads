@@ -11,7 +11,7 @@ namespace Define.Content.AutomationKioskShell.ValidationNodes;
 public class Clamp : IService
 {
     [NamedSetting("default", "Default numeric value to fall back to.")]
-    private readonly UpdatingKeyValue DefaultValue = new ("default");
+    private readonly UpdatingKeyValue DefaultValue = new("default");
     [NamedSetting("min", "Minimum numeric value to clamp to")]
     private readonly UpdatingKeyValue MinValue = new("min");
     [NamedSetting("max", "Maximum numeric value to clamp to")]
@@ -20,7 +20,7 @@ public class Clamp : IService
                     An expression of numbers with one or two <'s ie. 0<5<10. Outer numbers go to min/max, middle number 
                     to default. When a single value is provided, 0<0<x is presumed.
                     """)]
-    private readonly UpdatingPrimaryValue MinMaxRange = new ();
+    private readonly UpdatingPrimaryValue MinMaxRange = new();
     private decimal Min, Default, Max;
     [EventOccasion("After the clamped value was put into register")]
     public event CallForInteraction? OnThen;

@@ -1,4 +1,5 @@
 ﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
+#pragma warning disable 67
 #nullable enable
 [Category("Reflection")]
 [Title("List all directories that contain running programs")]

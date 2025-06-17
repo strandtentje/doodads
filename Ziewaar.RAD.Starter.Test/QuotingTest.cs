@@ -1,10 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿#pragma warning disable 67
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-
 namespace Ziewaar.RAD.Starter.Test;
-
 [TestClass]
 public sealed class QuotingTest
 {
@@ -126,7 +124,7 @@ public class BootstrapperBuilderTest
         sut.SetStarter(testfilename);
         sut.SetRuntimeBy<Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Program>();
         sut.AddAssemblyBy<ExceptionCauser>();
-        var output = sut.BuildProcessStart();
+        var output = sut.BuildProcessStart(true);
         Assert.AreEqual(dir, output.WorkingDirectory);
         Assert.IsTrue(output.FileName.Contains("RuntimeForDotnetCore"));
         Assert.IsTrue(output.Arguments.Contains("Starter.Test"));

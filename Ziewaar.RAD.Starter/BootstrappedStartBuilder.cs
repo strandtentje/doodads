@@ -64,11 +64,15 @@ public class BootstrappedStartBuilder
     public BootstrappedStartBuilder AddFile(string name, string? definitionText = null)
     {
         Directory.CreateDirectory(_workingDirectory);
-        var rkopFile = new FileInfo(name.QualifyFullPath(_workingDirectory));
+        string fullPath = name.QualifyFullPath(_workingDirectory);
+        var rkopFile = new FileInfo(fullPath);
         if (!rkopFile.Exists)
         {
             if (definitionText != null)
             {
+                var dirpath = Path.GetDirectoryName(fullPath);
+                if (!Directory.Exists(dirpath))
+                    Directory.CreateDirectory(dirpath);
                 using (var writer = rkopFile.CreateText())
                 {
                     writer.Write(definitionText);
@@ -106,7 +110,7 @@ public class BootstrappedStartBuilder
     }
     public BootstrappedStartBuilder SetRuntimeAssembly(Assembly assembly) => SetRuntimeAssemblyFile(assembly.Location);
     public BootstrappedStartBuilder SetRuntimeBy<TType>() => SetRuntimeAssembly(typeof(TType).Assembly);
-    public BootstrappedStartBuilder AddAssembly(string path, Assembly assembly = null)
+    public BootstrappedStartBuilder AddAssembly(string path, Assembly? assembly = null)
     {
         if (_assemblyFileNames.Any(x => x.path == path))
             return this;
@@ -136,16 +140,16 @@ public class BootstrappedStartBuilder
             .. starterFileFlags,
         ];
     }
-    public ProcessStartInfo BuildProcessStart() => new ProcessStartInfo(
+    public ProcessStartInfo BuildProcessStart(bool wrap) => new ProcessStartInfo(
         RuntimeAssemblyFile ?? throw new InvalidOperationException("Runtime assembly must be provided"),
         string.Join(" ", BuildArgs()))
     {
         WorkingDirectory = this.WorkingDirectory,
-        CreateNoWindow = true,
-        UseShellExecute = false,
-        RedirectStandardError = true,
-        RedirectStandardInput = true,
-        RedirectStandardOutput = true,
+        CreateNoWindow = wrap,
+        UseShellExecute = !wrap,
+        RedirectStandardError = wrap,
+        RedirectStandardInput = wrap,
+        RedirectStandardOutput = wrap,
     };
     private string[] RequireFullyQualifiedDefinitionFilePaths() =>
         FileDefinitions.Select(x => x.name.QualifyFullPath(WorkingDirectory)).ToArray();

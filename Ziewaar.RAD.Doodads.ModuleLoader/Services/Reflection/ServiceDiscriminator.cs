@@ -1,3 +1,4 @@
+#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
 [Category("Reflection")]
 [Title("Determine service expression type")]

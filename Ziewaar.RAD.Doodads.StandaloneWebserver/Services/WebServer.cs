@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-
+﻿#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #nullable enable
 public class WebServer : IService, IDisposable

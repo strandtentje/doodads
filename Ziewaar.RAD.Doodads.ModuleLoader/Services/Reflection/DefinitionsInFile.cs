@@ -1,3 +1,5 @@
+#nullable enable
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
 [Category("Reflection")]
 [Title("Get all the definitions that exist in the file.")]

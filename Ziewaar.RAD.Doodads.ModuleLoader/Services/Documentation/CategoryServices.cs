@@ -1,4 +1,5 @@
 #nullable enable
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
 [Category("Reflection")]
 [Title("Find services that belong to a category")]
