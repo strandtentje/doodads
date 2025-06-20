@@ -6,36 +6,33 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data;
 
-public interface ICommandSourceInteraction : IInteraction
-{
-    TResult UseCommand<TResult>(Func<IDbCommand, TResult> commandUser);
-    string[] DetermineParamNames(string queryText);
-}
-
-public class DataCommand : DataService
-{
-
-}
-
 public abstract class DataService<TResult> : IService
 {
+    [PrimarySetting("Query text or filename of query")]
     private readonly UpdatingPrimaryValue QueryTextOrFileConstant = new();
     private string? QueryFilePath;
     private long QueryFileAge;
     private string? QueryText;
     private string[]? ParameterNames;
 
+    [EventOccasion("When the query ran successfully or has a result")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("After the query ran, or when it had no output")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when the query text was wrong.")]
     public event CallForInteraction? OnException;
 
-    protected abstract TResult WorkWithCommand(IDbCommand command);
+    public enum CommonBranchName { None, OnThen, OnElse, OnException };
+
+    protected abstract TResult WorkWithCommand(IDbCommand command, IInteraction cause);
+    protected abstract void FinalizeResult(TResult output, IInteraction cause);
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
@@ -48,9 +45,14 @@ public abstract class DataService<TResult> : IService
         {
             if (queryTextOrFilePath.EndsWith(".sql", true, CultureInfo.InvariantCulture))
             {
-                this.QueryFilePath = queryTextOrFilePath;
+                this.QueryFilePath = commandSource.MakeFilenameSpecific(queryTextOrFilePath);
                 if (!File.Exists(queryTextOrFilePath))
-                    File.Create(queryTextOrFilePath).Close();
+                {
+                    using (var f = File.CreateText(queryTextOrFilePath))
+                    {
+                        f.Write(commandSource.GenerateQueryFor(Path.GetFileName(queryTextOrFilePath)));
+                    }
+                }
                 QueryFileAge = -1;
             }
             else
@@ -70,7 +72,7 @@ public abstract class DataService<TResult> : IService
                 this.ParameterNames = commandSource.DetermineParamNames(this.QueryText);
             }
         }
-        commandSource.UseCommand(command =>
+        var output = commandSource.UseCommand(command =>
         {
             foreach (var item in this.ParameterNames ?? [])
             {
@@ -128,63 +130,13 @@ public abstract class DataService<TResult> : IService
                 command.Parameters.Add(newParam);
             }
             command.CommandText = this.QueryText;
-            return WorkWithCommand(command);
+            return WorkWithCommand(command, interaction);
         });
+
+        FinalizeResult(output, interaction);
     }
-
-    public void HandleFatal(IInteraction source, Exception ex)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class DataQuery : IService
-{
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void HandleFatal(IInteraction source, Exception ex)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class DataScalar : IService
-{
-    public event CallForInteraction OnThen;
-    public event CallForInteraction OnElse;
-    public event CallForInteraction OnException;
-
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void HandleFatal(IInteraction source, Exception ex)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class DataSingleColumn : IService
-{
-    public event CallForInteraction OnThen;
-    public event CallForInteraction OnElse;
-    public event CallForInteraction OnException;
-
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void HandleFatal(IInteraction source, Exception ex)
-    {
-        throw new NotImplementedException();
-    }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    protected void InvokeThen(IInteraction source) => OnThen?.Invoke(this, source);
+    protected void InvokeElse(IInteraction source) => OnElse?.Invoke(this, source);
+    protected void InvokeException(IInteraction source) => OnException?.Invoke(this, source);
 }

@@ -1,6 +1,6 @@
 ﻿#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-#nullable enable
+
 public class WebServer : IService, IDisposable
 {
     private HttpListener? CurrentListener = null;

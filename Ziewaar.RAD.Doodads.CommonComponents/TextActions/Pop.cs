@@ -29,7 +29,7 @@ public class Pop : IService
 
         IEnumerable? list = null;
         bool passOnEnumerable = false;
-        
+
         if (listSourceName == null)
             list = interaction.Register as IEnumerable;
         else if (interaction.TryFindVariable<IEnumerable>(listSourceName, out var candidate))
@@ -37,7 +37,7 @@ public class Pop : IService
             list = candidate;
             passOnEnumerable = true;
         }
-        
+
         if (list is IEnumerable enumerable)
         {
             var tor = enumerable.GetEnumerator();
@@ -53,7 +53,7 @@ public class Pop : IService
                 {
                     if (passOnEnumerable)
                     {
-                        OnThen?.Invoke(this, new CommonInteraction(interaction, tor.Current, new (1)
+                        OnThen?.Invoke(this, new CommonInteraction(interaction, tor.Current, new(1)
                         {
                             { listSourceName!, Continue() }
                         }));

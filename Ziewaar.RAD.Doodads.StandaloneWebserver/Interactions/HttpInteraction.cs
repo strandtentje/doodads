@@ -9,7 +9,7 @@ public class HttpHeadInteraction : IInteraction
         this.Register = context.Request.RawUrl ?? "";
         this.Memory = new SortedList<string, object>
         {
-            { "method", context.Request.HttpMethod },
+            { "method", context.Request.HttpMethod.ToUpper() },
             { "query", urlHalves.ElementAtOrDefault(1) ?? "" },
             { "url", urlHalves.ElementAtOrDefault(0) ?? "" },
             { "remoteip", context.Request.RemoteEndPoint.ToString() },

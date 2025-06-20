@@ -77,8 +77,15 @@ public class PrintFile : IService
             }
             else
             {
-                using var textStream = new StreamReader(preferredFilename, detectEncodingFromByteOrderMarks: true);
-                sinkingInteraction.CopyTextFrom(textStream);
+                var textStream = new StreamReader(preferredFilename, detectEncodingFromByteOrderMarks: true);
+                try
+                {
+                    sinkingInteraction.CopyTextFrom(textStream);
+                } catch(ContentTypeMismatchException ex)
+                {
+                    OnException?.Invoke(this, new CommonInteraction(interaction, ex));
+                    return;
+                }
             }
         }
         else

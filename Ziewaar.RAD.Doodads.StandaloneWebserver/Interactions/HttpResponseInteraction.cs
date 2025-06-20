@@ -17,6 +17,13 @@ public class HttpResponseInteraction(
     public long LastSinkChangeTimestamp { get; set; } = GlobalStopwatch.Instance.ElapsedTicks;
     public string Delimiter { get; } = "";
     public void SetContentLength64(long contentLength) => context.Response.ContentLength64 = contentLength;
+
+    internal void RedirectTo(string url)
+    {
+        context.Response.StatusCode = (int)HttpStatusCode.TemporaryRedirect;
+        context.Response.RedirectLocation = url;
+    }
+
     public IInteraction Stack => parent;
     public object Register => parent.Register;
     public IReadOnlyDictionary<string, object> Memory => parent.Memory;
