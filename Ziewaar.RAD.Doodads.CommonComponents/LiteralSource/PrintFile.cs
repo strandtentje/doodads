@@ -46,9 +46,11 @@ public class PrintFile : IService
             fileInfo = new FileInfo(preferredFilename);
             if (!fileInfo.Exists)
             {
-                using var x = fileInfo.CreateText();
-                x.Write("");
-                x.Flush();
+                using (var x = fileInfo.CreateText())
+                {
+                    x.Write("");
+                    x.Flush();
+                }
             }
         }
         catch (Exception ex)
@@ -72,19 +74,24 @@ public class PrintFile : IService
             sinkingInteraction.LastSinkChangeTimestamp = fileInfo.LastWriteTime.Ticks;
             if (sinkingInteraction.TextEncoding is NoEncoding || forceBinaryWriting == true)
             {
-                using var fileStream = fileInfo.OpenRead();
-                fileStream.CopyTo(sinkingInteraction.SinkBuffer);
+                using (var fileStream = fileInfo.OpenRead())
+                {
+                    fileStream.CopyTo(sinkingInteraction.SinkBuffer);
+                }
             }
             else
             {
-                var textStream = new StreamReader(preferredFilename, detectEncodingFromByteOrderMarks: true);
-                try
+                using (var textStream = new StreamReader(preferredFilename, detectEncodingFromByteOrderMarks: true))
                 {
-                    sinkingInteraction.CopyTextFrom(textStream);
-                } catch(ContentTypeMismatchException ex)
-                {
-                    OnException?.Invoke(this, new CommonInteraction(interaction, ex));
-                    return;
+                    try
+                    {
+                        sinkingInteraction.CopyTextFrom(textStream);
+                    }
+                    catch (ContentTypeMismatchException ex)
+                    {
+                        OnException?.Invoke(this, new CommonInteraction(interaction, ex));
+                        return;
+                    }
                 }
             }
         }

@@ -39,7 +39,7 @@ public class PrintContent : IService
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         var refreshFile = (constants, ConstantFilename).IsRereadRequired(out object? file);
-        var refreshCl = (constants, SetContentLength).IsRereadRequired<bool>(() => true, out var setContentLength);
+        var refreshCl = (constants, SetContentLength).IsRereadRequired<bool>(() => false, out var setContentLength);
 
         if (refreshCl || refreshFile || this.ContentTypeSettings == null || this.FileServingSettings == null)
         {

@@ -44,7 +44,7 @@ public class Peek : IService
             }
             else
             {
-                OnThen?.Invoke(this, interaction);
+                OnElse?.Invoke(this, interaction);
             }
         }
         else

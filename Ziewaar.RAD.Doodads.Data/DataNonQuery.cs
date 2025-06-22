@@ -22,6 +22,6 @@ public class DataNonQuery : DataService<int>
 
     protected override int WorkWithCommand(IDbCommand command, IInteraction cause)
     {
-        return command.ExecuteNonQuery();
+       return command.ExecuteNonQuery();
     }
 }

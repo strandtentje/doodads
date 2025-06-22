@@ -33,6 +33,11 @@ public class WebServer : IService, IDisposable
     }
     private void NewIncomingContext(IAsyncResult ar)
     {
+        if (isTerminating)
+        {
+            Console.WriteLine("Aborting Request...");
+            return;
+        }
         if (ar.AsyncState is not HttpListener servingListener ||
             servingListener != CurrentListener)
         {
@@ -42,17 +47,17 @@ public class WebServer : IService, IDisposable
                     "New incoming context from strange server"));
             return;
         }
-        var httpContext = servingListener.EndGetContext(ar);
-        CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
+        HttpListenerContext? httpContext = null;
         try
         {
+            httpContext = servingListener.EndGetContext(ar);
+            CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
             var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext);
             OnHead?.Invoke(this, headInteraction);
             var requestInteraction = new HttpRequestInteraction(headInteraction, httpContext);
             var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
             OnThen?.Invoke(this, responseInteraction);
         }
-#if !DEBUG
         catch (Exception ex)
         {
             var exceptionalInteraction =
@@ -63,15 +68,18 @@ public class WebServer : IService, IDisposable
             else
                 CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
         }
-#endif
         finally
         {
-            httpContext.Response.Close();
-#if DEBUG
+            try
+            {
+                httpContext?.Response.Close();
+            } catch(Exception ex)
+            {
+
+            }
             if (CurrentListener == null || !CurrentListener.IsListening)
                 TerminateListener(StopperInteraction.Instance);
             else
-#endif
                 CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
         }
     }
