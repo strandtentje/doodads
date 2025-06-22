@@ -4,6 +4,7 @@
 using System;
 using System.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 

@@ -1,7 +1,9 @@
 ﻿#nullable enable
 #pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Data;
+using Ziewaar;
+
+namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 
 public static class ObjectExtensions
 {
