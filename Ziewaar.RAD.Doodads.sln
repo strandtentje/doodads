@@ -25,6 +25,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Starter", "Ziew
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Starter.Test", "Ziewaar.RAD.Starter.Test\Ziewaar.RAD.Starter.Test.csproj", "{A4E20919-E78A-4D67-B29A-9BBC3EA9E16B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Data", "Ziewaar.RAD.Doodads.Data\Ziewaar.RAD.Doodads.Data.csproj", "{C46FE74F-125F-46BA-8EF2-B1A45983D864}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.SQLite", "Ziewaar.RAD.Doodads.SQLite\Ziewaar.RAD.Doodads.SQLite.csproj", "{249C89DD-FB82-42EF-8E51-AE2284733ECF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.MySQL", "Ziewaar.RAD.Doodads.MySQL\Ziewaar.RAD.Doodads.MySQL.csproj", "{7E315044-1703-483B-B235-C92E99688943}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +81,18 @@ Global
 		{A4E20919-E78A-4D67-B29A-9BBC3EA9E16B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4E20919-E78A-4D67-B29A-9BBC3EA9E16B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4E20919-E78A-4D67-B29A-9BBC3EA9E16B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C46FE74F-125F-46BA-8EF2-B1A45983D864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C46FE74F-125F-46BA-8EF2-B1A45983D864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C46FE74F-125F-46BA-8EF2-B1A45983D864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C46FE74F-125F-46BA-8EF2-B1A45983D864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{249C89DD-FB82-42EF-8E51-AE2284733ECF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{249C89DD-FB82-42EF-8E51-AE2284733ECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{249C89DD-FB82-42EF-8E51-AE2284733ECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{249C89DD-FB82-42EF-8E51-AE2284733ECF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E315044-1703-483B-B235-C92E99688943}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E315044-1703-483B-B235-C92E99688943}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E315044-1703-483B-B235-C92E99688943}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E315044-1703-483B-B235-C92E99688943}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
