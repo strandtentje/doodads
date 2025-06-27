@@ -5,6 +5,7 @@ public class HttpHeadInteraction : IInteraction
     public HttpHeadInteraction(IInteraction parent, HttpListenerContext context)
     {
         var urlHalves = context.Request.RawUrl?.Split("?") ?? ["/", ""];
+        this.Context = context;
         this.Stack = parent;
         this.Register = context.Request.RawUrl ?? "";
         this.Memory = new SortedList<string, object>
@@ -16,6 +17,7 @@ public class HttpHeadInteraction : IInteraction
             { "requesttime", DateTime.Now.ToString("yyMMdd HH:mm:ss") }
         };
     }
+    public HttpListenerContext Context { get; set; }
     public IInteraction Stack { get; }
     public object Register { get; }
     public IReadOnlyDictionary<string, object> Memory { get; }
