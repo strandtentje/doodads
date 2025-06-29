@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 public class CookieRepository
 {
     private readonly SortedSet<ComponentCookie> _backingStore = new();

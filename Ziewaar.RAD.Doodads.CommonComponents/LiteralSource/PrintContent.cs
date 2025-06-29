@@ -9,7 +9,8 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
              on its extension, and pushed to the output, along with the file size in bytes.
              Then, the file contents are printed.
              """)]
-public class PrintContent : IService
+public class 
+    PrintContent : IService
 {
     [PrimarySetting("Filename to read from")]
     private readonly UpdatingPrimaryValue ConstantFilename = new();

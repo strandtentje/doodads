@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 public class CookieRealmInteraction(IInteraction interaction, CookieRepository cookieRepository) : IInteraction
 {
     public IInteraction Stack => interaction;

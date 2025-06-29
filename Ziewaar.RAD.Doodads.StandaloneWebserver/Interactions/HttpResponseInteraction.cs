@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpResponseInteraction(
     IInteraction parent,

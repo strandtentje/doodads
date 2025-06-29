@@ -1,6 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
-
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 public class ComponentCookie(byte[] randomBytes, Guid uniqueId) : IComparable, IComparable<ComponentCookie>
 {
     private const string VALID_HEX_CHARS = "0123456789abcdef";

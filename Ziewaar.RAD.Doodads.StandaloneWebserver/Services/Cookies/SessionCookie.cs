@@ -1,6 +1,4 @@
-using System.Runtime.CompilerServices;
-
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 public class SessionCookie : IService
 {
     private readonly UpdatingPrimaryValue CookieNameConst = new();
@@ -26,10 +24,9 @@ public class SessionCookie : IService
         if ((constants, CookieLifetimeConst).IsRereadRequired(() => 48M, out var newCookieLife))
             this.CurrentCookieLifetimeHours = newCookieLife;
         if (string.IsNullOrWhiteSpace(this.CurrentCookieName) ||
-            string.IsNullOrWhiteSpace(this.CurrentCookieDomain) ||
             string.IsNullOrWhiteSpace(this.CurrentCookiePath))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "cookie name, domain and path is required"));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "cookie name and path is required"));
             return;
         }
         if (this.CurrentCookieLifetimeHours == 0)
@@ -92,6 +89,8 @@ public class SessionCookie : IService
                     Expires = DateTime.Now,
                 }
             ];
+            if (!string.IsNullOrWhiteSpace(CurrentCookieDomain))
+                cookieWorkingSet[0].Domain = CurrentCookieDomain;
         }
 
         if (cookieWorkingSet.Length == 1 && ComponentCookie.TryParse(cookieWorkingSet[0].Value, out var cookie))

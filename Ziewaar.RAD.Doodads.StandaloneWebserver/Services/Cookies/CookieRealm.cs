@@ -1,7 +1,7 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 public class CookieRealm : IService
 {
-    private UpdatingPrimaryValue RealmName = new();
+    private readonly UpdatingPrimaryValue RealmName = new();
     private string? CurrentRealm;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;

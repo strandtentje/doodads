@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Security.Principal;
-
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
 public class UrlAccessGuarantor
 {

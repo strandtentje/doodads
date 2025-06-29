@@ -1,6 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 using System.Collections;
+
 namespace Define.Content.AutomationKioskShell.ValidationNodes;
 [Category("Lists and Items")]
 [Title("Ensure the list contains one item, and take it.")]
