@@ -23,7 +23,7 @@ public class ReadLinesInteraction(IInteraction parent, string name, StreamReader
                 {
                     break;
                 }
-            } catch(Exception ex)
+            } catch(Exception)
             {
                 break;
             }

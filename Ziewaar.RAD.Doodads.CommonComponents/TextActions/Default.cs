@@ -29,7 +29,7 @@ public class Default : IService
             this.CurrentMemoryName = newMemoryName;
         if ((constants, DefaultValueConst).IsRereadRequired(out object? newFixedDefault))
             this.FixedDefaultValue = newFixedDefault;
-        if (string.IsNullOrWhiteSpace(this.CurrentMemoryName))
+        if (string.IsNullOrWhiteSpace(this.CurrentMemoryName) || this.CurrentMemoryName == null)
         {
             OnException?.Invoke(this, interaction);
             return;

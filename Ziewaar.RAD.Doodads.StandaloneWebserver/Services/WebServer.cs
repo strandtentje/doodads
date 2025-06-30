@@ -73,7 +73,7 @@ public class WebServer : IService, IDisposable
             try
             {
                 httpContext?.Response.Close();
-            } catch(Exception ex)
+            } catch(Exception)
             {
 
             }

@@ -1,3 +1,4 @@
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 public class RevokeCookie : IService
 {
