@@ -19,7 +19,16 @@ public class TypeRepository
         var serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
         foreach (var serviceType in serviceTypes)
         {
-            NamedServiceTypes.Add(serviceType.Name, serviceType);
+            if (NamedServiceTypes.TryGetValue(serviceType.Name, out var alreadyPresent))
+            {
+                if (alreadyPresent.FullName != serviceType.FullName)
+                {
+                    throw new Exception("Trying to add a different type under the same name.");
+                }
+            } else
+            {
+                NamedServiceTypes.Add(serviceType.Name, serviceType);
+            }
         }
         return this;
     }
