@@ -45,7 +45,7 @@ public class Timer : IService, IDisposable
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         ValidateConstants(constants);
-        if (!interaction.TryGetClosest<TimerCommandInteraction>(out var candidateCommand, x => x.IsConsumed) ||
+        if (!interaction.TryGetClosest<TimerCommandInteraction>(out var candidateCommand, x => !x.IsConsumed) ||
             candidateCommand is not TimerCommandInteraction timerCommand)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "No command provided for timer"));
