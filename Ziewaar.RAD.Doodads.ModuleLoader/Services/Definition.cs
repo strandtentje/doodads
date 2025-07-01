@@ -2,10 +2,21 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]
+[Title("Call to Definition in File")]
+[Description("""
+    One of multiple root services in an rkop file; make sure each Definition name in a file 
+    is unique and descriptive. No programming casing is needed, so where you would normally do 
+    something like `bakeCookies(temp=100)` or `BakeCookies(100)`, you are encouraged to say 
+    `Definition("Bake Cookies at 100 degrees")` - rkop has no comments in its syntax. It is 
+    encouraged to instead title Definitions consistently and clearly.
+    """)]
 public class Definition : IService
 {
+    [EventOccasion("When the Definition was Called for")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when Definition wasn't the first thing after a call")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

@@ -2,31 +2,54 @@
 #pragma warning disable 67
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 using System;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Logging;
-
+[Category("Logging")]
+[Title("Setup logging (to file)")]
+[Description("Configure file for logging into using the Log Services")]
 public class LogToFile : IService, IDisposable, ILoggerWrapper
 {
+    [PrimarySetting("""
+        Path to log file. Include a `{ts}` to timestamp it. It will be 
+        replaced with the current yyyyMMddHHmm
+        """)]
     private readonly UpdatingPrimaryValue LogFileConstant = new();
+    [NamedSetting("level", """
+        Minimal log level
+        Verbose, Debug, Information,
+        Warning, Error, Fatal
+        """)]
+    private readonly UpdatingKeyValue LogLevelConstant = new("level");
     private string? CurrentLogFile;
     private Logger? CurrentLogger;
     private bool isDisposed;
+    private LogEventLevel CurrentLogLevel = LogEventLevel.Information;
 
+    [EventOccasion("When the log file is ready for writing")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when no log file was configured")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, LogFileConstant).IsRereadRequired(out string? newLogFile))
+        if ((constants, LogFileConstant).IsRereadRequired(out string? newLogFile) && newLogFile != null)
         {
-            this.CurrentLogFile = newLogFile;            
+            this.CurrentLogFile = newLogFile.Replace("{ts}", DateTime.Now.ToString("yyyyMMddHHmm"));            
             this.CurrentLogger?.Dispose();
             this.CurrentLogger = null;
+        }
+        if ((constants, LogLevelConstant).IsRereadRequired(out string? newLlc) && newLlc != null && 
+            Enum.TryParse<LogEventLevel>(newLlc, out var result))
+        {
+            this.CurrentLogLevel = result;
         }
         if (this.CurrentLogFile == null)
         {
@@ -34,8 +57,8 @@ public class LogToFile : IService, IDisposable, ILoggerWrapper
             return;
         }
         if (this.CurrentLogger == null)
-            this.CurrentLogger = new LoggerConfiguration().WriteTo.File(CurrentLogFile).CreateLogger();
-        OnThen?.Invoke(this, new LoggerInteraction(interaction, this));
+            this.CurrentLogger = new LoggerConfiguration().MinimumLevel.Is(CurrentLogLevel).WriteTo.File(CurrentLogFile).CreateLogger();
+        OnThen?.Invoke(this, new LoggerInteraction(interaction, this));        
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
     public void Dispose()

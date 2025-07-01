@@ -1,10 +1,18 @@
 using MySqlConnector;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.SQLite;
 
 namespace Ziewaar.RAD.Doodads.MySQL;
+[Category("Data")]
+[Title("Connect to MySQL")]
+[Description("""
+    Connects to mysql at localhost, with the username, password and database parameters having the same name
+    in the connection string. Usually "good enough" for local use but be aware of the implications.
+    """)]
 public class MySqlLocalConnectionSource : ConnectionSource<MySqlConnection, MySqlCommand>
 {
+    [PrimarySetting("Databasename, username and password")]
     private readonly UpdatingPrimaryValue LocalCredentialConst = new();
     private string? LocalCredential;
     private string? ConnectionString;

@@ -1,13 +1,31 @@
 ﻿#nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]
+[Title("Call to Definition in File")]
+[Description("""
+    Configured Programs can be put into separate rkop files with separate Definition blocks.
+    These Definition blocks can be given a name as their primary constant between the coconut operators 
+    like `Definition("Bake Cookies")` - it is encouraged to make these definition names human readable 
+    titles with spaces and such. Same for the filenames. Call can then recall them in a way that is understandable 
+    like `Call(f"Oven.rkop @ Bake Cookies")` - the `f` before the quotes will make it look from the directory 
+    of the current definition file. the @ means a definition name is coming. 
+    """)]
 public class Call : IService
 {
+    [PrimarySetting("""
+        Name and Definition name separated by an @
+        At least one of those is required. If only a file is given, the first and only Definition
+        without a name in its primary setting will be invoked.
+        If only a Definition name after an @ is given, the current file will be looked at.
+        """)]
     private readonly UpdatingPrimaryValue ModuleNameConstant = new();
     private string? CurrentModuleName;
     private string? DefinitionFile;
+    [EventOccasion("When the called configuration returns control using ReturnThen")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the called configuration returns control using ReturnElse")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when a module file or definition name wasn't given or wasn't found")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

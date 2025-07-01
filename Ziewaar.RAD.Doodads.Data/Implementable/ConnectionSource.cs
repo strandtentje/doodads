@@ -4,6 +4,7 @@ using System.Data;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
@@ -13,8 +14,11 @@ public abstract class ConnectionSource<TConnection, TCommand> : IService, IDispo
     where TConnection : class, IDbConnection
     where TCommand : class, IDbCommand
 {
+    [EventOccasion("When the connection has become available")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the current configuration could not result in a valid connection")]
     public event CallForInteraction? OnException;
     private ThreadLocal<ObjectPool<TConnection>>? CurrentConnections;
     private ThreadLocal<ObjectPool<TCommand>>? CurrentCommands;

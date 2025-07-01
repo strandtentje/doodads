@@ -1,5 +1,12 @@
 #pragma warning disable 67
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
+[Category("Http")]
+[Title("Define Realm of Cookie")]
+[Description("""
+    Scopes the realm of the cookie 
+    """)]
 public class CookieRealm : IService
 {
     private readonly UpdatingPrimaryValue RealmName = new();

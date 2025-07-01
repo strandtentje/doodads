@@ -4,12 +4,20 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.ObjectPool;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.SQLite;
+
+[Category("Data")]
+[Title("Connect to a Sqlite File")]
+[Description("""
+    Open an SQLite file for querying and modifying using the data commands.
+    """)]
 public class SqliteConnectionSource : ConnectionSource<SqliteConnection, SqliteCommand>
 {
+    [PrimarySetting("Data source filename")]
     private readonly UpdatingPrimaryValue DataSourceFileConstant = new();
     private string? CurrentDbPath;
     protected override SqliteConnection CreateConnection() =>

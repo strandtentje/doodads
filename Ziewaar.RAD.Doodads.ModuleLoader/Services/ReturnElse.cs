@@ -3,10 +3,20 @@
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]
+[Title("Return to the OnElse of the invoking Call")]
+[Description("""
+    Returns control to the caller, on either the OnThen, or the OnElse branch. 
+    """)]
 public class ReturnElse : ReturningService
 {
+    [NeverHappens]
     public override event CallForInteraction? OnThen;
+    [NeverHappens]
     public override event CallForInteraction? OnElse;
+    [EventOccasion("""
+        When some sort of infinite return loop was created. This means you're trying to do big brained stuff.
+        Don't do big brained stuff.
+        """)]
     public override event CallForInteraction? OnException;
     public override void Enter(StampedMap constants, IInteraction interaction)
     {
