@@ -1,41 +1,35 @@
-#nullable enable
+﻿#nullable enable
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents;
+
 [Category("Output to Sink")]
-[Title("Template from File service")]
+[Title("Template from Text service")]
 [Description("""
-             This is a shorthand for Template():PrintContent(), and as such 
-             will template using the contents of the file provided in the primary 
+             This is a shorthand for Template():Print(), and as such 
+             will template using the contents of the text provided in the primary 
              constant. 
              """)]
-public class FileTemplate : IService
+public class Format : IService
 {
-    public FileTemplate()
-    {
-        ContentPrinter.OnException += this.OnException;
-        ContentPrinter.OnThen += this.OnThen;
-        TemplatingService.OnException += this.OnException;
-        TemplatingService.OnElse += this.OnElse;
-    }
-    
-    private readonly PrintContent ContentPrinter = new();
-    private readonly Template TemplatingService = new();
-    
-    [EventOccasion("For further templating text, after the file has been read.")]
+    [EventOccasion("For further templating text, after the primary setting has been read.")]
     public event CallForInteraction? OnThen;
     [EventOccasion("When a template value is unknown, starts sinking text here")]
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely when an IO error happened")]
     public event CallForInteraction? OnException;
+
+    private readonly Print Printer = new();
+    private readonly Template TemplatingService = new();
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         void HandleTemplateRequest(object sender, IInteraction templateRequestInteraction)
         {
             TemplatingService.OnThen -= HandleTemplateRequest;
-            ContentPrinter.Enter(constants, templateRequestInteraction);
+            Printer.Enter(constants, templateRequestInteraction);
         }
-        
+
         TemplatingService.OnThen += HandleTemplateRequest;
         TemplatingService.Enter(constants, interaction);
     }

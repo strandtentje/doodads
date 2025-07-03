@@ -33,7 +33,14 @@ public class Print : IService
         } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkInteraction) && 
                   sinkInteraction != null)
         {
-            sinkInteraction.WriteSegment(plainText ?? "", contentType);
+            try
+            {
+                sinkInteraction.WriteSegment(plainText ?? "", contentType);
+            } catch(ContentTypeMismatchException ex)
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, ex));
+                return;
+            }
             sinkInteraction.LastSinkChangeTimestamp = constants.PrimaryLog;
             OnThen?.Invoke(this, interaction);
         }

@@ -1,5 +1,6 @@
 ﻿#pragma warning disable 67
 #nullable enable
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]
 [Title("Call to Definition in File")]
@@ -22,11 +23,12 @@ public class Definition : IService
     {
         if (interaction is CallingInteraction ci)
         {
-            OnThen?.Invoke(this, new CommonInteraction(interaction, memory: constants.ToSortedList()));
+
+            OnThen?.Invoke(this, new DefaultValueInteraction(interaction, memory: constants.ToSortedList()));
         }
         else if (interaction is ISelfStartingInteraction ss)
         {
-            OnThen?.Invoke(this, new CommonInteraction(interaction, memory: constants.ToSortedList()));
+            OnThen?.Invoke(this, new DefaultValueInteraction(interaction, memory: constants.ToSortedList()));
         }
         else
         {

@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections;
+using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.RKOP.Constructor;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
 
@@ -8,8 +8,13 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
 {
     public class Fileserver : IService
     {
-        private readonly UpdatingPrimaryValue DirectoryToServe = new UpdatingPrimaryValue();
-        private string? CurrentDirectory;
+        private readonly UpdatingPrimaryValue DirectoryToServeConst = new UpdatingPrimaryValue();
+        private readonly UpdatingKeyValue DefaultIndexFilesConst = new UpdatingKeyValue("indexfiles");
+        private readonly UpdatingKeyValue RunProgramsConst = new UpdatingKeyValue("run");
+
+        private string? DirectoryToServe;
+        private string[] DefaultIndexFiles = [];
+        private bool RunPrograms;
 
         public event CallForInteraction? OnThen;
         public event CallForInteraction? OnElse;
@@ -17,14 +22,34 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
 
         public void Enter(StampedMap constants, IInteraction interaction)
         {
-            if ((constants, DirectoryToServe).IsRereadRequired(out FileInWorkingDirectory? fiw) && fiw != null)
+            if ((constants, DirectoryToServeConst).IsRereadRequired(out FileInWorkingDirectory? candidate) && candidate is FileInWorkingDirectory workingFile)
             {
-                this.CurrentDirectory = fiw.ToString();
-            } else if ((constants, DirectoryToServe).IsRereadRequired(out string? newDirectory) && !string.IsNullOrWhiteSpace(newDirectory))
-            {
-                this.CurrentDirectory = newDirectory;
+                this.DirectoryToServe = workingFile.ToString();
             }
-            if (string.IsNullOrWhiteSpace(this.CurrentDirectory))
+            else if ((constants, DirectoryToServeConst).IsRereadRequired(out string? newDirectory) && !string.IsNullOrWhiteSpace(newDirectory))
+            {
+                this.DirectoryToServe = newDirectory;
+            }
+            if ((constants, DefaultIndexFilesConst).IsRereadRequired(out object? indexCandidates) && indexCandidates != null)
+            {
+                if (indexCandidates is string singleCandidate)
+                    this.DefaultIndexFiles = [singleCandidate];
+                else if (indexCandidates is IEnumerable multipleCandidates)
+                    this.DefaultIndexFiles = multipleCandidates.OfType<string>().ToArray();
+                else
+                    this.DefaultIndexFiles = [];
+
+            }
+            if ((constants, DefaultIndexFilesConst).IsRereadRequired(out object[]? candidateIndexFiles) && candidateIndexFiles != null)
+            {
+                this.DefaultIndexFiles = candidateIndexFiles.OfType<string>().ToArray();
+            }
+            if ((constants, RunProgramsConst).IsRereadRequired(out bool? runProgramsCandidate))
+            {
+                this.RunPrograms = runProgramsCandidate == true;
+            }
+
+            if (string.IsNullOrWhiteSpace(this.DirectoryToServe))
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "No newDirectory specified for fileserver."));
                 return;
@@ -36,20 +61,54 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
             }
 
             var components = routeEval.Remaining.ToArray();
-            var filePath = System.IO.Path.Combine(this.CurrentDirectory, string.Join(System.IO.Path.DirectorySeparatorChar, components));
-            if (System.IO.File.Exists(filePath))
+            var filePath = Path.Combine(this.DirectoryToServe, string.Join(System.IO.Path.DirectorySeparatorChar, components));
+            // var directoryPath = Path.GetDirectoryName(filePath);
+            if (File.Exists(filePath))
             {
-                var fileContent = System.IO.File.ReadAllBytes(filePath);
-                head.Context.Response.ContentType = "application/octet-stream"; // Default content type
-                head.Context.Response.ContentLength64 = fileContent.Length;
-                head.Context.Response.OutputStream.Write(fileContent, 0, fileContent.Length);
-                OnThen?.Invoke(this, interaction);
+                HandleFileFound(interaction, new FileInfo(filePath));
+            }
+            else if (Directory.Exists(filePath) && DefaultIndexFiles.Length > 0)
+            {
+                var dirInfo = new DirectoryInfo(filePath);
+                var matchingIndexFiles = dirInfo.
+                    GetFiles().
+                    Join(DefaultIndexFiles, x => x.Name.ToLower(), x => x.ToLower(), (fileInfo, indexFile) => (fileInfo, indexFile)).
+                    ToArray();
+                if (matchingIndexFiles.Length > 0)
+                {
+                    HandleFileFound(interaction, matchingIndexFiles.First().fileInfo);
+                }
+            }
+        }
+
+        private void HandleFileFound(IInteraction interaction, FileInfo fileInfo)
+        {
+            if (fileInfo.Extension.ToLower().EndsWith("rkop"))
+            {
+                if (RunPrograms)
+                {
+                    var caller = new Call();
+                    caller.OnThen += OnThen;
+                    caller.OnElse += OnElse;
+                    caller.Enter(new StampedMap(fileInfo.FullName), interaction);
+                }
+                else
+                {
+                    OnElse?.Invoke(this, interaction);
+                }
             }
             else
             {
-                OnElse?.Invoke(this, interaction);
+                var printer = new PrintFile();
+                printer.OnException += OnException;
+                printer.Enter(new StampedMap(fileInfo.FullName, new SwitchingDictionary(["setlength"], key => key switch
+                {
+                    "setlength" => true,
+                    _ => throw new KeyNotFoundException(),
+                })), interaction);
             }
         }
+
         public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
     }
 }
