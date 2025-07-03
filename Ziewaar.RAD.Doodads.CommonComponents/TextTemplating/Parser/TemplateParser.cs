@@ -1,3 +1,5 @@
+using System.Xml.Schema;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents;
 
 public class TemplateParser(string placeholderStart = "{% ", string placeholderEnd = " %}")
@@ -21,7 +23,7 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
             openerPosition = allTemplateText.Length;
         CommandStack.Add(new()
         {
-            Payload = allTemplateText.Substring(cursor, openerPosition - cursor),
+            PayloadText = allTemplateText.Substring(cursor, openerPosition - cursor),
             Type = TemplateCommandType.LiteralSource,
         });
         cursor = allTemplateText.OrdinalIndexOfPlaceholderEnd(openerPosition);
@@ -38,13 +40,27 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
     }
     private static TemplateCommand ParsePlaceholder(string dirtyPayload)
     {
-        var cleanPayload = dirtyPayload.TrimTemplateTokens();
-        var modifiers = dirtyPayload.Substring(0, dirtyPayload.Length - cleanPayload.Length);
+        var colonPayload = dirtyPayload.TrimTemplateTokens();
+        var modifiers = dirtyPayload.Substring(0, dirtyPayload.Length - colonPayload.Length);
+        var splitPayload = colonPayload.Split([':'], count: 2);
+        var cleanPayload = splitPayload.ElementAtOrDefault(0) ?? "";
+        var formatter = splitPayload.ElementAtOrDefault(1) ?? "";
         TemplateCommand command = new()
         {
-            Payload = cleanPayload,
+            PayloadText = cleanPayload,
             Type = modifiers.ElementAtOrDefault(0).ConvertToSourceCommandType() |
                    modifiers.ElementAtOrDefault(1).ConvertToFilterCommandType(),
+            Formatter = string.IsNullOrWhiteSpace(formatter) ? null : (object o) =>
+            {
+                if (o.ConvertNumericToDecimal() is decimal decimalValue)
+                    return decimalValue.ToString(formatter);
+                else if (o is DateTime dateTimeValue)
+                    return dateTimeValue.ToString(formatter);
+                else if (o is TimeSpan timespanValue)
+                    return timespanValue.ToString(formatter);
+                else
+                    return o.ToString();
+            }
         };
         return command;
     }

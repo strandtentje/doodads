@@ -11,13 +11,16 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
     """)]
 public class Maintain : IService, IDisposable
 {
-    private readonly HashSet<System.Threading.Timer> Timers = new();
+    private readonly HashSet<Thread> Timers = new();
+    [PrimarySetting("Use this name to explain what is being repeated. Use in conjunction with Continue to make sure Repeating happens")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     private string? CurrentRepeatName = null;
     private bool IsDisposing;
-
+    [EventOccasion("The job to maintain")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Dynamic source of timespan string")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when the repeat name was not set.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -33,40 +36,26 @@ public class Maintain : IService, IDisposable
         OnElse?.Invoke(this, tsi);
         if (TimeSpan.TryParse(tsi.ReadAllText(), out var timespanResult))
         {
-            try
-            {
-                foreach (var item in Timers)
-                {
-                    item.Dispose();
-                }
-            }
-            catch (Exception)
-            { 
-                // its fine
-            }
-            finally
-            {
-                Timers.Clear();
-            }
+            Timers.Clear();
             StartMaintaining(new RepeatInteraction(this.CurrentRepeatName, interaction), timespanResult);
         }
     }
 
     private void StartMaintaining(RepeatInteraction interaction, TimeSpan interval)
     {
-        System.Threading.Timer? timer = null;
-        timer = new System.Threading.Timer(_ =>
+        int time = (int)(Math.Min(int.MaxValue, interval.TotalMilliseconds));
+        Thread? nt = null;
+        nt = new Thread(_ =>
         {
-            timer!.Change(Timeout.Infinite, Timeout.Infinite);
-            Timers.Remove(timer!);
-            interaction.IsRunning = false;
-            OnThen?.Invoke(this, interaction);
-            if (!interaction.IsRunning)
-                return;
-            timer.Change((int)(Math.Min(int.MaxValue, interval.TotalMilliseconds)), Timeout.Infinite);
-            Timers.Add(timer!);
-        }, null, Timeout.Infinite, Timeout.Infinite);
-        Timers.Add(timer);
+            while (interaction.IsRunning && Timers.Contains(nt!))
+            {
+                interaction.IsRunning = false;
+                OnThen?.Invoke(this, interaction);
+                Thread.Sleep(time);
+            }
+        });
+        Timers.Add(nt);
+        nt.Start();
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
     public void Dispose()
@@ -74,10 +63,7 @@ public class Maintain : IService, IDisposable
         if (!IsDisposing)
         {
             IsDisposing = true;
-            foreach (var item in this.Timers)
-            {
-                item.Dispose();
-            }
+            Timers.Clear();
         }
     }
 }

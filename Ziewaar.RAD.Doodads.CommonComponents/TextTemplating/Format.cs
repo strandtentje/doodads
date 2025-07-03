@@ -12,18 +12,18 @@ namespace Ziewaar.RAD.Doodads.CommonComponents;
              """)]
 public class Format : IService
 {
-    [EventOccasion("For further templating text, after the primary setting has been read.")]
+    [EventOccasion("After output was written.")]
     public event CallForInteraction? OnThen;
     [EventOccasion("When a template value is unknown, starts sinking text here")]
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely when an IO error happened")]
     public event CallForInteraction? OnException;
 
-    private readonly Print Printer = new();
-    private readonly Template TemplatingService = new();
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        Print Printer = new();
+        Template TemplatingService = new();
         void HandleTemplateRequest(object sender, IInteraction templateRequestInteraction)
         {
             TemplatingService.OnThen -= HandleTemplateRequest;
@@ -31,7 +31,9 @@ public class Format : IService
         }
 
         TemplatingService.OnThen += HandleTemplateRequest;
+        TemplatingService.OnElse += this.OnElse;
         TemplatingService.Enter(constants, interaction);
+        this.OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

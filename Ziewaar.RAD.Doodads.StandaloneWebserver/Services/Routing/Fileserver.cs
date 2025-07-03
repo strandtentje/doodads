@@ -1,24 +1,45 @@
 ﻿using System.Collections;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.RKOP.Constructor;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO
 {
+    [Category("HTTP Routing")]
+    [Title("Routing to files based on filesystem")]
+    [Description("""
+        By default, when combined with Route(), will serve files relative to that url, out of the 
+        directory configured in the primary setting. Content Types and Content Lengths will be set.
+
+        To enable dealing with directory urls, indexfiles may be configured with an array of filenames
+        that can handle directory roots.
+
+        .rkop files will not be served statically or otherwise by default, but running them 
+        may be enabled by setting "run" to true.
+        """)]
     public class Fileserver : IService
     {
+        [PrimarySetting("Set the directory path to serve here")]
         private readonly UpdatingPrimaryValue DirectoryToServeConst = new UpdatingPrimaryValue();
+        [NamedSetting("indexfiles", "array of filenames that may be considered for serving a directory index; the first filename takes highest precedence")]
         private readonly UpdatingKeyValue DefaultIndexFilesConst = new UpdatingKeyValue("indexfiles");
+        [NamedSetting("run", "Enable this to execute rkop files, otherwise, rkop files will not be served; statically or otherwise.")]
         private readonly UpdatingKeyValue RunProgramsConst = new UpdatingKeyValue("run");
 
         private string? DirectoryToServe;
         private string[] DefaultIndexFiles = [];
         private bool RunPrograms;
 
+        [EventOccasion("Only when `run` is enabled; will pass through Returns from rkop files")]
         public event CallForInteraction? OnThen;
+        [EventOccasion("Only when `run` is enabled; will pass through Returns from rkop files")]
         public event CallForInteraction? OnElse;
+        [EventOccasion("Likely when the directory wasn't configured right, or this wasn't used in conjunction with Route")]
         public event CallForInteraction? OnException;
+        [EventOccasion("When the file was not found whatsoever")]
+        public event CallForInteraction? NotFound;
 
         public void Enter(StampedMap constants, IInteraction interaction)
         {
@@ -39,10 +60,6 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
                 else
                     this.DefaultIndexFiles = [];
 
-            }
-            if ((constants, DefaultIndexFilesConst).IsRereadRequired(out object[]? candidateIndexFiles) && candidateIndexFiles != null)
-            {
-                this.DefaultIndexFiles = candidateIndexFiles.OfType<string>().ToArray();
             }
             if ((constants, RunProgramsConst).IsRereadRequired(out bool? runProgramsCandidate))
             {
@@ -66,6 +83,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
             if (File.Exists(filePath))
             {
                 HandleFileFound(interaction, new FileInfo(filePath));
+                return;
             }
             else if (Directory.Exists(filePath) && DefaultIndexFiles.Length > 0)
             {
@@ -77,8 +95,10 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
                 if (matchingIndexFiles.Length > 0)
                 {
                     HandleFileFound(interaction, matchingIndexFiles.First().fileInfo);
+                    return;
                 }
             }
+            NotFound?.Invoke(this, interaction);
         }
 
         private void HandleFileFound(IInteraction interaction, FileInfo fileInfo)

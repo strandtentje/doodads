@@ -23,7 +23,17 @@
               - `%` : Prefixing with a percent sign will escape strings to be safe for URL usage.
               - `=` : Prefixing with an equals-sign will escape strings to be safe for HTML attribute usage.
               - `;` : Prefixing with a semicolon will escape strings to be safe for JS string literal usage.
-              
+
+             Scalar values such as numbers, datetimes and timespans may be formatted using a colon and then
+             a format.
+
+             Examples:
+              - {% <uptime:hh:mm %} makes 12:30 for 12 hours and 30 minutes of uptime\
+              - {% <today:yyyy-MM-dd %} makes 2025-07-09 for the 9th of july 2025
+              - {% <sheepcount:0000 $} makes 0010 if the sheepcount is 10
+              - {% &bananas %} makes &lt;bananas&gt; if bananas says `<bananas>`
+              - {% %cake %} makes hello%20world if cake is `hello world`
+
              Exactly one filter modifier and one source modifier may be combined. When omitted, the engine
              defaults to sourcing from memory first, and never filtering.
              """)]
@@ -88,20 +98,20 @@ public class Template : IService
                 switch (segment.Type & TemplateCommandType.AllSources)
                 {
                     case TemplateCommandType.LiteralSource:
-                        writer.Write(segment.Payload);
+                        writer.Write(segment.PayloadText);
                         break;
 
                     case TemplateCommandType.VariableSource
-                        when interaction.TryFindVariable<object>(segment.Payload, out var rawValue):
+                        when interaction.TryFindVariable<object>(segment.PayloadText, out var rawValue):
                         if (rawValue is string rawText)
                             writer.Write(segment.Type.ApplyFilterTo(rawText));
                         else
-                            writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(rawValue)));
+                            writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(segment.GetFormattedPayload(rawValue))));
                         break;
 
                     case TemplateCommandType.CallOutSource
                         when (segment.Type & TemplateCommandType.AllFilters) == TemplateCommandType.NoFilter:
-                        OnElse?.Invoke(this, new CommonInteraction(interaction, segment.Payload));
+                        OnElse?.Invoke(this, new CommonInteraction(interaction, segment.PayloadText));
                         break;
 
                     case TemplateCommandType.CallOutSource
@@ -112,7 +122,7 @@ public class Template : IService
                         break;
 
                     case TemplateCommandType.CallOutOrVariable:
-                        if (!interaction.TryFindVariable<object>(segment.Payload, out var defaultValue))
+                        if (!interaction.TryFindVariable<object>(segment.PayloadText, out var defaultValue))
                         {
                             var attemptedCallOut = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
                             OnElse?.Invoke(this, attemptedCallOut);
@@ -123,17 +133,21 @@ public class Template : IService
                         }
                         if (defaultValue is string defaultString)
                             writer.Write(segment.Type.ApplyFilterTo(defaultString));
+                        else if (segment.Formatter != null && defaultValue is not null)
+                            writer.Write(segment.Type.ApplyFilterTo(segment.Formatter(defaultValue)));
                         else
                             writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(defaultValue)));
-                    
-                        break;
+
+                            break;
 
                     case TemplateCommandType.ConstantSource:
-                        if (!constants.NamedItems.TryGetValue(segment.Payload, out var rawObjectConstant))
+                        if (!constants.NamedItems.TryGetValue(segment.PayloadText, out var rawObjectConstant))
                             break;
                         if (rawObjectConstant is string rawStringConstant)
                             writer.Write(segment.Type.ApplyFilterTo(rawStringConstant));
-                        else 
+                        else if (segment.Formatter != null && rawObjectConstant is not null)
+                            writer.Write(segment.Type.ApplyFilterTo(segment.Formatter(rawObjectConstant)));
+                        else
                             writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(rawObjectConstant)));
                         break;
                 }
