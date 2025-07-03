@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.RKOP\Ziewaar.RAD.Doodads.RKOP.csproj" />
   </ItemGroup>
 
 </Project>

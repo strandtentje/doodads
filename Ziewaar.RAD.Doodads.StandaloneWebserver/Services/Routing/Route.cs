@@ -64,7 +64,7 @@ public class Route : IService
 
         RouteEvaluationInteraction? evaluation = interaction as RouteEvaluationInteraction;
 
-        if (evaluation == null)
+        if (evaluation == null) // Route("/product/{productid}/details")
         {
             switch (IsAbsoluteRoute)
             {
@@ -100,37 +100,32 @@ public class Route : IService
             return;
         }
 
-        var componentEnumerator = evaluation.Components.GetEnumerator();
-        try
-        {
-            SortedList<string, object> urlVariables = new();
-            var currentPath = new StringBuilder(evaluation.CurrentPath);
-            foreach (var component in RouteTemplateComponents)
-            {
-                if (componentEnumerator.MoveNext() &&
-                    component.TryParseSegment(componentEnumerator.Current, urlVariables, out string verbatim))
-                {
-                    currentPath.Append(verbatim).Append('/');
-                }
-                else
-                {
-                    OnElse?.Invoke(this, evaluation);
-                    return;
-                }
-            }
+        var componentArray = evaluation.Components.ToArray();
 
-            OnThen?.Invoke(this, new RelativeRouteInteraction(
-                interaction, evaluation.Head, urlVariables, currentPath.ToString(), Remainder(componentEnumerator)));
-        }
-        finally
+        SortedList<string, object> urlVariables = new();
+        var currentPath = new StringBuilder(evaluation.CurrentPath);
+        int currentPositionInUrlComponents = 0;
+        foreach (var component in RouteTemplateComponents)
         {
-            componentEnumerator.Dispose();
+            if (component.TryParseSegment(componentArray[currentPositionInUrlComponents], urlVariables, out string verbatim))
+            {
+                currentPath.Append(verbatim).Append('/');
+            }
+            else
+            {
+                OnElse?.Invoke(this, evaluation);
+                return;
+            }
+            currentPositionInUrlComponents++;
         }
-    }
-    IEnumerable<string> Remainder(IEnumerator<string> internalEnumerator)
-    {
-        while (internalEnumerator.MoveNext())
-            yield return internalEnumerator.Current;
+
+        string[] remainingUrlComponents = [.. componentArray.Skip(currentPositionInUrlComponents)];
+        OnThen?.Invoke(this, new RelativeRouteInteraction(
+            interaction, 
+            evaluation.Head, 
+            urlVariables, 
+            currentPath.ToString(),
+            remainingUrlComponents));
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
