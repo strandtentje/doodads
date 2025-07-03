@@ -59,6 +59,6 @@ public static class ArgumentExtensions
     }
 
     public static string QualifyFullPath(this string path, string prefix) =>
-        Path.IsPathRooted(path) ? path :
-        Path.Combine(prefix, path.TruncatePathStart(prefix));
+        (Path.IsPathRooted(path) ? path :
+        Path.Combine(prefix, path.TruncatePathStart(prefix))).Replace(@"\\", @"\");
 }

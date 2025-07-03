@@ -16,10 +16,28 @@ public class TypeRepository
     }
     public TypeRepository PopulateWith(Assembly assembly)
     {
-        var serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+        IEnumerable<Type> serviceTypes;
+
+        if (typeof(IService).Assembly.FullName == assembly.FullName)
+            serviceTypes = typeof(IService).Assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+        else if (typeof(TypeRepository).Assembly.FullName == assembly.FullName)
+            serviceTypes = typeof(TypeRepository).Assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+        else
+            serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+
         foreach (var serviceType in serviceTypes)
         {
-            NamedServiceTypes.Add(serviceType.Name, serviceType);
+            if (NamedServiceTypes.TryGetValue(serviceType.Name, out var alreadyPresent))
+            {
+                if (alreadyPresent.FullName != serviceType.FullName)
+                {
+                    throw new Exception("Trying to add a different type under the same name.");
+                }
+            }
+            else
+            {
+                NamedServiceTypes.Add(serviceType.Name, serviceType);
+            }
         }
         return this;
     }

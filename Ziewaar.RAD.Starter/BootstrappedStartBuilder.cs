@@ -49,7 +49,7 @@ public class BootstrappedStartBuilder
         }
         if (starterFile != null)
         {
-            this.StarterFile = starterFile;
+            this.SetStarter(starterFile);
         }
         var rootContext = x.Options.RemoveValuesStartingWithAny("w", "a", "b", "s");
         if (rootContext.Any())
@@ -113,7 +113,7 @@ public class BootstrappedStartBuilder
     public BootstrappedStartBuilder AddAssembly(string path, Assembly? assembly = null)
     {
         if (_assemblyFileNames.Any(x => x.path == path))
-            return this;
+            return this;        
         Assembly selectedAssembly = assembly ?? Assembly.LoadFile(path.QualifyFullPath(_workingDirectory));
         string selectedPath = path.TruncatePathStart(_workingDirectory);
         if (selectedAssembly.Location.QualifyFullPath(_workingDirectory) != selectedPath.QualifyFullPath(_workingDirectory))
