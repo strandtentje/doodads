@@ -35,6 +35,7 @@ public class Print : IService
         {
             try
             {
+                sinkInteraction.SinkTrueContentType = contentType;
                 sinkInteraction.WriteSegment(plainText ?? "", contentType);
             } catch(ContentTypeMismatchException ex)
             {
