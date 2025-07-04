@@ -119,7 +119,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO
             }
             else
             {
-                var printer = new PrintFile();
+                var printer = new PrintContent();
                 printer.OnException += OnException;
                 printer.Enter(new StampedMap(fileInfo.FullName, new SwitchingDictionary(["setlength"], key => key switch
                 {
