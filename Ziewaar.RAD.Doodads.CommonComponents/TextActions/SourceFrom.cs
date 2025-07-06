@@ -1,5 +1,9 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
+#nullable enable
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+[Category("Text")]
+[Title("Memory to Stream")]
+[Description("Make text in memory readable as a stream")]
 public class SourceFrom : IService
 {
     private readonly UpdatingPrimaryValue SourceVariableConstant = new();
@@ -14,7 +18,7 @@ public class SourceFrom : IService
         {
             this.CurrentSourceVariable = newSourceVariable;
         }
-        if (string.IsNullOrWhiteSpace(CurrentSourceVariable))
+        if (CurrentSourceVariable == null || string.IsNullOrWhiteSpace(CurrentSourceVariable))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "name of source variable is required"));
             return;

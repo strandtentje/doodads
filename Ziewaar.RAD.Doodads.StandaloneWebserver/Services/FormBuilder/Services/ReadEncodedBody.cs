@@ -1,11 +1,18 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
-public class ReadUrlEncodedBody : IService
+public abstract class ReadEncodedBody<TDictionary> : IService where TDictionary : IDecodingDictionary
 {
+    [PrimarySetting("Array of field names that are accepted. Leave empty to use CSRF obfuscated field names")]
     private readonly UpdatingPrimaryValue BodyNamesWhitelistConstant = new();
     private string[] WhitelistedFieldNames = [];
+    [EventOccasion("Puts body values in memory either under whitelist names, or under CSRF obfuscated field names")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("""
+                   Likely happens when no data could be read, or no field names could be determined via 
+                   either the primary constant or the CSRF names
+                   """)]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
@@ -45,7 +52,7 @@ public class ReadUrlEncodedBody : IService
         if (!interaction.TryGetClosest<ISourcingInteraction>(out var sourcingInteraction) ||
             sourcingInteraction == null)
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, 
+            OnException?.Invoke(this, new CommonInteraction(interaction,
                 """
                 URL Encoded body reading requires a sourcing interaction from ie. a webserver.
                 """));
@@ -54,8 +61,8 @@ public class ReadUrlEncodedBody : IService
         string urlEncodedBody = "";
         using (var reader = new StreamReader(sourcingInteraction.SourceBuffer, sourcingInteraction.TextEncoding))
             urlEncodedBody = reader.ReadToEnd();
-        OnThen?.Invoke(this, new CommonInteraction(interaction, memory: new UrlEncodedQueryDictionary(
-            urlEncodedBody, currentWhiteList.Select(HttpUtility.UrlEncode).OfType<string>().ToArray(), new())));
+        OnThen?.Invoke(this,
+            new CommonInteraction(interaction, memory: TDictionary.CreateFor(urlEncodedBody, currentWhiteList)));
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

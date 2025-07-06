@@ -22,6 +22,24 @@ public static class ObjectExtensions
         decimal dec => dec,
         _ => obj,
     };
+    public static bool TryConvertNumericToDecimal(this object? obj, decimal fallback, out decimal result)
+    {
+        if (obj == null)
+        {
+            result = fallback;
+            return false;
+        }
+        try
+        {
+            result = Convert.ToDecimal(obj);
+            return true;
+        }
+        catch (Exception)
+        {
+            result = fallback;
+            return false;
+        }
+    }
     public static object ConvertDecimalToType(this decimal value, Type targetType)
     {
         if (targetType == null) throw new ArgumentNullException(nameof(targetType));

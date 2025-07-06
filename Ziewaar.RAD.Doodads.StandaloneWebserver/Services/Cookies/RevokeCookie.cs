@@ -1,5 +1,10 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
+[Category("Http")]
+[Title("Revoke the cookie in this realm")]
+[Description("""
+             If theres a cookie for this realm, revoke it.
+             """)]
 public class RevokeCookie : IService
 {
     public event CallForInteraction? OnThen;

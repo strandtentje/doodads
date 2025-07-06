@@ -101,6 +101,12 @@ public class TokenDescription(
         Numbers = new TokenDescription(
             (pos, chr) => char.IsDigit(chr),
             x => x.Length > 0, "Numbers 0-9"),
+        MaybeNegativeNumbers = new TokenDescription(
+            (pos, chr) => pos switch
+            {
+                0 => char.IsDigit(chr) || chr == '-',
+                _ => char.IsDigit(chr)
+            }, x => x.Length > 0, "Numbers 0-9 optionally starting with -"),
         DecimalSeparator = DescribeSingleCharacter('.', "Decimal point (.)");
 
 }

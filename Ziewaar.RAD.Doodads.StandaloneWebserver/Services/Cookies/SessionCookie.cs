@@ -1,10 +1,21 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
+
+[Category("Http")]
+[Title("Define Realm of Cookie")]
+[Description("""
+             Within a CookieRealm, either find out if its a known cookie, or create one.
+             Puts the cookie value in the body.
+             """)]
 public class SessionCookie : IService
 {
+    [PrimarySetting("Name of the cookie as it goes over HTTP")]
     private readonly UpdatingPrimaryValue CookieNameConst = new();
+    [NamedSetting("domain", "Domain to which the cookie is restricted in the response")]
     private readonly UpdatingKeyValue CookieDomainConst = new("domain");
+    [NamedSetting("path", "Path to which the cookie is restricted in the response")]
     private readonly UpdatingKeyValue CookiePathConst = new("path");
+    [NamedSetting("expires", "Cookie lifetime in whole or decimal hours")]
     private readonly UpdatingKeyValue CookieLifetimeConst = new("expires");
     private string? CurrentCookieName, CurrentCookieDomain, CurrentCookiePath;
     private decimal CurrentCookieLifetimeHours;

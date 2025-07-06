@@ -1,8 +1,12 @@
 #pragma warning disable 67
-using System.ComponentModel;
-using Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-[Category("HTTP")]
+
+[Category("Http")]
+[Title("Enable CSRF Field Obfuscation")]
+[Description("""
+             For the services that support it, initializes a system that turns plaintext
+             field names into obfuscated field names that may only be used once.
+             """)]
 public class CsrfEnable : IService
 {
     public event CallForInteraction? OnThen;

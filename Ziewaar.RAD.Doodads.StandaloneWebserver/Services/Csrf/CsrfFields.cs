@@ -1,8 +1,6 @@
-using System.Data;
 using Microsoft.Data.Sqlite;
 using Ziewaar.RAD.Doodads.Data;
 using Ziewaar.RAD.Doodads.SQLite;
-using Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
@@ -109,6 +107,13 @@ public class CsrfFields(
             }
             return results.ToArray();
         });
+        commands.UseCommand(command =>
+        {
+            command.CommandText = "DELETE FROM csrftoken WHERE fieldalias = $fieldalias";
+            command.SetParams(DbType.String.ToParam("fieldalias", fieldAlias));
+            command.ExecuteNonQuery();
+            return default(object);
+        });
         if (trueFieldNames.Length == 1)
         {
             trueFieldName = trueFieldNames[0];
@@ -116,13 +121,6 @@ public class CsrfFields(
         }
         else
         {
-            commands.UseCommand(command =>
-            {
-                command.CommandText = "DELETE FROM csrftoken WHERE fieldalias = $fieldalias";
-                command.SetParams(DbType.String.ToParam("fieldalias", fieldAlias));
-                command.ExecuteNonQuery();
-                return default(object);
-            });
             trueFieldName = "";
             return false;
         }

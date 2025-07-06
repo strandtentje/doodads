@@ -1,9 +1,18 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
+[Category("HTTP Forms")]
+[Title("Ready to Validate")]
+[Description("""
+             Generally used after ValidateForm, Route and HttpMethod to decide it's 
+             time to validate a form.
+             """)]
 public class RequireValidation : IService
 {
+    [EventOccasion("Simply continues")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when no form was in scope for validation")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

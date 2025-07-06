@@ -1,6 +1,6 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
-public class TextSourcingInteraction : ISourcingInteraction, IDisposable, IAsyncDisposable
+public class TextSourcingInteraction : ISourcingInteraction, IDisposable
 {
     private readonly IInteraction Parent;
     public TextSourcingInteraction(IInteraction parent, string text)
@@ -18,5 +18,4 @@ public class TextSourcingInteraction : ISourcingInteraction, IDisposable, IAsync
     public string SourceContentTypePattern { get; } = "*/*";
     public long SourceContentLength { get; } 
     public void Dispose() => SourceBuffer.Dispose();
-    public async ValueTask DisposeAsync() => await SourceBuffer.DisposeAsync();
 }

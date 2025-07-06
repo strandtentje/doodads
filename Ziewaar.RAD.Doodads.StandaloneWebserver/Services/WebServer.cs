@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-#pragma warning disable 67
+﻿#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 public class WebServer : IService, IDisposable
 {

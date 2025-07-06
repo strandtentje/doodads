@@ -60,7 +60,7 @@ public class ServiceConstantExpression : IParityParser
             return stringRes;
         }
 
-        text = text.TakeToken(TokenDescription.Numbers, out var wholeNums);
+        text = text.TakeToken(TokenDescription.MaybeNegativeNumbers, out var wholeNums);
         if (wholeNums.IsValid && int.TryParse(wholeNums.Text, out int res))
         {
             decimal candidate = res;
