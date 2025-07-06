@@ -1,4 +1,7 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
+using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #pragma warning disable CS0162
 public class ProgramDefinition : IDisposable

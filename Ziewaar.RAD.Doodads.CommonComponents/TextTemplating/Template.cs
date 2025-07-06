@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.CommonComponents;
+﻿using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 #nullable enable
 [Category("Output to Sink")]
 [Title("Templating service")]

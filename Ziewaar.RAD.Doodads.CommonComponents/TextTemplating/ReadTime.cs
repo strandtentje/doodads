@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
 [Category("Dates and Times")]
 [Title("Read Register into its Date and Time components")]

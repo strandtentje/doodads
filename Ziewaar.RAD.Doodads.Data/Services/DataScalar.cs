@@ -1,6 +1,5 @@
 ﻿#nullable enable
 #pragma warning disable 67
-
 using System;
 using System.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
@@ -8,7 +7,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-namespace Ziewaar.RAD.Doodads.Data;
+namespace Ziewaar.RAD.Doodads.Data.Services;
 
 [Category("Data")]
 [Title("Get the first row/first column decimal")]

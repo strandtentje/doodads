@@ -1,6 +1,6 @@
 #pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
 {
     private CallForInteraction? ElseDelegate, DoneDelegate;

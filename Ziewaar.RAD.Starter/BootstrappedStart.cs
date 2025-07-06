@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.ModuleLoader;
+using Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 using File = System.IO.File;
 namespace Ziewaar.RAD.Starter;
 public class BootstrappedStart(string workingDirectory, Assembly[] populateAssemblies, string[] loadFiles, string startFile, SortedList<string, object> rootInteractionMemory)

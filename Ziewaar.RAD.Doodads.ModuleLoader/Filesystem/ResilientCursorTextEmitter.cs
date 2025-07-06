@@ -1,5 +1,7 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+using Ziewaar.RAD.Doodads.ModuleLoader.Delegates;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 #pragma warning disable CS0162
 public class ResilientCursorTextEmitter(FileInfo file)
 {

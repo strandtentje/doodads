@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 public class ExceptionPayload
 {

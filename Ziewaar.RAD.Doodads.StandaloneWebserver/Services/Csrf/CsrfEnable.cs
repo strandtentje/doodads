@@ -1,5 +1,5 @@
 #pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 
 [Category("Http")]
 [Title("Enable CSRF Field Obfuscation")]

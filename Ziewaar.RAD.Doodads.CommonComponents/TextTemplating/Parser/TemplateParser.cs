@@ -1,6 +1,4 @@
-using System.Xml.Schema;
-
-namespace Ziewaar.RAD.Doodads.CommonComponents;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 public class TemplateParser(string placeholderStart = "{% ", string placeholderEnd = " %}")
 {

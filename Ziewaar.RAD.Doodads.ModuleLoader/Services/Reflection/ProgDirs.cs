@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #pragma warning disable 67
 #nullable enable
 [Category("Reflection")]

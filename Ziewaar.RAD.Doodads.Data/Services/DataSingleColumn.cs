@@ -1,12 +1,11 @@
 ﻿#nullable enable
 #pragma warning disable 67
-
 using System.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-namespace Ziewaar.RAD.Doodads.Data;
+namespace Ziewaar.RAD.Doodads.Data.Services;
 
 [Category("Data")]
 [Title("Iterate the first column of the query result")]

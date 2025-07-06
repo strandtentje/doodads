@@ -1,9 +1,8 @@
 ﻿using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.RKOP.Constructor;
-using Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing
 {
     [Category("HTTP Routing")]
     [Title("Routing to files based on filesystem")]

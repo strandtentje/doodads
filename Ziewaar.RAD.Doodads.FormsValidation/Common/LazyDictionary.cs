@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.FormsValidation.Common;
 #pragma warning disable 67
 public abstract class LazyDictionary(string[] sanitizedWhitelist)
     : IReadOnlyDictionary<string, object>

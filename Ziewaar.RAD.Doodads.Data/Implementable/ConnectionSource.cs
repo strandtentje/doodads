@@ -7,8 +7,9 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+using Ziewaar.RAD.Doodads.Data.Implementable.Policies;
 
-namespace Ziewaar.RAD.Doodads.SQLite;
+namespace Ziewaar.RAD.Doodads.Data.Implementable;
 #pragma warning disable 67
 public abstract class ConnectionSource<TConnection, TCommand> : IService, IDisposable
     where TConnection : class, IDbConnection

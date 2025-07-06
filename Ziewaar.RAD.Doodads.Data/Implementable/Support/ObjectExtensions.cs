@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 
-namespace Ziewaar.RAD.Doodads.SQLite;
+namespace Ziewaar.RAD.Doodads.Data.Implementable.Support;
 #pragma warning disable 67
 internal static class ObjectExtensions
 {

@@ -5,9 +5,8 @@ using System.Data;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.Data;
 
-namespace Ziewaar.RAD.Doodads.SQLite;
+namespace Ziewaar.RAD.Doodads.Data.Implementable;
 #pragma warning disable 67
 public class CommandSourceInteraction<TCommand>(
     IInteraction parent,

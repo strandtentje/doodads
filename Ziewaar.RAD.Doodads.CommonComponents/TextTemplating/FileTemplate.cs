@@ -1,7 +1,7 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 [Category("Output to Sink")]
 [Title("Template from File service")]
 [Description("""

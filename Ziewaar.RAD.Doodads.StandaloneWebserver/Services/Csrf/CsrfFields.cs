@@ -1,8 +1,8 @@
 using Microsoft.Data.Sqlite;
 using Ziewaar.RAD.Doodads.Data;
-using Ziewaar.RAD.Doodads.SQLite;
+using Ziewaar.RAD.Doodads.Data.Implementable;
 
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 #pragma warning disable 67
 public class CsrfFields(
     CommandSourceInteraction<SqliteCommand> commands,

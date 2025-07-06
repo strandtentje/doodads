@@ -1,5 +1,5 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Reflection;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 [Category("Reflection")]
 [Title("Get child service information from service branches")]
 [Description("""

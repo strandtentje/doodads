@@ -1,7 +1,5 @@
 #nullable enable
-using System.IO.MemoryMappedFiles;
-
-namespace Define.Content.AutomationKioskShell.ValidationNodes;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 #pragma warning disable 67
 [Category("Lists and Items")]
 [Title("If a name doesn't exist in memory, set it to a default value from stream")]

@@ -1,6 +1,8 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
+
 #pragma warning disable CS0162 // Unreachable code detected
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 public class ProgramFileLoader : IDisposable
 {
     public IInteraction? AutoStartOnReloadParams;

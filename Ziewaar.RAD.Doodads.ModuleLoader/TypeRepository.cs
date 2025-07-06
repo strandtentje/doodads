@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 public class TypeRepository
 {

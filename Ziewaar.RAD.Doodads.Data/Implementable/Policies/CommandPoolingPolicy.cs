@@ -2,8 +2,9 @@
 using System.Data;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
+using Ziewaar.RAD.Doodads.Data.Implementable.Support;
 
-namespace Ziewaar.RAD.Doodads.SQLite;
+namespace Ziewaar.RAD.Doodads.Data.Implementable.Policies;
 #pragma warning disable 67
 public class CommandPoolingPolicy<TConnection, TCommand>(ThreadLocal<ObjectPool<TConnection>> connectionPool)
     : IPooledObjectPolicy<TCommand>

@@ -1,7 +1,5 @@
-﻿using Ziewaar.Common.Aardvargs;
-
-[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
-namespace Aardvargs.Tests
+﻿[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
+namespace Ziewaar.Common.Aardvargs.Tests
 {
     [TestClass]
     public class AardvargsTests

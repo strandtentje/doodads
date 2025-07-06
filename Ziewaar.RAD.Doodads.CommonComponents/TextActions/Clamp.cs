@@ -1,6 +1,6 @@
 ﻿#pragma warning disable 67
 #nullable enable
-namespace Define.Content.AutomationKioskShell.ValidationNodes;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 [Category("Validation")]
 [Title("Clamp numeric value in registry to a range")]
 [Description("""

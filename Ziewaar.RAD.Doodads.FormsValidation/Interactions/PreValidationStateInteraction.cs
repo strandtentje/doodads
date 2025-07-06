@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.FormsValidation.Interactions;
 #pragma warning disable 67
 public class PreValidationStateInteraction(string formName, TextSinkingInteraction parent) : IInteraction
 {

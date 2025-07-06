@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 [Serializable]
 public class MissingServiceTypeException(

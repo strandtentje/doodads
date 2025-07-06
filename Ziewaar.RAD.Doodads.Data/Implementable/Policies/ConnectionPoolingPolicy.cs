@@ -2,8 +2,9 @@
 using System;
 using System.Data;
 using Microsoft.Extensions.ObjectPool;
+using Ziewaar.RAD.Doodads.Data.Implementable.Support;
 
-namespace Ziewaar.RAD.Doodads.SQLite;
+namespace Ziewaar.RAD.Doodads.Data.Implementable.Policies;
 #pragma warning disable 67
 public class ConnectionPoolingPolicy<TConnection>(Func<TConnection> factory)
     : IPooledObjectPolicy<TConnection>

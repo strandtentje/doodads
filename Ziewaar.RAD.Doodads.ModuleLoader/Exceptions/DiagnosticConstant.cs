@@ -1,4 +1,4 @@
-﻿namespace Ziewaar.RAD.Doodads.ModuleLoader;
+﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 #nullable enable
 
 public class DiagnosticConstant(string key, long timestamp, object value)

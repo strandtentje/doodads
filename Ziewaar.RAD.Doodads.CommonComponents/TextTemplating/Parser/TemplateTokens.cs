@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.CommonComponents;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 public static class TemplateTokens
 {

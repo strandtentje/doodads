@@ -1,5 +1,7 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
+
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private static readonly object NullBuster = new();

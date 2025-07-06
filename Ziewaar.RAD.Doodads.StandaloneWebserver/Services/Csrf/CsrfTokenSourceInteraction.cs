@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 #pragma warning disable 67
 public class CsrfTokenSourceInteraction(IInteraction parent, CsrfFields fields) : ICsrfTokenSourceInteraction
 {

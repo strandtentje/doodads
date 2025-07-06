@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Ziewaar.RAD.Doodads.SQLite;
+namespace Ziewaar.RAD.Doodads.Data.Implementable.Support;
 #pragma warning disable 67
 public class DefaultCommandTextPreprocessor(string dbShorthand, char paramPrefix) : ICommandTextPreprocessor
 {

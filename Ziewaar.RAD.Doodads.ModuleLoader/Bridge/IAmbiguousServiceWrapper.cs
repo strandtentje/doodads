@@ -1,5 +1,5 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 public interface IAmbiguousServiceWrapper
 {
     void OnThen(CallForInteraction dlg);

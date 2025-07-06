@@ -1,7 +1,8 @@
 #pragma warning disable 67
 #nullable enable
 using System.Collections;
-namespace Define.Content.AutomationKioskShell.ValidationNodes;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 [Category("Lists and Items")]
 [Title("Loops over enumeration")]
 [Description("""

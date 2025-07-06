@@ -1,7 +1,8 @@
 using Microsoft.Data.Sqlite;
+using Ziewaar.RAD.Doodads.Data.Implementable;
 using Ziewaar.RAD.Doodads.SQLite;
 
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 #pragma warning disable 67
 public class CsrfTokenRepository(
     string instanceCookie,

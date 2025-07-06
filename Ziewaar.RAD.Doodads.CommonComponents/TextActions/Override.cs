@@ -1,5 +1,5 @@
 #nullable enable
-namespace Define.Content.AutomationKioskShell.ValidationNodes;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 #pragma warning disable 67
 [Category("Lists and Items")]
 [Title("Regardless of whether a name exists in memory, set it to a default value from stream")]

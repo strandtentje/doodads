@@ -1,11 +1,10 @@
 ﻿#nullable enable
 #pragma warning disable 67
-
 using System.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
-namespace Ziewaar.RAD.Doodads.Data;
+namespace Ziewaar.RAD.Doodads.Data.Services;
 
 [Category("Data")]
 [Title("Cursor through query results")]

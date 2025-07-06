@@ -1,5 +1,5 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.ModuleLoader;
+namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 public class FileWatcherFactory : IDisposable
 {
     public static readonly FileWatcherFactory Instance = new();

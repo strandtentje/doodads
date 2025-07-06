@@ -1,6 +1,6 @@
 #pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 [Category("Text")]
 [Title("Memory to Stream")]
 [Description("Make text in memory readable as a stream")]
