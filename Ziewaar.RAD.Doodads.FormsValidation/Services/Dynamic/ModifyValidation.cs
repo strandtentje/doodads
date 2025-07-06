@@ -11,7 +11,7 @@ public abstract class ModifyValidation : IService
     public event CallForInteraction? OnElse;
     [EventOccasion("When used outside of scope")]
     public event CallForInteraction? OnException;
-    protected abstract bool IsValid { get; }
+    protected abstract bool GetValidity(StampedMap constants, IInteraction interaction);
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<NestingValidationInteraction>(out var nesting) || nesting == null)
@@ -19,8 +19,16 @@ public abstract class ModifyValidation : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "This may only be used with a Field that has nest set to true"));
             return;
         }
-        nesting.Validity = IsValid ? Tristate.True : Tristate.False;
+        nesting.Validity = GetValidity(constants, interaction) ? Tristate.True : Tristate.False;
         OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+}
+
+public class PasswordValidation : ModifyValidation
+{
+    protected override bool GetValidity(StampedMap constants, IInteraction interaction)
+    {
+        return false;
+    }
 }

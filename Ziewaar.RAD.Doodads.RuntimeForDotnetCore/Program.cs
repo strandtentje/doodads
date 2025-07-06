@@ -1,7 +1,10 @@
 ﻿using Ziewaar.RAD.Doodads.CommonComponents;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+using Ziewaar.RAD.Doodads.FormsValidation.Services;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
+using Ziewaar.RAD.Doodads.MySQL;
+using Ziewaar.RAD.Doodads.SQLite;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 using Ziewaar.RAD.Starter;
 
@@ -17,6 +20,9 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             AddAssemblyBy<WebServer>().
             AddAssemblyBy<Template>().
             AddAssemblyBy<Definition>().
+            AddAssemblyBy<SqliteConnectionSource>().
+            AddAssemblyBy<ValidateForm>().
+            AddAssemblyBy<MySqlConnectionSource>().
             AddFile("server.rkop",
             """
 Definition()

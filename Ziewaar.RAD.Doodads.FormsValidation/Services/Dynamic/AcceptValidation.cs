@@ -17,5 +17,5 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Dynamic;
              """)]
 public class AcceptValidation : ModifyValidation
 {
-    protected override bool IsValid => true;
+    protected override bool GetValidity(StampedMap constants, IInteraction interaction) => true;
 }

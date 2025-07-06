@@ -10,4 +10,8 @@
       <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
+    </ItemGroup>
+
 </Project>
