@@ -29,19 +29,16 @@ public class HttpMethod : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "Unknown method"));
             return;
         }
-        if (!interaction.TryGetClosest<HttpHeadInteraction>(out var headInteraction))
+        if (!interaction.TryGetClosest<HttpHeadInteraction>(out var headInteraction) || headInteraction == null)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "No http head to check method"));
             return;
         }
-        if (headInteraction.Method.ToUpper() == this.CurrentMethod.ToString().ToUpper())
-        {
+        if (string.Equals(headInteraction.Method, this.CurrentMethod.ToString(),
+                StringComparison.CurrentCultureIgnoreCase))
             OnThen?.Invoke(this, interaction);
-        }
         else
-        {
             OnElse?.Invoke(this, interaction);
-        }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

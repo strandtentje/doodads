@@ -46,8 +46,7 @@ public abstract class ValidatingField<TDefault> : IService
                    Use AcceptValidation or RejectValidation to ultimately validate.
                    """)]
     public event CallForInteraction? OnThen;
-    [NeverHappens]
-    public event CallForInteraction? OnElse;
+    [NeverHappens] public event CallForInteraction? OnElse;
     [EventOccasion("""
                    Could happen when
                     - Title was not set
@@ -129,16 +128,20 @@ public abstract class ValidatingField<TDefault> : IService
         var formName = preValidationState.FormName;
 
         interaction.TryGetClosest(out ICsrfTokenSourceInteraction? csrfTokenSourceInteraction);
-        
-        
+
         if (preValidationState.MustValidate)
         {
             preValidationState.FieldValidations[this.SanitizedFieldTitle] = false;
-            string workingFieldName = this.SanitizedFieldTitle;
+            var workingFieldName = this.SanitizedFieldTitle;
             if (csrfTokenSourceInteraction != null)
             {
-                if (!csrfTokenSourceInteraction.Fields.TryRecoverByTrueName(formName,
-                        workingFieldName, out workingFieldName))
+                if (csrfTokenSourceInteraction.Fields.TryRecoverByTrueName(formName,
+                        workingFieldName, out var obfuscatedFieldName) &&
+                    !string.IsNullOrWhiteSpace(obfuscatedFieldName))
+                {
+                    workingFieldName = obfuscatedFieldName;
+                }
+                else
                 {
                     OnInvalid?.Invoke(this, new FieldPropertiesInteraction(
                         interaction, this.SanitizedFieldTitle,

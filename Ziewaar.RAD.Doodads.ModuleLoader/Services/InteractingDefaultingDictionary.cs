@@ -11,7 +11,7 @@ internal class InteractingDefaultingDictionary(IInteraction real, SortedList<str
     {
         get
         {
-            if (real.TryFindVariable<object>(key, out var result))
+            if (real.TryFindVariable<object>(key, out var result) && result != null)
                 return result;
             return fallback[key];
         }
@@ -19,7 +19,7 @@ internal class InteractingDefaultingDictionary(IInteraction real, SortedList<str
     public SortedList<string, object> ToSortedList()
     {
         var result = new SortedList<string, object>();
-        for (var currentInteraction = real; currentInteraction != null && currentInteraction is not StopperInteraction; currentInteraction = currentInteraction.Stack)
+        for (var currentInteraction = real; currentInteraction is not StopperInteraction; currentInteraction = currentInteraction.Stack)
         {
             foreach (var item in currentInteraction.Memory)
             {
@@ -36,7 +36,24 @@ internal class InteractingDefaultingDictionary(IInteraction real, SortedList<str
     public int Count => ToSortedList().Count;
     public bool ContainsKey(string key) => real.TryFindVariable<object>(key, out object? _) || fallback.ContainsKey(key);
     public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => ToSortedList().GetEnumerator();
-    public bool TryGetValue(string key, out object value) =>
-        (real.TryFindVariable(key, out value) && value != null) || fallback.TryGetValue(key, out value);
+    public bool TryGetValue(string key, out object value)
+    {
+        if (real.TryFindVariable(key, out object? realCandidate) && realCandidate != null)
+        {
+            value = realCandidate;
+            return true;
+        } else if (fallback.TryGetValue(key, out var fallbackCandidate) && fallbackCandidate != null)
+        {
+            value = fallbackCandidate;
+            return true;
+        }
+        else
+        {
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+            value = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+            return false;
+        }
+    }
     IEnumerator IEnumerable.GetEnumerator() => ToSortedList().GetEnumerator();
 }

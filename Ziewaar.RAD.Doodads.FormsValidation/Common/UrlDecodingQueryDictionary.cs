@@ -8,16 +8,17 @@ public class UrlDecodingQueryDictionary(
     SortedList<string, string?> backingStore) :
     LazyDictionary(urlSanitizedWhitelist), IDecodingDictionary
 {
+    private readonly string[] UrlSanitizedWhitelist = urlSanitizedWhitelist;
     public static IDecodingDictionary CreateFor(string encodedData, string[] unsanitizedWhitelist) =>
         new UrlDecodingQueryDictionary(
             unsanitizedWhitelist.Select(HttpUtility.UrlEncode).OfType<string>().ToArray(),
             encodedData,
             new SortedList<string, string?>());
-    protected override string? Sanitize(string unsanitizedKey) => HttpUtility.UrlEncode(unsanitizedKey);
+    protected override string Sanitize(string unsanitizedKey) => HttpUtility.UrlEncode(unsanitizedKey);
     protected override string Desanitize(string sanitized) => HttpUtility.UrlDecode(sanitized);
     protected override string? FindValue(string sanitizedKey)
     {
-        if (!urlSanitizedWhitelist.Contains(sanitizedKey))
+        if (!UrlSanitizedWhitelist.Contains(sanitizedKey))
             return null;
         if (backingStore.TryGetValue(sanitizedKey, out var cached))
             return cached;

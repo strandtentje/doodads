@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable 67
 using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;

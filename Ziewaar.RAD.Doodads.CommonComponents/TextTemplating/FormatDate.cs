@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
 [Category("Dates and Times")]
