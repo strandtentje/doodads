@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.ModuleLoader\Ziewaar.RAD.Doodads.ModuleLoader.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.RKOP\Ziewaar.RAD.Doodads.RKOP.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.SQLite\Ziewaar.RAD.Doodads.SQLite.csproj" />
   </ItemGroup>
 
 </Project>

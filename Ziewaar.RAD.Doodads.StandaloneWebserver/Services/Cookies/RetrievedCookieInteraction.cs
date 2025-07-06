@@ -7,6 +7,7 @@ public class RetrievedCookieInteraction(
     Cookie clientCookie) : IInteraction
 {
     public IInteraction Stack => interaction;
+    public string CookieName => clientCookie.Name;
     public object Register => clientCookie.Value;
     public IReadOnlyDictionary<string, object> Memory => interaction.Memory;
     public bool TryRevoke()

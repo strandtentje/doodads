@@ -23,6 +23,7 @@ public abstract class ConnectionSource<TConnection, TCommand> : IService, IDispo
     private ThreadLocal<ObjectPool<TConnection>>? CurrentConnections;
     private ThreadLocal<ObjectPool<TCommand>>? CurrentCommands;
     protected abstract TConnection CreateConnection();
+    public IDbConnection CreateIDbConnection() => CreateConnection();
     protected abstract bool IsReloadRequired(StampedMap constants, IInteraction interaction);
     protected abstract ICommandTextPreprocessor TextPreprocessor { get; }
     private void PurgeAll(IInteraction? interaction = null)

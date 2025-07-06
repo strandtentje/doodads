@@ -1,6 +1,7 @@
-﻿#pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+﻿using System.Collections;
 
+#pragma warning disable 67
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 public class WebServer : IService, IDisposable
 {
     private HttpListener? CurrentListener = null;
@@ -73,9 +74,9 @@ public class WebServer : IService, IDisposable
             try
             {
                 httpContext?.Response.Close();
-            } catch(Exception)
+            }
+            catch (Exception)
             {
-
             }
             if (CurrentListener == null || !CurrentListener.IsListening)
                 TerminateListener(StopperInteraction.Instance);

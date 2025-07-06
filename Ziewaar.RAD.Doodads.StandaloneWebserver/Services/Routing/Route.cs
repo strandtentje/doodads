@@ -38,7 +38,7 @@ public class Route : IService
             {
                 try
                 {
-                    CurrentMethod = HttpMethod.Parse(methodAndRoute.ElementAtOrDefault(0) ?? "GET").ToString()
+                    CurrentMethod = System.Net.Http.HttpMethod.Parse(methodAndRoute.ElementAtOrDefault(0) ?? "GET").ToString()
                         .ToUpper();
                 }
                 catch (Exception)
