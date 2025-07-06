@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
 public class JsonDecodingQueryDictionary(

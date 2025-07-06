@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.SQLite"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.MySQL", "Ziewaar.RAD.Doodads.MySQL\Ziewaar.RAD.Doodads.MySQL.csproj", "{7E315044-1703-483B-B235-C92E99688943}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.FormsValidation", "Ziewaar.RAD.Doodads.FormsValidation\Ziewaar.RAD.Doodads.FormsValidation.csproj", "{8CD72807-1CD3-4697-874F-F72C027E5B94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{7E315044-1703-483B-B235-C92E99688943}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E315044-1703-483B-B235-C92E99688943}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E315044-1703-483B-B235-C92E99688943}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CD72807-1CD3-4697-874F-F72C027E5B94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CD72807-1CD3-4697-874F-F72C027E5B94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CD72807-1CD3-4697-874F-F72C027E5B94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CD72807-1CD3-4697-874F-F72C027E5B94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

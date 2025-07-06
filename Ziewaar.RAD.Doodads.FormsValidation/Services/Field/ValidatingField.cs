@@ -125,7 +125,7 @@ public abstract class ValidatingField<TDefault> : IService
 
         var formName = preValidationState.FormName;
 
-        interaction.TryGetClosest(out CsrfTokenSourceInteraction? csrfTokenSourceInteraction);
+        interaction.TryGetClosest(out ICsrfTokenSourceInteraction? csrfTokenSourceInteraction);
         
         
         if (preValidationState.MustValidate)
@@ -218,7 +218,7 @@ public abstract class ValidatingField<TDefault> : IService
         }
     }
     private string
-        MaskField(string unmasked, CsrfTokenSourceInteraction? csrfTokenSourceInteraction, string formName) =>
+        MaskField(string unmasked, ICsrfTokenSourceInteraction? csrfTokenSourceInteraction, string formName) =>
         csrfTokenSourceInteraction?.Fields.PackField(formName, unmasked) ?? unmasked;
     private string CreateDefaultValue(StampedMap constants) => GetDefault(constants)?.ToString() ?? "";
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

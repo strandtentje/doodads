@@ -57,7 +57,7 @@ public class ReadTime : IService
 
             if (CurrentMemoryName != null &&
                 !string.IsNullOrWhiteSpace(CurrentMemoryName) &&
-                interaction.TryFindVariable<object>(CurrentMemoryName, out object? namedTimespan))
+                interaction.TryFindVariable<object>(CurrentMemoryName, out var namedTimespan))
             {
                 maybeTimespan = namedTimespan;
             }
@@ -91,15 +91,13 @@ public class ReadTime : IService
                     case TimespanSignificance.Tick:
                         workingTimeSpan = TimeSpan.FromTicks((long)numberTime);
                         break;
-                    default:
-                        break;
                 }
             }
 
             hasTimespan = true;
         }
 
-        var validNames = Enum.GetNames(typeof(TimespanSignificance)).Select(x => x.ToLower());
+        var validNames = Enum.GetNames(typeof(TimespanSignificance)).Select(x => x.ToLower()).ToArray();
         var allNames = validNames.Concat(validNames.Select(x => $"total{x}")).ToArray();
 
         var resultMemory = new SwitchingDictionary(allNames, keyName =>
@@ -126,7 +124,7 @@ public class ReadTime : IService
                 case TimespanSignificance.Milli:
                     return (decimal)(isTotal ? workingTimeSpan.TotalMilliseconds : workingTimeSpan.Milliseconds);
                 case TimespanSignificance.Tick:
-                    return (decimal)(isTotal ? workingTimeSpan.Ticks : workingTimeSpan.Ticks);
+                    return (decimal)workingTimeSpan.Ticks;
                 default:
                     throw new KeyNotFoundException();
             }

@@ -7,7 +7,7 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 public class CsrfFields(
     CommandSourceInteraction<SqliteCommand> commands,
     string instanceCookie,
-    string csrfCookieValue)
+    string csrfCookieValue) : ICsrfFields
 {
     public string PackField(string formName, string fieldName)
     {

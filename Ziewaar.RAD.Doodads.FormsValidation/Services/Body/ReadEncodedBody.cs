@@ -32,7 +32,7 @@ public abstract class ReadEncodedBody<TDictionary> : IService where TDictionary 
         var currentWhiteList = WhitelistedFieldNames;
         if (currentWhiteList.Length == 0)
         {
-            if (interaction.TryGetClosest<CsrfTokenSourceInteraction>(out var csrfInteraction) &&
+            if (interaction.TryGetClosest<ICsrfTokenSourceInteraction>(out var csrfInteraction) &&
                 interaction.TryGetClosest<PreValidationStateInteraction>(out var prevalidation) &&
                 csrfInteraction != null && prevalidation != null)
                 currentWhiteList = csrfInteraction.Fields.GetWhitelist(prevalidation.FormName);

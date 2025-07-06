@@ -1,3 +1,5 @@
+using System.Web;
+
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
 public class UrlDecodingQueryDictionary(
