@@ -100,8 +100,7 @@ public abstract class ValidatingField<TDefault> : IService
         {
             newFieldTitle = newFieldTitle.ToLower();
             this.CurrentFieldTitle = newFieldTitle;
-            this.SanitizedFieldTitle = new string(
-                newFieldTitle.Select(c => char.IsLetterOrDigit(c) || c == '_' ? c : '_').ToArray());
+            this.SanitizedFieldTitle = newFieldTitle.Alphanumerize();
         }
         if (this.SanitizedFieldTitle == null || this.CurrentFieldTitle == null ||
             string.IsNullOrWhiteSpace(SanitizedFieldTitle) || string.IsNullOrWhiteSpace(CurrentFieldTitle))
@@ -129,7 +128,7 @@ public abstract class ValidatingField<TDefault> : IService
 
         interaction.TryGetClosest(out ICsrfTokenSourceInteraction? csrfTokenSourceInteraction);
 
-        if (preValidationState.MustValidate)
+        if (preValidationState.ProceedAt != null)
         {
             preValidationState.FieldValidations[this.SanitizedFieldTitle] = false;
             var workingFieldName = this.SanitizedFieldTitle;
@@ -151,8 +150,8 @@ public abstract class ValidatingField<TDefault> : IService
                 }
             }
 
-            if (!preValidationState.Memory.TryGetValue(workingFieldName, out var foundFieldValue) ||
-                foundFieldValue.ToString() is not string candidateFieldText ||
+            if (!preValidationState.ProceedAt.TryFindVariable(workingFieldName, out object? foundFieldValue) ||
+                foundFieldValue?.ToString() is not string candidateFieldText ||
                 string.IsNullOrWhiteSpace(candidateFieldText))
             {
                 if (IsRequired(constants))

@@ -32,3 +32,38 @@ public class Amoat : IService
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
+
+
+public class DebounceFor : IService
+{
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void HandleFatal(IInteraction source, Exception ex)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class ToDebounce : IService
+{
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void HandleFatal(IInteraction source, Exception ex)
+    {
+        throw new NotImplementedException();
+    }
+}

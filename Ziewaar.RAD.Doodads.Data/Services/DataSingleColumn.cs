@@ -17,17 +17,20 @@ public class DataSingleColumn : DataService<int>
 {
     protected override int WorkWithCommand(IDbCommand command, IInteraction cause)
     {
+        int counter = 0;
         using (var reader = command.ExecuteReader())
         {
             while (reader.Read())
             {
                 InvokeThen(new CommonInteraction(cause, reader.GetValue(0)));
+                counter++;
             }
         }
-        return 0;
+        return counter;
     }
     protected override void FinalizeResult(int output, IInteraction cause)
     {
-        InvokeElse(cause);
+        if (output == 0)
+            InvokeElse(cause);
     }
 }

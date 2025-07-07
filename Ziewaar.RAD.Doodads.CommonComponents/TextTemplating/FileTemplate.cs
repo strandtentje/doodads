@@ -16,10 +16,10 @@ public class FileTemplate : IService
     Template TemplatingService = new();
     public FileTemplate()
     {
-        ContentPrinter.OnException += this.OnException;
-        ContentPrinter.OnThen += this.OnThen;
-        TemplatingService.OnException += this.OnException;
-        TemplatingService.OnElse += this.OnElse;
+        ContentPrinter.OnException += (s, e) => this.OnException?.Invoke(s, e);
+        ContentPrinter.OnThen += (s, e) => this.OnThen?.Invoke(s, e);
+        TemplatingService.OnException += (s, e) => this.OnException?.Invoke(s, e);
+        TemplatingService.OnElse += (s, e) => this.OnElse?.Invoke(s, e);
         TemplatingService.OnThen += this.HandleTemplateRequest;
     }
     private void HandleTemplateRequest(object sender, IInteraction interaction)

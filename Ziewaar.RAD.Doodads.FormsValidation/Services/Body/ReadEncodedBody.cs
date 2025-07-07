@@ -19,12 +19,12 @@ public abstract class ReadEncodedBody<TDictionary> : IService where TDictionary 
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, BodyNamesWhitelistConstant).IsRereadRequired(() => Enumerable.Empty<string>(),
+        if ((constants, BodyNamesWhitelistConstant).IsRereadRequired(() => Enumerable.Empty<object>(),
                 out var candidateWhitelist))
         {
             if (candidateWhitelist != null)
             {
-                this.WhitelistedFieldNames = candidateWhitelist.ToArray();
+                this.WhitelistedFieldNames = candidateWhitelist.OfType<string>().ToArray();
             }
             else
             {

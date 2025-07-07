@@ -19,6 +19,8 @@ public class ConnectionPoolingPolicy<TConnection>(Func<TConnection> factory)
     }
     public bool Return(TConnection obj)
     {
+        obj.SloppyDispose();
+        return false;
         if (obj.State == ConnectionState.Open)
             return true;
 

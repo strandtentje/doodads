@@ -4,6 +4,7 @@ using System;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
@@ -40,16 +41,23 @@ public abstract class DataService<TResult> : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "data command requires a connection source to preceede it"));
             return;
         }
-        if ((constants, QueryTextOrFileConstant).IsRereadRequired(out string? queryTextOrFilePath) && queryTextOrFilePath != null)
+        if ((constants, QueryTextOrFileConstant).IsRereadRequired(out object? queryTextOrFilePathObject) && queryTextOrFilePathObject != null &&
+            queryTextOrFilePathObject?.ToString() is string queryTextOrFilePath)
         {
             if (queryTextOrFilePath.EndsWith(".sql", true, CultureInfo.InvariantCulture))
             {
                 this.QueryFilePath = commandSource.MakeFilenameSpecific(queryTextOrFilePath);
-                if (!File.Exists(queryTextOrFilePath))
+                if (!File.Exists(QueryFilePath))
                 {
-                    using (var f = File.CreateText(queryTextOrFilePath))
+                    if (File.Exists(queryTextOrFilePath))
                     {
-                        f.Write(commandSource.GenerateQueryFor(Path.GetFileName(queryTextOrFilePath)));
+                        File.Copy(queryTextOrFilePath, QueryFilePath);
+                    } else
+                    {
+                        using (var f = File.CreateText(QueryFilePath))
+                        {
+                            f.Write(commandSource.GenerateQueryFor(Path.GetFileName(QueryFilePath)));
+                        }
                     }
                 }
                 QueryFileAge = -1;
@@ -58,7 +66,7 @@ public abstract class DataService<TResult> : IService
             {
                 this.QueryFilePath = null;
                 this.QueryText = queryTextOrFilePath;
-                this.ParameterNames = commandSource.DetermineParamNames(this.QueryText);
+                this.ParameterNames = commandSource.DetermineParamNames(this.QueryText).Distinct().ToArray();
             }
         }
         if (QueryFilePath != null)
@@ -67,9 +75,14 @@ public abstract class DataService<TResult> : IService
             if (QueryFileAge != newFileAge)
             {
                 QueryFileAge = newFileAge;
-                this.QueryText = File.ReadAllText(queryTextOrFilePath);
-                this.ParameterNames = commandSource.DetermineParamNames(this.QueryText);
+                this.QueryText = File.ReadAllText(QueryFilePath);
+                this.ParameterNames = commandSource.DetermineParamNames(this.QueryText).Distinct().ToArray();
             }
+        }
+        if (string.IsNullOrWhiteSpace(this.QueryText))
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "cannot execute empty query"));
+            return;
         }
         var output = commandSource.UseCommand(command =>
         {
@@ -125,6 +138,9 @@ public abstract class DataService<TResult> : IService
                             throw new Exception($"for db param {item}", ex);
                         }
                     }
+                } else
+                {
+                    OnException?.Invoke(this, new CommonInteraction(interaction, $"missing param {item} so setting null. query might fail."));
                 }
                 command.Parameters.Add(newParam);
             }

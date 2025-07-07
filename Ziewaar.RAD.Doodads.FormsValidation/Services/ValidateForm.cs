@@ -62,19 +62,19 @@ public class ValidateForm : IService
         interaction.TryGetClosest(out ISinkingInteraction? originalSinkingInteraction);
         var validationState = new PreValidationStateInteraction(this.CurrentFormName, new TextSinkingInteraction(interaction));
         OnThen?.Invoke(this, validationState);
-        OnElse?.Invoke(this, validationState);
-        if (validationState.MustValidate && validationState.FieldValidations.All(x => x.Value))
+        OnElse?.Invoke(this, validationState.ProceedAt ?? validationState);
+        if (validationState.ProceedAt != null && validationState.FieldValidations.All(x => x.Value))
             OnValid?.Invoke(this,
                 new PostValidationStateInteraction(
-                    CurrentFormName,
-                    validationState,
+                    CurrentFormName.Alphanumerize(),
+                    validationState.ProceedAt,
                     originalSinkingInteraction,
                     validationState.FieldValues,
                     validationState.FieldSink));
         else
             OnInvalid?.Invoke(this,
                 new PostValidationStateInteraction(
-                    CurrentFormName,
+                    CurrentFormName.Alphanumerize(),
                     validationState,
                     originalSinkingInteraction,
                     new SortedList<string, object>(),

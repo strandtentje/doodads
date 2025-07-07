@@ -7,7 +7,7 @@ public class PreValidationStateInteraction(string formName, TextSinkingInteracti
     public IInteraction Stack => parent;
     public object Register => parent.Register;
     public IReadOnlyDictionary<string, object> Memory => parent.Memory;
-    public bool MustValidate = false;
+    public IInteraction? ProceedAt = null;
     public SortedList<string, bool> FieldValidations = new SortedList<string, bool>();
     public SortedList<string, object> FieldValues = new();
 }

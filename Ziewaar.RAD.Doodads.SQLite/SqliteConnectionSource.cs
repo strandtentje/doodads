@@ -25,7 +25,7 @@ public class SqliteConnectionSource : ConnectionSource<SqliteConnection, SqliteC
     protected override SqliteConnection CreateConnection() =>
         new(new SqliteConnectionStringBuilder()
         {
-            DataSource = this.CurrentDbPath,
+            DataSource = this.CurrentDbPath, 
         }.ToString());
     protected override bool IsReloadRequired(StampedMap constants, IInteraction interaction)
     {

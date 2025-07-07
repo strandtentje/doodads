@@ -18,7 +18,7 @@ public class DataQuery : DataService<object?>
         using (var reader = command.ExecuteReader())
         {
             var dqr = new DataQueryInteraction(cause, reader);
-            while(reader.Read())
+            while (reader.Read())
             {
                 InvokeThen(dqr);
             }
@@ -30,3 +30,4 @@ public class DataQuery : DataService<object?>
         InvokeElse(cause);
     }
 }
+

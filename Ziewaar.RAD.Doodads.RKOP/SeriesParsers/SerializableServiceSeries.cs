@@ -16,7 +16,7 @@ public abstract class SerializableServiceSeries<TResultSink> :
         Children ??= new();
         ResultSink ??= new();
         if (Children.Any())
-            throw new Exception("oh no.");
+            throw new Exception("Can't give multiple branches the same name");
         Token couplerToken;
         do
         {

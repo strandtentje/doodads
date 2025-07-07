@@ -36,15 +36,24 @@ public class Route : IService
             }
             else if (methodAndRoute.Length > 1)
             {
-                try
+                var configuredMethodText = (methodAndRoute.ElementAtOrDefault(0) ?? "GET").ToUpper().Trim();
+                if (configuredMethodText == "ANY")
                 {
-                    CurrentMethod = System.Net.Http.HttpMethod.Parse(methodAndRoute.ElementAtOrDefault(0) ?? "GET").ToString()
-                        .ToUpper();
+                    CurrentMethod = configuredMethodText;
                 }
-                catch (Exception)
+                else
                 {
-                    CurrentMethod = "GET";
+                    try
+                    {
+                        CurrentMethod = System.Net.Http.HttpMethod.Parse(configuredMethodText).ToString()
+                            .ToUpper();
+                    }
+                    catch (Exception)
+                    {
+                        CurrentMethod = "GET";
+                    }
                 }
+
                 justTheRoute = string.Join('/', methodAndRoute.Skip(1));
             }
 
@@ -94,7 +103,7 @@ public class Route : IService
             }
         }
 
-        if (evaluation.Head.Method != CurrentMethod)
+        if (evaluation.Head.Method != CurrentMethod && CurrentMethod != "ANY")
         {
             OnElse?.Invoke(this, evaluation);
             return;
@@ -105,6 +114,13 @@ public class Route : IService
         SortedList<string, object> urlVariables = new();
         var currentPath = new StringBuilder(evaluation.CurrentPath);
         int currentPositionInUrlComponents = 0;
+
+        if (RouteTemplateComponents.Count > componentArray.Length)
+        {
+            OnElse?.Invoke(this, evaluation);
+            return;
+        }
+
         foreach (var component in RouteTemplateComponents)
         {
             if (component.TryParseSegment(componentArray[currentPositionInUrlComponents], urlVariables, out string verbatim))
@@ -121,9 +137,9 @@ public class Route : IService
 
         string[] remainingUrlComponents = [.. componentArray.Skip(currentPositionInUrlComponents)];
         OnThen?.Invoke(this, new RelativeRouteInteraction(
-            interaction, 
-            evaluation.Head, 
-            urlVariables, 
+            interaction,
+            evaluation.Head,
+            urlVariables,
             currentPath.ToString(),
             remainingUrlComponents));
     }

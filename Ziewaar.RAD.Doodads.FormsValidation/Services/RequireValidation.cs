@@ -25,7 +25,7 @@ public class RequireValidation : IService
                 new CommonInteraction(interaction, $"May only be called via {nameof(ValidateForm)}"));
             return;
         }
-        preValidationState.MustValidate = true;
+        preValidationState.ProceedAt = interaction;
         OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

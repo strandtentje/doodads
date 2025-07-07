@@ -31,4 +31,8 @@ public static class StringExtensions
 
         return result.ToArray();
     }
+
+    public static string Alphanumerize(this string text) => new string(
+                text.ToLower().Select(c => char.IsLetterOrDigit(c) || c == '_' ? c : '_').ToArray());
+
 }
