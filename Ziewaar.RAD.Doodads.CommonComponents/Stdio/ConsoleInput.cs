@@ -1,5 +1,8 @@
 ﻿#pragma warning disable 67
 #nullable enable
+using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.InteropServices;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Category("Input from source")]
 public class ConsoleInput : IService
