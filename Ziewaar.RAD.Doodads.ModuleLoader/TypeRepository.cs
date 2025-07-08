@@ -2,7 +2,7 @@
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
-public class TypeRepository
+public class TypeRepository : IDisposable
 {
     public static readonly TypeRepository Instance = new();
     public readonly SortedList<string, Type> NamedServiceTypes = new();
@@ -43,6 +43,7 @@ public class TypeRepository
         }
         return this;
     }
+    List<IDisposable> disposables = new();
     public IService CreateInstanceFor(string name, out Type foundType)
     {
         if (NamedServiceTypes.TryGetValue(name, out var type))
@@ -54,7 +55,12 @@ public class TypeRepository
                     Names = new NameSuggestions(NamedServiceTypes.Keys);
                 throw new MissingServiceTypeException(name, Names.GetMostSimilar(name));
             }
-            return (IService)Activator.CreateInstance(foundType);
+            var service = (IService)Activator.CreateInstance(foundType);
+            if (service is IDisposable disposableService)
+            {
+                disposables.Add(disposableService);
+            }
+            return service;
         }
         else
         {
@@ -66,5 +72,18 @@ public class TypeRepository
     public string[] GetAvailableNames() => NamedServiceTypes.Keys.ToArray();
     public bool HasName(string newTypeName) => NamedServiceTypes.ContainsKey(newTypeName);
     public bool TryGetByName(string name, out Type type) => NamedServiceTypes.TryGetValue(name, out type);
-
+    public void Dispose()
+    {
+        foreach (var item in disposables)
+        {
+            try
+            {
+                item.Dispose();
+            }
+            catch (Exception)
+            {
+                // ok.
+            }
+        }
+    }
 }

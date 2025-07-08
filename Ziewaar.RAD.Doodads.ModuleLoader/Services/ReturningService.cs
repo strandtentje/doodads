@@ -2,6 +2,21 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 
+public class ShutdownAll : IService
+{
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        TypeRepository.Instance.Dispose();
+        OnThen?.Invoke(this, interaction);
+    }
+
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+}
+
 public abstract class ReturningService : IService
 {
     public abstract event CallForInteraction? OnThen;
