@@ -36,9 +36,9 @@ public abstract class ValidatingField<TDefault> : IService
                           in that case, use in conjunction with AcceptValidation and RejectValidation
                           """)]
     private readonly UpdatingKeyValue IsNestingConstant = new("nest");
-    private string? CurrentFieldTitle;
-    private string? SanitizedFieldTitle;
-    private object? CurrentDefault;
+    private string? FixedCurrentFieldTitle;
+    private string? FixedSanitizedFieldTitle;
+    private object? FixedCurrentDefault;
     private bool IsCurrentlyRequired;
     private bool IsCurrentlyNesting;
     [EventOccasion("""
@@ -46,7 +46,12 @@ public abstract class ValidatingField<TDefault> : IService
                    Use AcceptValidation or RejectValidation to ultimately validate.
                    """)]
     public event CallForInteraction? OnThen;
-    [NeverHappens] public event CallForInteraction? OnElse;
+    [EventOccasion("""
+                   Sink the name in case no default was set.
+                   """)]
+    public event CallForInteraction? GetName;
+    [EventOccasion("""When no default was hardcoded, sink it here.""")]
+    public event CallForInteraction? OnElse;
     [EventOccasion("""
                    Could happen when
                     - Title was not set
@@ -78,11 +83,21 @@ public abstract class ValidatingField<TDefault> : IService
     }
     protected abstract bool TryValidate(StampedMap constants, string valueToValidate,
         [NotNullWhen(true)] out object? validatedValue);
-    protected virtual object? GetDefault(StampedMap constants)
+    protected virtual object? GetDefault(StampedMap constants, IInteraction parent)
     {
         if ((constants, DefaultValueConstant).IsRereadRequired(out object? defaultCandidate))
-            this.CurrentDefault = defaultCandidate ?? default(TDefault);
-        if (TryValidate(constants, this.CurrentDefault?.ToString() ?? "", out var validatedDefault))
+            this.FixedCurrentDefault = defaultCandidate ?? default(TDefault);
+        string CurrentDefault;
+        if (this.FixedCurrentDefault is not string dflt || string.IsNullOrWhiteSpace(dflt))
+        {
+            var tsi = new TextSinkingInteraction(parent);
+            OnElse?.Invoke(this, tsi);
+            CurrentDefault = tsi.ReadAllText();
+        } else
+        {
+            CurrentDefault = dflt;
+        }
+        if (TryValidate(constants, CurrentDefault.ToString() ?? "", out var validatedDefault))
             return validatedDefault;
         else
             return default(TDefault);
@@ -99,14 +114,27 @@ public abstract class ValidatingField<TDefault> : IService
             newFieldTitle != null)
         {
             newFieldTitle = newFieldTitle.ToLower();
-            this.CurrentFieldTitle = newFieldTitle;
-            this.SanitizedFieldTitle = newFieldTitle.Alphanumerize();
+            this.FixedCurrentFieldTitle = newFieldTitle;
+            this.FixedSanitizedFieldTitle = newFieldTitle.Alphanumerize();
         }
-        if (this.SanitizedFieldTitle == null || this.CurrentFieldTitle == null ||
-            string.IsNullOrWhiteSpace(SanitizedFieldTitle) || string.IsNullOrWhiteSpace(CurrentFieldTitle))
+        string SanitizedFieldTitle, CurrentFieldTitle;
+        if (this.FixedSanitizedFieldTitle == null || this.FixedCurrentFieldTitle == null ||
+            string.IsNullOrWhiteSpace(FixedSanitizedFieldTitle) || string.IsNullOrWhiteSpace(FixedCurrentFieldTitle))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "field title is required for this"));
-            return;
+            var tsi = new TextSinkingInteraction(interaction);
+            GetName?.Invoke(this, tsi);
+            var sourcedName = tsi.ReadAllText();
+            if (string.IsNullOrWhiteSpace(sourcedName))
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, "field title is required for this"));
+                return;
+            } else
+            {
+                (SanitizedFieldTitle, CurrentFieldTitle) = (sourcedName.Trim().ToLower().Alphanumerize(), sourcedName);
+            }
+        } else
+        {
+            (SanitizedFieldTitle, CurrentFieldTitle) = (FixedSanitizedFieldTitle, FixedCurrentFieldTitle);
         }
         if (!interaction.TryGetClosest(
                 out PreValidationStateInteraction? preValidationState) ||
@@ -130,8 +158,8 @@ public abstract class ValidatingField<TDefault> : IService
 
         if (preValidationState.ProceedAt != null)
         {
-            preValidationState.FieldValidations[this.SanitizedFieldTitle] = false;
-            var workingFieldName = this.SanitizedFieldTitle;
+            preValidationState.FieldValidations[SanitizedFieldTitle] = false;
+            var workingFieldName = SanitizedFieldTitle;
             if (csrfTokenSourceInteraction != null)
             {
                 if (csrfTokenSourceInteraction.Fields.TryRecoverByTrueName(formName,
@@ -143,9 +171,9 @@ public abstract class ValidatingField<TDefault> : IService
                 else
                 {
                     OnInvalid?.Invoke(this, new FieldPropertiesInteraction(
-                        interaction, this.SanitizedFieldTitle,
-                        MaskField(this.SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
-                        this.CurrentFieldTitle, CreateDefaultValue(constants)));
+                        interaction, SanitizedFieldTitle,
+                        MaskField(SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
+                        CurrentFieldTitle, CreateDefaultValue(constants, interaction)));
                     return;
                 }
             }
@@ -157,14 +185,14 @@ public abstract class ValidatingField<TDefault> : IService
                 if (IsRequired(constants))
                 {
                     OnInvalid?.Invoke(this, new FieldPropertiesInteraction(
-                        interaction, this.SanitizedFieldTitle,
-                        MaskField(this.SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
-                        this.CurrentFieldTitle, CreateDefaultValue(constants)));
+                        interaction, SanitizedFieldTitle,
+                        MaskField(SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
+                        CurrentFieldTitle, CreateDefaultValue(constants, interaction)));
                     return;
                 }
                 else
                 {
-                    candidateFieldText = GetDefault(constants)?.ToString() ?? "";
+                    candidateFieldText = GetDefault(constants, interaction)?.ToString() ?? "";
                 }
             }
 
@@ -195,36 +223,36 @@ public abstract class ValidatingField<TDefault> : IService
                             break;
                     }
                 }
-                preValidationState.FieldValidations[this.SanitizedFieldTitle] = isValid;
+                preValidationState.FieldValidations[SanitizedFieldTitle] = isValid;
                 if (isValid)
                 {
-                    preValidationState.FieldValues[this.SanitizedFieldTitle] = validatedValue;
+                    preValidationState.FieldValues[SanitizedFieldTitle] = validatedValue;
                     OnValid?.Invoke(this, new FieldPropertiesInteraction(
                         interaction,
-                        this.SanitizedFieldTitle,
-                        MaskField(this.SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
-                        this.CurrentFieldTitle, validatedValue.ToString() ?? ""));
+                        SanitizedFieldTitle,
+                        MaskField(SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
+                        CurrentFieldTitle, validatedValue.ToString() ?? ""));
                     return;
                 }
             }
 
             OnInvalid?.Invoke(this, new FieldPropertiesInteraction(
-                interaction, this.SanitizedFieldTitle,
-                MaskField(this.SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
-                this.CurrentFieldTitle, CreateDefaultValue(constants)));
+                interaction, SanitizedFieldTitle,
+                MaskField(SanitizedFieldTitle, csrfTokenSourceInteraction, formName),
+                CurrentFieldTitle, CreateDefaultValue(constants, interaction)));
         }
         else
         {
             OnInitial?.Invoke(this, new FieldPropertiesInteraction(
-                interaction, this.SanitizedFieldTitle,
-                csrfTokenSourceInteraction?.Fields.PackField(formName, this.SanitizedFieldTitle) ??
-                this.SanitizedFieldTitle,
-                this.CurrentFieldTitle, ""));
+                interaction, SanitizedFieldTitle,
+                csrfTokenSourceInteraction?.Fields.PackField(formName, SanitizedFieldTitle) ??
+                SanitizedFieldTitle,
+                CurrentFieldTitle, ""));
         }
     }
     private string
         MaskField(string unmasked, ICsrfTokenSourceInteraction? csrfTokenSourceInteraction, string formName) =>
         csrfTokenSourceInteraction?.Fields.PackField(formName, unmasked) ?? unmasked;
-    private string CreateDefaultValue(StampedMap constants) => GetDefault(constants)?.ToString() ?? "";
+    private string CreateDefaultValue(StampedMap constants, IInteraction interaction) => GetDefault(constants, interaction)?.ToString() ?? "";
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

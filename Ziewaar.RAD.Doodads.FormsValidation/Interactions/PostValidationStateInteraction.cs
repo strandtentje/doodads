@@ -11,7 +11,19 @@ public class PostValidationStateInteraction(
     public object Register => canonicalInteraction.Register;
     public IReadOnlyDictionary<string, object> Memory => new FallbackReadOnlyDictionary(
         validationStateFieldValues,
-        new SwitchingDictionary([fieldsInto], x => x == fieldsInto ? GetFields() : throw new KeyNotFoundException()));
+        new SwitchingDictionary(
+            [fieldsInto, "validation_fields_text"],
+            x =>
+            {
+                if (x == fieldsInto || x == "validation_fields_text")
+                {
+                    return GetFields();
+                }
+                else
+                {
+                    throw new KeyNotFoundException();
+                }
+            }));
     private string? FieldsBuffer = null;
     public string GetFields() => FieldsBuffer ??= validationStateFieldSink.ReadAllText();
 }
