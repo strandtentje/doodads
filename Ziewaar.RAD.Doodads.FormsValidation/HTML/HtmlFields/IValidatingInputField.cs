@@ -1,3 +1,4 @@
+
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
 public interface IValidatingInputField
 {
@@ -9,11 +10,14 @@ public interface IValidatingInputField
     /// expects the set to set this to 1 and increment after merge
     /// </summary>
     int MaxExpectedValues { get; set; }
-    string Name { get; }
+    string Name { get; set; }
     List<IValidatingInputField> AltValidators { get; }
     bool IsRequired { get; }
     bool IsMaxUnbound { get; }
-    bool TryValidate(string[] submittedValue, out object? result);
+
+    event EventHandler<(string oldName, string newName)>? NameChanged;
+
+    bool TryValidate(string[] submittedValue, out IEnumerable result);
     /// <summary>
     /// Use merge for name collisions
     /// On true, expects the set to merge the expected value counts

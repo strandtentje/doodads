@@ -2,17 +2,32 @@ using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingWeekPicker : IValidatingInputFieldInSet
+public class ValidatingWeekPicker(HtmlNode node) : IValidatingInputFieldInSet
 {
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            foreach (var item in AltValidators)
+            {
+                item.Name = value;
+            }
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
     public DateOnly Max { get; private set; }
     public DateOnly Min { get; private set; }
     public int MinExpectedValues { get; set; }
-    public int MaxExpectedValues { get; set; }
-    public string Name { get; private set; }
+    public int MaxExpectedValues { get; set; }    
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         var readWeeks = submittedValue.Select(Parse).TakeWhile(x => x.wasParsed).Select(x => x.value)
             .Where(x => Min <= x && Max >= x).ToArray();
@@ -63,9 +78,9 @@ public class ValidatingWeekPicker : IValidatingInputFieldInSet
         var isRequired = node.IsRequired();
         var maybeMin = Parse(node.GetMin() ?? $"{DateOnly.MinValue.Year}-W32");
         var maybeMax = Parse(node.GetMax() ?? $"{DateOnly.MaxValue.Year-1}-W32");
-        set.Merge(new ValidatingWeekPicker()
+        set.Merge(new ValidatingWeekPicker(node)
         {
-            Name = inputName, IsRequired = isRequired,
+            IsRequired = isRequired,
             Min = maybeMin.wasParsed ? maybeMin.value : DateOnly.MinValue,
             Max = maybeMax.wasParsed ? maybeMax.value : DateOnly.MaxValue,
         });

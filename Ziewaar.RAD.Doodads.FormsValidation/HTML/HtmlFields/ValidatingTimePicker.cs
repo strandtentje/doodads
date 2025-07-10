@@ -1,13 +1,24 @@
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingTimePicker : IValidatingInputFieldInSet
+public class ValidatingTimePicker(HtmlNode node) : IValidatingInputFieldInSet
 {
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
     public bool IsMaxUnbound => false;
     private TimeOnly Min, Max;
-    public string Name { get; private set; }
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
@@ -24,15 +35,15 @@ public class ValidatingTimePicker : IValidatingInputFieldInSet
             ? candiTimeMaxValue
             : TimeOnly.MaxValue;
         var isRequired = node.IsRequired();
-        set.Merge(new ValidatingTimePicker()
+        set.Merge(new ValidatingTimePicker(node)
         {
-            Name = inputName, IsRequired = isRequired, Min = minValue, Max = maxValue
+            IsRequired = isRequired, Min = minValue, Max = maxValue
         });
         return true;
     }
     private (bool wasParsed, TimeOnly value) Parse(string timeText) =>
         (TimeOnly.TryParse(timeText, out var only), only);
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         var readTimes = submittedValue.Select(Parse).TakeWhile(x => x.wasParsed).Select(x => x.value)
             .Where(x => Min <= x && Max >= x).ToArray();

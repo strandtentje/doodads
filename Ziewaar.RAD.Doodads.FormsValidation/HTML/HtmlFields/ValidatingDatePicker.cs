@@ -1,13 +1,24 @@
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingDatePicker : IValidatingInputFieldInSet
+public class ValidatingDatePicker(HtmlNode node) : IValidatingInputFieldInSet
 {
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
     public bool IsMaxUnbound => false;
     private DateOnly Min, Max;
-    public string Name { get; private set; }
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
@@ -24,15 +35,17 @@ public class ValidatingDatePicker : IValidatingInputFieldInSet
             ? candidateMaxValue
             : DateOnly.MaxValue;
         var isRequired = node.IsRequired();
-        set.Merge(new ValidatingDatePicker()
+        set.Merge(new ValidatingDatePicker(node)
         {
-            Name = inputName, IsRequired = isRequired, Min = minValue, Max = maxValue
+            IsRequired = isRequired,
+            Min = minValue,
+            Max = maxValue
         });
         return true;
     }
     private (bool wasParsed, DateOnly value) Parse(string dateText) =>
         (DateOnly.TryParse(dateText, out var only), only);
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         var readDates = submittedValue.Select(Parse).TakeWhile(x => x.wasParsed).Select(x => x.value)
             .Where(x => Min <= x && Max >= x).ToArray();

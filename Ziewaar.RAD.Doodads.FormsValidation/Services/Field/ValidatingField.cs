@@ -162,7 +162,7 @@ public abstract class ValidatingField<TDefault> : IService
             var workingFieldName = SanitizedFieldTitle;
             if (csrfTokenSourceInteraction != null)
             {
-                if (csrfTokenSourceInteraction.Fields.TryRecoverByTrueName(formName,
+                if (csrfTokenSourceInteraction.Fields.TryObfuscating(formName,
                         workingFieldName, out var obfuscatedFieldName) &&
                     !string.IsNullOrWhiteSpace(obfuscatedFieldName))
                 {
@@ -245,14 +245,14 @@ public abstract class ValidatingField<TDefault> : IService
         {
             OnInitial?.Invoke(this, new FieldPropertiesInteraction(
                 interaction, SanitizedFieldTitle,
-                csrfTokenSourceInteraction?.Fields.PackField(formName, SanitizedFieldTitle) ??
+                csrfTokenSourceInteraction?.Fields.NewObfuscation(formName, SanitizedFieldTitle) ??
                 SanitizedFieldTitle,
                 CurrentFieldTitle, ""));
         }
     }
     private string
         MaskField(string unmasked, ICsrfTokenSourceInteraction? csrfTokenSourceInteraction, string formName) =>
-        csrfTokenSourceInteraction?.Fields.PackField(formName, unmasked) ?? unmasked;
+        csrfTokenSourceInteraction?.Fields.NewObfuscation(formName, unmasked) ?? unmasked;
     private string CreateDefaultValue(StampedMap constants, IInteraction interaction) => GetDefault(constants, interaction)?.ToString() ?? "";
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

@@ -2,17 +2,28 @@ using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingTextInput : IValidatingInputFieldInSet
+public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
 {
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
     public int MinLength, MaxLength;
     public Regex Pattern;
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
-    public string Name { get; private set; }
     public List<IValidatingInputField> AltValidators { get; }
     public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         var readPw =  submittedValue.Where(x => x.Length >= MinLength && x.Length <= MaxLength && Pattern.IsMatch(x)).ToArray();
         result = readPw;
@@ -36,14 +47,14 @@ public class ValidatingTextInput : IValidatingInputFieldInSet
     private static readonly string[] FieldTypes = ["password", "text", "search", "tel", "text", "url"];
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
-        if (!FieldTypes.Contains(node.GetInputTypeName()))
+        if (!FieldTypes.Contains(node.GetInputTypeName()) || node.Name != "textarea")
             return false;
         if (node.GetInputName() is not string inputName)
             return true;
         var isRequired = node.IsRequired();
-        set.Merge(new ValidatingTextInput()
+        set.Merge(new ValidatingTextInput(node)
         {
-            Name = inputName, IsRequired = isRequired,
+            IsRequired = isRequired,
             MinLength = node.GetMinLength(), MaxLength = node.GetMaxLength(),
             Pattern = node.GetPattern()
         });

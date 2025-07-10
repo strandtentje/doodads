@@ -1,17 +1,28 @@
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingMonthPicker : IValidatingInputFieldInSet
+public class ValidatingMonthPicker(HtmlNode node) : IValidatingInputFieldInSet
 {
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
     public DateOnly Max { get; private set; }
     public DateOnly Min { get; private set; }
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
-    public string Name { get; private set; }
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         var readMonths = submittedValue.Select(Parse).TakeWhile(x => x.wasParsed).Select(x => x.value)
             .Where(x => Min <= x && Max >= x).ToArray();
@@ -44,9 +55,9 @@ public class ValidatingMonthPicker : IValidatingInputFieldInSet
         var isRequired = node.IsRequired();
         var maybeMin = Parse(node.GetMin() ?? $"{DateOnly.MinValue.Year}-{DateOnly.MinValue.Month}");
         var maybeMax = Parse(node.GetMax() ?? $"{DateOnly.MaxValue.Year}-{DateOnly.MaxValue.Month}");
-        set.Merge(new ValidatingMonthPicker()
+        set.Merge(new ValidatingMonthPicker(node)
         {
-            Name = inputName, IsRequired = isRequired,
+            IsRequired = isRequired,
             Min = maybeMin.wasParsed ? maybeMin.value : DateOnly.MinValue,
             Max = maybeMax.wasParsed ? maybeMax.value : DateOnly.MaxValue,
         });

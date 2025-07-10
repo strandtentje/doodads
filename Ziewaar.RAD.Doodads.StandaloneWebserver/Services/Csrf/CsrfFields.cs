@@ -9,9 +9,9 @@ public class CsrfFields(
     string instanceCookie,
     string csrfCookieValue) : ICsrfFields
 {
-    public string PackField(string formName, string fieldName)
+    public string NewObfuscation(string formName, string deobfuscatedName)
     {
-        var fieldAlias = ComponentCookie.CreateNew().ToString();
+        var obfuscatedName = ComponentCookie.CreateNew().ToString();
         commands.UseCommand(command =>
         {
             command.CommandText =
@@ -36,13 +36,34 @@ public class CsrfFields(
                 DbType.String.ToParam("instancetoken", instanceCookie),
                 DbType.String.ToParam("csrfanchorcookie", csrfCookieValue),
                 DbType.String.ToParam("formname", formName),
-                DbType.String.ToParam("fieldalias", fieldAlias),
-                DbType.String.ToParam("truefieldname", fieldName));
+                DbType.String.ToParam("fieldalias", obfuscatedName),
+                DbType.String.ToParam("truefieldname", deobfuscatedName));
+            command.ExecuteNonQuery();
             return default(object);
         });
-        return fieldAlias;
+        return obfuscatedName;
     }
-    public bool TryRecoverByTrueName(string formName, string trueName, [NotNullWhen(true)] out string fieldAlias)
+    public void UnregisterAlias(string formName, string alias)
+    {
+        commands.UseCommand(command =>
+        {
+            command.CommandText = """
+            DELETE FROM csrftoken 
+            WHERE instancetoken = $instancetoken 
+            AND csrfanchorcookie = $csrfanchorcookie 
+            AND formname = $formname
+            AND fieldalias = $alias
+            """;
+            command.SetParams(
+                DbType.String.ToParam("instancetoken", instanceCookie),
+                DbType.String.ToParam("csrfanchorcookie", csrfCookieValue),
+                DbType.String.ToParam("formname", formName),
+                DbType.String.ToParam("alias", alias));
+            command.ExecuteNonQuery();
+            return default(object);
+        });
+    }
+    public bool TryObfuscating(string formName, string unobfuscatedName, [NotNullWhen(true)] out string obfuscatedName)
     {
         var fieldAliases = commands.UseCommand(command =>
         {
@@ -60,7 +81,7 @@ public class CsrfFields(
                 DbType.String.ToParam("instancetoken", instanceCookie),
                 DbType.String.ToParam("formname", formName),
                 DbType.String.ToParam("csrfanchorcookie", csrfCookieValue),
-                DbType.String.ToParam("truefieldname", trueName));
+                DbType.String.ToParam("truefieldname", unobfuscatedName));
             List<string> results = new();
             using (var reader = command.ExecuteReader())
             {
@@ -71,16 +92,16 @@ public class CsrfFields(
         });
         if (fieldAliases.Length == 1)
         {
-            fieldAlias = fieldAliases[0];
+            obfuscatedName = fieldAliases[0];
             return true;
         }
         else
         {
-            fieldAlias = "";
+            obfuscatedName = "";
             return false;
         }
     }
-    public bool TryRecoverByAlias(string formName, string fieldAlias, [NotNullWhen(true)] out string trueFieldName)
+    public bool TryDeobfuscating(string formName, string obfuscatedName, [NotNullWhen(true)] out string deobfuscatedName)
     {
         var trueFieldNames = commands.UseCommand(command =>
         {
@@ -98,7 +119,7 @@ public class CsrfFields(
                 DbType.String.ToParam("instancetoken", instanceCookie),
                 DbType.String.ToParam("csrfanchorcookie", csrfCookieValue),
                 DbType.String.ToParam("formname", formName),
-                DbType.String.ToParam("fieldalias", fieldAlias));
+                DbType.String.ToParam("fieldalias", obfuscatedName));
             List<string> results = new();
             using (var reader = command.ExecuteReader())
             {
@@ -107,26 +128,19 @@ public class CsrfFields(
             }
             return results.ToArray();
         });
-        commands.UseCommand(command =>
-        {
-            command.CommandText = "DELETE FROM csrftoken WHERE fieldalias = $fieldalias";
-            command.SetParams(DbType.String.ToParam("fieldalias", fieldAlias));
-            command.ExecuteNonQuery();
-            return default(object);
-        });
         if (trueFieldNames.Length == 1)
         {
-            trueFieldName = trueFieldNames[0];
+            deobfuscatedName = trueFieldNames[0];
             return true;
         }
         else
         {
-            trueFieldName = "";
+            deobfuscatedName = "";
             return false;
         }
     }
-    
-    public string[] GetWhitelist(string formName)
+
+    public string[] GetObfuscatedWhitelist(string formName)
     {
         return commands.UseCommand(command =>
         {
@@ -138,6 +152,35 @@ public class CsrfFields(
                 AND instancetoken = $instancetoken
                 AND csrfanchorncookie = $csrfanchorcookie
                 AND formname = $formname
+                ORDER BY inserttime
+                """;
+            command.SetParams(
+                DbType.String.ToParam("instancetoken", instanceCookie),
+                DbType.String.ToParam("csrfanchorcookie", csrfCookieValue),
+                DbType.String.ToParam("formname", formName));
+            List<string> results = new();
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                    results.Add(reader.GetString(0));
+            }
+            return results.ToArray();
+        });
+    }
+
+    public string[] GetDeobfuscatedWhitelist(string formName)
+    {
+        return commands.UseCommand(command =>
+        {
+            command.CommandText =
+                """
+                SELECT truefieldname
+                FROM csrftoken
+                WHERE inserttime >= datetime('now', '-30 minutes') 
+                AND instancetoken = $instancetoken
+                AND csrfanchorncookie = $csrfanchorcookie
+                AND formname = $formname
+                ORDER BY inserttime
                 """;
             command.SetParams(
                 DbType.String.ToParam("instancetoken", instanceCookie),

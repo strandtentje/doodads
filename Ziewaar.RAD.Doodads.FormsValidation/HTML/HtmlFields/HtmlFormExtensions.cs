@@ -8,6 +8,26 @@ public static class HtmlFormExtensions
         node.Attributes.FirstOrDefault(x => x.Name == "type")?.Value ?? "text";
     public static string? GetInputName(this HtmlNode node) =>
         node.Attributes.FirstOrDefault(x => x.Name == "name")?.Value;
+    public static void SetInputName(this HtmlNode node, string inputName)
+    {
+        if (node.Attributes.FirstOrDefault(x => x.Name == "name") is { } nameAttr)
+        {
+            nameAttr.Value = inputName;
+        }
+    }
+    public static void ChangeLabelNames(this HtmlNode node, string oldName, string newName)
+    {
+        var matchingForNodes = node.
+            SelectNodes("//label")?.
+            Where(x => x.GetAttributes("for").Any(x => x.Value == oldName)) ?? [];
+        foreach (var matchingLabels in matchingForNodes)
+        {
+            foreach (var matchingFors in matchingLabels.GetAttributes("for"))
+            {
+                matchingFors.Value = newName;
+            }
+        }
+    }
     public static string GetRequiredInputName(this HtmlNode node) => node.GetInputName() ??
                                                                      throw new FormValidationMarkupException(
                                                                          "node must have a name");
@@ -27,4 +47,20 @@ public static class HtmlFormExtensions
         node.Attributes.FirstOrDefault(x => x.Name == "required") != null;
     public static bool IsMultiple(this HtmlNode node) =>
         node.Attributes.FirstOrDefault(x => x.Name == "multiple") != null;
+
+    public static void SetErrorSpan(this HtmlDocument document, string fieldName)
+    {
+        var matchingErrorNodes = document.DocumentNode.
+            SelectNodes("//span")?.
+            Where(x => x.GetAttributes("class").
+            Any(x => x.Value.Contains($"error_{fieldName}"))) ?? [];
+        foreach (var errorNode in matchingErrorNodes)
+        {
+            var classAttributes = errorNode.GetAttributes("class");
+            foreach (var classAttribute in classAttributes)
+            {
+                classAttribute.Value = $"{classAttribute.Value.Replace("disabled", "")} enabled";
+            }
+        }
+    }
 }

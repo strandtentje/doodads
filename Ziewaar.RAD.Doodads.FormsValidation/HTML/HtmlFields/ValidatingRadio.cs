@@ -1,13 +1,25 @@
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingRadio(bool isRequired, string name, List<string> validValues) : IValidatingInputFieldInSet
+public class ValidatingRadio(HtmlNode node) : IValidatingInputFieldInSet
 {
-    public bool IsRequired => isRequired;
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
+    public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
     public int MinExpectedValues
     {
-        get => isRequired ? 1 : 0;
+        get => IsRequired ? 1 : 0;
         set { }
     }
     public int MaxExpectedValues
@@ -15,8 +27,7 @@ public class ValidatingRadio(bool isRequired, string name, List<string> validVal
         get => 1;
         set { }
     }
-    public string Name => name;
-    private IEnumerable<string> ValidValues => validValues;
+    private IEnumerable<string> ValidValues { get; set; }
     public List<IValidatingInputField> AltValidators { get; } = new();
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
@@ -25,20 +36,24 @@ public class ValidatingRadio(bool isRequired, string name, List<string> validVal
         if (node.GetInputName() is not string inputName)
             return true;
         if (node.GetInputValue() is string radioValue)
-            set.Merge(new ValidatingRadio(node.IsRequired(), inputName, [radioValue]));
+            set.Merge(new ValidatingRadio(node)
+            {
+                IsRequired = node.IsRequired(),                
+                ValidValues = [radioValue]
+            });
         return true;
     }
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
-        if (submittedValue.Length == 1 && validValues.Contains(submittedValue.Single()) ||
-            submittedValue.Length == 0 && !isRequired)
+        if (submittedValue.Length == 1 && ValidValues.Contains(submittedValue.Single()) ||
+            submittedValue.Length == 0 && !IsRequired)
         {
             result = submittedValue;
             return true;
         }
         else
         {
-            result = null;
+            result = Enumerable.Empty<object>();
             return false;
         }
     }
@@ -48,7 +63,7 @@ public class ValidatingRadio(bool isRequired, string name, List<string> validVal
             throw new FormValidationMarkupException("Cannot merge fields with different name");
         if (otherFieldInSet is ValidatingRadio otherRadio)
         {
-            validValues.AddRange(otherRadio.ValidValues);
+            ValidValues = ValidValues.Concat(otherRadio.ValidValues);
             return true;
         }
         return false;

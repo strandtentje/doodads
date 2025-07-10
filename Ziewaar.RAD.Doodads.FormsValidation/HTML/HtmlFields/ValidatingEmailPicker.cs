@@ -2,18 +2,29 @@ using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
-public class ValidatingEmailPicker : IValidatingInputFieldInSet
+public class ValidatingEmailPicker(HtmlNode node) : IValidatingInputFieldInSet
 {
+    public event EventHandler<(string oldName, string newName)>? NameChanged;
+    public string Name
+    {
+        get => node.GetInputName() ?? "";
+        set
+        {
+            var oldName = node.GetInputName();
+            node.SetInputName(value);
+            if (oldName == null) return;
+            NameChanged?.Invoke(this, (oldName, value));
+        }
+    }
     public Regex Pattern;
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
     public bool IsMaxUnbound { get; private set; }
     public int MaxLength { get; private set; }
-    public int MinLength { get; private set; }
-    public string Name { get; private set; }
+    public int MinLength { get; private set; }    
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
-    public bool TryValidate(string[] submittedValue, out object? result)
+    public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         if (IsMaxUnbound)
             submittedValue = submittedValue.SelectMany(x => x.Split(',')).ToArray();
@@ -37,9 +48,9 @@ public class ValidatingEmailPicker : IValidatingInputFieldInSet
         if (node.GetInputName() is not string inputName)
             return true;
         var isRequired = node.IsRequired();
-        set.Merge(new ValidatingEmailPicker()
+        set.Merge(new ValidatingEmailPicker(node)
         {
-            Name = inputName, IsRequired = isRequired, MinLength = node.GetMinLength(), MaxLength = node.GetMaxLength(),
+            IsRequired = isRequired, MinLength = node.GetMinLength(), MaxLength = node.GetMaxLength(),
             IsMaxUnbound = node.IsMultiple(), Pattern = node.GetPattern()
         });
         return true;

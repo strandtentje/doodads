@@ -38,7 +38,7 @@ public abstract class ReadEncodedBody<TDictionary> : IService where TDictionary 
             if (interaction.TryGetClosest<ICsrfTokenSourceInteraction>(out var csrfInteraction) &&
                 interaction.TryGetClosest<PreValidationStateInteraction>(out var prevalidation) &&
                 csrfInteraction != null && prevalidation != null)
-                currentWhiteList = csrfInteraction.Fields.GetWhitelist(prevalidation.FormName);
+                currentWhiteList = csrfInteraction.Fields.GetObfuscatedWhitelist(prevalidation.FormName);
             else
             {
                 OnException?.Invoke(this,
