@@ -21,6 +21,7 @@ public class HtmlForm : IService
         var tsi = new TextSinkingInteraction(interaction, textEncoding: targetSink.TextEncoding);
         OnThen?.Invoke(this, tsi);
         HtmlDocument doc = new();
+        tsi.SinkBuffer.Position = 0;
         doc.Load(tsi.SinkBuffer, targetSink.TextEncoding);
         var fieldset = ValidatingInputFieldSet.Parse(doc);
 
@@ -56,12 +57,25 @@ public class HtmlForm : IService
                 var result = fieldset.Validate(parsedForm);
                 if (!result.Any(x => x.isError))
                 {
-                    var cleanedResult = result.Where(x =>
-                        x.value != null &&
-                        (x.value is not IEnumerable enumerableValue ||
-                        enumerableValue.OfType<object>().Count() > 0));
-                    OnValid?.Invoke(this, new CommonInteraction(interaction, cleanedResult.ToDictionary(
-                        x => x.name, x => x.value)));
+                    SortedList<string, object> saneValues = new();
+                    foreach (var item in result)
+                    {
+                        if (item.value is IEnumerable enumerable)
+                        {
+                            var instances = enumerable.OfType<object>().ToArray();
+                            if (instances.Length == 1)
+                            {
+                                saneValues[item.name] = instances[0];
+                            } else if (instances.Length > 1)
+                            {
+                                saneValues[item.name] = instances;
+                            }
+                        } else if (item.value is object singleItem)
+                        {
+                            saneValues[item.name] = singleItem;
+                        }
+                    }
+                    OnValid?.Invoke(this, new CommonInteraction(interaction, saneValues));
                 } else
                 {
                     foreach (var item in result.Where(x=>x.isError))

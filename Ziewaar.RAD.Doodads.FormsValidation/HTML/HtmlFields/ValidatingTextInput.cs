@@ -17,15 +17,15 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
         }
     }
     public int MinLength, MaxLength;
-    public Regex Pattern;
+    public Regex Pattern = new(".*");
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
-    public List<IValidatingInputField> AltValidators { get; }
+    public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
     public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
-        var readPw =  submittedValue.Where(x => x.Length >= MinLength && x.Length <= MaxLength && Pattern.IsMatch(x)).ToArray();
+        var readPw = submittedValue.Where(x => x.Length >= MinLength && x.Length <= MaxLength && Pattern.IsMatch(x)).ToArray();
         result = readPw;
         return readPw.Length == submittedValue.Length;
     }
@@ -47,7 +47,8 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
     private static readonly string[] FieldTypes = ["password", "text", "search", "tel", "text", "url"];
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
-        if (!FieldTypes.Contains(node.GetInputTypeName()) || node.Name != "textarea")
+        var nodeType = node.GetInputTypeName();
+        if (!FieldTypes.Any(x => string.Compare(x, nodeType, true) == 0) && node.Name != "textarea")
             return false;
         if (node.GetInputName() is not string inputName)
             return true;
@@ -55,7 +56,8 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
         set.Merge(new ValidatingTextInput(node)
         {
             IsRequired = isRequired,
-            MinLength = node.GetMinLength(), MaxLength = node.GetMaxLength(),
+            MinLength = node.GetMinLength(),
+            MaxLength = node.GetMaxLength(),
             Pattern = node.GetPattern()
         });
         return true;

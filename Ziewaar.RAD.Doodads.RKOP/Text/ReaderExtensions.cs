@@ -41,11 +41,19 @@ public static class ReaderExtensions
         if (token.IsValid)
             return continued;
         else
+        {
+            Console.Write($"""
+                Syntax error at {text.GetCurrentLine()}:{text.GetCurrentCol()}, 
+                Expected: {description.HumanReadable}
+                {hint}
+                """);
             throw new SyntaxException(text, $"""
                 Syntax error at {text.GetCurrentLine()}:{text.GetCurrentCol()}, 
                 Expected: {description.HumanReadable}
                 {hint}
                 """);
+
+        }
 
     }
 }

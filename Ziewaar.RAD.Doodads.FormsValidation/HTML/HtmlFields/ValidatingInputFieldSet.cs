@@ -10,12 +10,14 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
     public override string ToString() => $"{method} {route}";
     public void ApplyObfuscation(ICsrfFields fields)
     {
-        foreach(var item in fieldIngestors)
+        foreach (var item in fieldIngestors)
             item.Name = fields.NewObfuscation(this.ToString(), item.Name);
     }
     public void ParseAndMergeNode(HtmlNode node)
     {
-        if (ValidatingTextInput.TryInsertInto(node, this) ||
+        if (node.GetInputName() == null) return;
+        if (ValidatingSelectbox.TryInsertInto(node, this) ||
+            ValidatingTextInput.TryInsertInto(node, this) ||
             ValidatingTimePicker.TryInsertInto(node, this) ||
             ValidatingDatePicker.TryInsertInto(node, this) ||
             ValidatingWeekPicker.TryInsertInto(node, this) ||
@@ -62,11 +64,13 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
             fieldInSet.MinExpectedValues = fieldInSet.IsRequired ? 1 : 0;
             fieldInSet.MaxExpectedValues = fieldInSet.IsMaxUnbound ? short.MaxValue : 1;
             fieldIngestors.Add(fieldInSet);
-        } else if (existingField.TryIdentityMerge(fieldInSet))
+        }
+        else if (existingField.TryIdentityMerge(fieldInSet))
         {
             existingField.MinExpectedValues += fieldInSet.MinExpectedValues;
             existingField.MaxExpectedValues += fieldInSet.MaxExpectedValues;
-        } else
+        }
+        else
         {
             existingField.AltValidators.Add(fieldInSet);
             existingField.MinExpectedValues += fieldInSet.MinExpectedValues;
@@ -81,35 +85,38 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
         for (int i = 0; i < fieldIngestors.Count; i++)
         {
             IValidatingInputField? validator = fieldIngestors[i];
-            if (!inputValues.TryGetValue(validator.Name, out var valueToValidate) 
+            if (!inputValues.TryGetValue(validator.Name, out var valueToValidate)
                 || valueToValidate is not IEnumerable<string> stringsToValidate)
             {
                 result[i] = new(validator.Name, Enumerable.Empty<object>(), validator.MinExpectedValues > 0);
-            } else if (
-                stringsToValidate.Count() < validator.MinExpectedValues || 
+            }
+            else if (
+                stringsToValidate.Count() < validator.MinExpectedValues ||
                 stringsToValidate.Count() > validator.MaxExpectedValues)
             {
                 result[i] = new(validator.Name, Enumerable.Empty<object>(), true);
-            } else if (validator.TryValidate(stringsToValidate.ToArray(), out var resultValues))
+            }
+            else if (validator.TryValidate(stringsToValidate.ToArray(), out var resultValues))
             {
                 var resultArray = resultValues.OfType<object>().ToArray();
                 if (resultArray.Length < validator.MinExpectedValues ||
                     resultArray.Length > validator.MaxExpectedValues)
                 {
                     result[i] = new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
-                } else
+                }
+                else
                 {
                     result[i] = new ValidationResult(validator.Name, resultArray, false);
                 }
             }
-            else
+            else if (validator.AltValidators != null)
             {
-                foreach(var alt in validator.AltValidators)
-                { 
+                foreach (var alt in validator.AltValidators)
+                {
                     if (alt.TryValidate(stringsToValidate.ToArray(), out var altOutput))
                     {
                         var resultArray = altOutput.OfType<object>().ToArray();
-                        if (resultArray.Length >= validator.MinExpectedValues || 
+                        if (resultArray.Length >= validator.MinExpectedValues ||
                             resultArray.Length <= validator.MaxExpectedValues)
                         {
                             result[i] = new ValidationResult(validator.Name, resultArray, false);
@@ -117,6 +124,9 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
                         }
                     }
                 }
+                result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
+            } else
+            {
                 result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
             }
         }
