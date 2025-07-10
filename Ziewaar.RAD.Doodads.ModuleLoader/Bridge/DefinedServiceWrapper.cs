@@ -143,21 +143,11 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         {
             Instance!.Enter(Constants, interaction);
         }
-#if !DEBUG
         catch (Exception ex)
         {
             Console.WriteLine("Fatal on {0}", Type?.Name ?? "Unknown Type");
-            try
-            {
-                Console.WriteLine("Dump of Fatal {0}", JsonConvert.SerializeObject(ex, Formatting.Indented));
-                Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
-            }
-            catch (Exception metaEx)
-            {
-                Console.WriteLine("Exception while handling exception {0}; {1}", ex, metaEx);
-            }
+            Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
         }
-#endif
         finally
         {
             DoneDelegate?.DynamicInvoke(this, interaction);

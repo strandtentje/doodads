@@ -1,4 +1,5 @@
 ﻿using HtmlAgilityPack;
+using System.Web;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
 
@@ -78,7 +79,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
         }
     }
     public bool IsValidationRequired(string requestMethod, string requestUrl) =>
-        HttpMethod.Parse(requestMethod) == method && requestUrl == route;
+        HttpMethod.Parse(requestMethod) == method && HttpUtility.UrlDecode(requestUrl) == route;
     public ValidationResult[] Validate(IReadOnlyDictionary<string, IEnumerable> inputValues)
     {
         var result = new ValidationResult[fieldIngestors.Count];
@@ -125,7 +126,8 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
                     }
                 }
                 result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
-            } else
+            }
+            else
             {
                 result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
             }
