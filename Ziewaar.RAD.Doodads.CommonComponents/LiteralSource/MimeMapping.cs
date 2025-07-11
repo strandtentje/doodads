@@ -29,6 +29,7 @@ public static class MimeMapping
             ["htm"] = new("text/html", true),
             ["css"] = new("text/css", true),
             ["js"] = new("application/javascript", true),
+            ["mjs"] = new("text/javascript", true),
             ["json"] = new("application/json", true),
 
             // Images (binary)

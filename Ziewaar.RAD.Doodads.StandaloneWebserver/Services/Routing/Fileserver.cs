@@ -116,13 +116,25 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing
             }
             else
             {
-                var printer = new PrintContent();
-                printer.OnException += OnException;
-                printer.Enter(new StampedMap(fileInfo.FullName, new SwitchingDictionary(["setlength"], key => key switch
+                if (interaction.TryGetClosest<HttpResponseInteraction>(out var resp) && resp != null)
                 {
-                    "setlength" => true,
-                    _ => throw new KeyNotFoundException(),
-                })), interaction);
+                    resp.SinkTrueContentType = MimeMapping.GetMimeType(fileInfo.FullName);
+                    resp.SetContentLength64(fileInfo.Length);
+                    using (var x = fileInfo.OpenRead())
+                    {
+                        x.CopyTo(resp.SinkBuffer);
+                    }
+                    if (interaction.TryGetClosest<HttpHeadInteraction>(out var head) && head != null)
+                    {
+                        head.Context.Response.Close();
+                    }
+                } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sink) && sink != null)
+                {
+                    using (var x = fileInfo.OpenRead())
+                    {
+                        x.CopyTo(sink.SinkBuffer);
+                    }
+                }
             }
         }
 
