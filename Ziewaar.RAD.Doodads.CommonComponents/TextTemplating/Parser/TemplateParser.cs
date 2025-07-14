@@ -7,13 +7,19 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
     public void RefreshTemplateData(StreamReader reader)
     {
         var allTemplateText = reader.ReadToEnd();
+        RefreshTemplateData(allTemplateText);
+        reader.Dispose();
+    }
+
+    public void RefreshTemplateData(string allTemplateText)
+    {
         CommandStack.Clear();
-        for(int selectionHead = 0;
+        for (int selectionHead = 0;
             selectionHead < allTemplateText.Length;
             selectionHead = FindNextHead(allTemplateText, selectionHead))
             ;
-        reader.Dispose();
     }
+
     private int FindNextHead(string allTemplateText, int cursor)
     {
         var openerPosition = allTemplateText.OrdinalIndexOfPlaceholderStart(cursor);

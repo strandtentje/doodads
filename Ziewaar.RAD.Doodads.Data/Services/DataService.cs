@@ -34,7 +34,7 @@ public abstract class DataService<TResult> : IService
     protected abstract TResult WorkWithCommand(IDbCommand command, IInteraction cause);
     protected abstract void FinalizeResult(TResult output, IInteraction cause);
 
-    public void Enter(StampedMap constants, IInteraction interaction)
+    public virtual void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ICommandSourceInteraction>(out var commandSource) || commandSource == null)
         {

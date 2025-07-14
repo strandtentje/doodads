@@ -59,7 +59,7 @@ public class Same : IService
             OnThen?.Invoke(this, interaction);
         }
         else if (
-            values.Any() && 
+            values .Any() && 
             values.All(x => x.isPresent) && 
             values.Select(x => x.foundText).OfType<string>().Distinct().Count() == 1)
         {
