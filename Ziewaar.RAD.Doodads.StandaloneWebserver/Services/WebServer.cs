@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+
 public class WebServer : IService, IDisposable
 {
     private HttpListener? CurrentListener = null;
@@ -28,7 +29,11 @@ public class WebServer : IService, IDisposable
         {
             StartingInteraction = interaction;
             CurrentListener!.Start();
-            OnStarted?.Invoke(this, new CommonInteraction(interaction));
+            OnStarted?.Invoke(this, new CommonInteraction(interaction, memory: new SwitchingDictionary(["localhosturl"], x => x switch
+            {
+                "localhosturl" => ExpandedPrefixes.LocalIPURL,
+                _ => throw new KeyNotFoundException(),
+            })));
             CurrentListener.BeginGetContext(NewIncomingContext, CurrentListener);
         }
     }
@@ -53,7 +58,7 @@ public class WebServer : IService, IDisposable
         {
             httpContext = servingListener.EndGetContext(ar);
             CurrentListener?.BeginGetContext(NewIncomingContext, CurrentListener);
-            var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext, expandedPrefixes);
+            var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, httpContext, ExpandedPrefixes);
             OnHead?.Invoke(this, headInteraction);
             var requestInteraction = new HttpRequestInteraction(headInteraction, httpContext);
             var responseInteraction = new HttpResponseInteraction(requestInteraction, httpContext);
@@ -160,7 +165,7 @@ public class WebServer : IService, IDisposable
             return true;
         }
     }
-    ExpandedPrefixes expandedPrefixes = new();
+    ExpandedPrefixes ExpandedPrefixes = new();
     public static bool TryGetLocalIPAddress(out string addr)
     {
         var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -182,17 +187,17 @@ public class WebServer : IService, IDisposable
         {
             UrlAccessGuarantor.EnsureUrlAcls(Prefixes);
             CurrentListener = new();
-            expandedPrefixes = new();
+            ExpandedPrefixes = new();
             foreach (var item in updatedPrefixesArray)
             {
                 CurrentListener.Prefixes.Add(item);
-                expandedPrefixes.LoopbackURL = item.Replace("*", "127.0.0.1").Replace("+", "127.0.0.1");
+                ExpandedPrefixes.LoopbackURL = item.Replace("*", "127.0.0.1").Replace("+", "127.0.0.1");
                 if (TryGetLocalIPAddress(out string addr))
-                    expandedPrefixes.LocalIPURL = item.Replace("*", addr).Replace("+", addr);
+                    ExpandedPrefixes.LocalIPURL = item.Replace("*", addr).Replace("+", addr);
                 try
                 {
                     var hostname = Dns.GetHostName();
-                    expandedPrefixes.LocalHostnameURL = item.Replace("*", hostname).Replace("+", hostname);
+                    ExpandedPrefixes.LocalHostnameURL = item.Replace("*", hostname).Replace("+", hostname);
                 } catch(Exception)
                 {
                     // whatever

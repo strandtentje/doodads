@@ -4,84 +4,36 @@ public class UrlAccessGuarantor
 {
     public static void EnsureUrlAcls(IEnumerable<string> prefixes)
     {
+        var prefixdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "doodads-prefixes");
+        if (!Directory.Exists(prefixdir)) Directory.CreateDirectory(prefixdir);
+        var prefixfile = Path.Combine(prefixdir, "prefixes.txt");
+        Console.WriteLine($"using {prefixfile} for keeping track of registered prefixes");
+        if (!File.Exists(prefixfile)) File.WriteAllText(prefixfile, "");
+        var prefixLines = File.ReadAllLines(prefixfile).Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+
         foreach (var prefix in prefixes)
         {
-            switch (IsPrefixReserved(prefix))
+            if (!prefixLines.Contains(prefix))
             {
-                case ReservationState.UrlAvailableForThisUser:
-                    Console.WriteLine($"Prefix already registered: {prefix}");
-                    break;
-                case ReservationState.ReservationNotNeccesary:
-                    Console.WriteLine($"Not on windows, no need to reserve urls");
-                    break;
-                case ReservationState.UrlReservedForSomeoneElse:
-                    Console.WriteLine($"URL was reserved for someone else {prefix}. Claiming it.");
-                    RemoveUrlAcl(prefix);
-                    AddUrlAcl(prefix);
-                    break;
-                case ReservationState.UrlNotReserved:
-                    Console.WriteLine($"URL was not reserved {prefix}. Claiming it.");
-                    AddUrlAcl(prefix);
-                    break;
-
+                RemoveUrlAcl(prefix);
+                AddUrlAcl(prefix);
+                File.AppendAllLines(prefixfile, [prefix]);
             }
         }
     }
-
-    public enum ReservationState { ReservationNotNeccesary, UrlAvailableForThisUser, UrlReservedForSomeoneElse, UrlNotReserved };
-
-    private static ReservationState IsPrefixReserved(string prefix)
-    {
-        if (IsNotOnWindows)
-            return ReservationState.ReservationNotNeccesary;
-        var output = RunProcessAndCapture("netsh", "http show urlacl");
-        var normalizedPrefix = prefix.TrimEnd('/');
-
-        var ourPrefixPosition = output.IndexOf(normalizedPrefix);
-        if (ourPrefixPosition >= 0)
-        {
-            var positionOfNewLine = output.IndexOf("\n", ourPrefixPosition);
-            var positionOfUser = output.IndexOf("User", positionOfNewLine);
-            var positionOfNextNewline = output.IndexOf("\n", positionOfUser);
-            var bitThatShouldContainOurUsername = output.Substring(positionOfUser, positionOfNextNewline - positionOfUser);
-
-#pragma warning disable CA1416 // Validate platform compatibility; IsNotOnWindows catches this.
-            if (bitThatShouldContainOurUsername.Contains(WindowsIdentity.GetCurrent().Name))
-            {
-                return ReservationState.UrlAvailableForThisUser;
-            }
-            else
-            {
-                return ReservationState.UrlReservedForSomeoneElse;
-            }
-#pragma warning restore CA1416 // Validate platform compatibility
-        }
-        else
-        {
-            return ReservationState.UrlNotReserved;
-        }
-    }
-
-    private static bool IsNotOnWindows => Path.DirectorySeparatorChar != '\\' || !OperatingSystem.IsWindows();
 
     private static void AddUrlAcl(string prefix)
     {
-        if (IsNotOnWindows)
-            return;
-#pragma warning disable CA1416 // Validate platform compatibility; IsNotOnWindows catches this.
-        var username = WindowsIdentity.GetCurrent().Name;
-#pragma warning restore CA1416 // Validate platform compatibility
-        var arguments = $"http add urlacl url={prefix} user=\"{username}\"";
+        if (!OperatingSystem.IsWindows()) return;
+        var arguments = $"http add urlacl url={prefix} user=Everyone";
 
         var psi = new ProcessStartInfo
         {
             FileName = "netsh",
             Arguments = arguments,
             Verb = "runas", // triggers UAC just for netsh
-            UseShellExecute = false,
-            RedirectStandardOutput = false,
-            RedirectStandardError = false,
-            CreateNoWindow = true
+            UseShellExecute = true,
+            WindowStyle = ProcessWindowStyle.Normal,
         };
 
         try
@@ -102,11 +54,7 @@ public class UrlAccessGuarantor
 
     private static void RemoveUrlAcl(string prefix)
     {
-        if (IsNotOnWindows)
-            return;
-#pragma warning disable CA1416 // Validate platform compatibility; IsNotOnWindows catches this.
-        var username = WindowsIdentity.GetCurrent().Name;
-#pragma warning restore CA1416 // Validate platform compatibility
+        if (!OperatingSystem.IsWindows()) return;
         var arguments = $"http delete urlacl url={prefix}";
 
         var psi = new ProcessStartInfo
@@ -114,10 +62,8 @@ public class UrlAccessGuarantor
             FileName = "netsh",
             Arguments = arguments,
             Verb = "runas", // triggers UAC just for netsh
-            UseShellExecute = false,
-            RedirectStandardOutput = false,
-            RedirectStandardError = false,
-            CreateNoWindow = true
+            UseShellExecute = true,
+            WindowStyle = ProcessWindowStyle.Normal,
         };
 
         try
@@ -133,41 +79,6 @@ public class UrlAccessGuarantor
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Failed to remove URL ACL for {prefix}: {ex.Message}");
-        }
-    }
-
-    private static string RunProcessAndCapture(string fileName, string arguments)
-    {
-        var psi = new ProcessStartInfo(fileName, arguments)
-        {
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        try
-        {
-            using (var p = Process.Start(psi))
-            {
-                if (p != null)
-                {
-                    p.BeginOutputReadLine();
-                    StringBuilder bld = new();
-                    p.OutputDataReceived += (s, e) =>
-                    {
-                        if (e.Data != null) bld.AppendLine(e.Data);
-                    };
-                    p.WaitForExit();
-                    return bld.ToString();
-                }
-                Console.WriteLine("Couldnt read current URL ACL's");
-                return "";
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Reading URL ACL's failed due to {0}", ex);
-            return "";
         }
     }
 }
