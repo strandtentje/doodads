@@ -4,6 +4,8 @@ public class UrlAccessGuarantor
 {
     public static void EnsureUrlAcls(IEnumerable<string> prefixes)
     {
+        if (!OperatingSystem.IsWindows()) return;
+        
         var prefixdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "doodads-prefixes");
         if (!Directory.Exists(prefixdir)) Directory.CreateDirectory(prefixdir);
         var prefixfile = Path.Combine(prefixdir, "prefixes.txt");
@@ -25,7 +27,11 @@ public class UrlAccessGuarantor
     private static void AddUrlAcl(string prefix)
     {
         if (!OperatingSystem.IsWindows()) return;
-        var arguments = $"http add urlacl url={prefix} user=Everyone";
+        
+        var everyoneSid = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+        var ntAccount = (NTAccount)everyoneSid.Translate(typeof(NTAccount));
+        
+        var arguments = $"http add urlacl url={prefix} user={ntAccount.Value}";
 
         var psi = new ProcessStartInfo
         {
