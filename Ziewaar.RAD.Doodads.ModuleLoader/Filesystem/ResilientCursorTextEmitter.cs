@@ -70,7 +70,6 @@ public class ResilientCursorTextEmitter(FileInfo file)
         {
             Console.WriteLine("Reloading program {0}", file.Name);
             var cursor = CursorText.Create(this.DirectoryInfo, file.Name, File.ReadAllText(file.FullName));
-
             CursorTextAvailable?.Invoke(this, cursor);
         });
     }

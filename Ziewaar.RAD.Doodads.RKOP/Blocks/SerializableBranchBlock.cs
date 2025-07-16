@@ -67,7 +67,7 @@ public class SerializableBranchBlock<TResultSink>
             text = text.SkipWhile(char.IsWhiteSpace);
             text = text.ValidateToken(
                 TokenDescription.BlockClose,
-                "This may also happen if for example a semicolon was forgotten",
+                "This may also happen if for example a semicolon was forgotten, or shorthands like :? were accidentally typed as ?:",
                 out var _);
             text = text.ExitScope();
 

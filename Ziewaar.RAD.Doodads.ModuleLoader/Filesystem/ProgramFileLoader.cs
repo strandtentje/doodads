@@ -35,6 +35,10 @@ public class ProgramFileLoader : IDisposable
                 seenTerminator |= terminator.IsValid;
             } while (terminator.IsValid);
         }
+       
+        text = text.SkipWhile(char.IsWhiteSpace);
+        if (text.Position != text.Text.Length)
+            throw new SyntaxException(text, "parsing stopped unexpectedly");
     }
     public void Dispose() => CleanDefinitions();
     public void Reload()
