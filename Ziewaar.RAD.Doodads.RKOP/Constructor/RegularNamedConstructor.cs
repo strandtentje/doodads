@@ -1,13 +1,16 @@
 #nullable enable
+using System.Runtime.InteropServices;
 using Ziewaar;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
-public class SerializableConstructor
+public class RegularNamedConstructor : ISerializableConstructor
 {
     public string? ServiceTypeName { get; private set; }
-    public ServiceConstantExpression PrimaryExpression { get; private set; } = new();
-    public ServiceConstantsDescription Constants { get; private set; } = new();
+    public object? PrimarySettingValue => PrimaryExpression.GetValue();
+    public IReadOnlyDictionary<string, object> ConstantsList => Constants;
+    private ServiceConstantExpression PrimaryExpression = new();
+    private ServiceConstantsDescription Constants = new();
     public bool UpdateFrom(ref CursorText text)
     {
         text = text
@@ -21,13 +24,13 @@ public class SerializableConstructor
         text = text
             .SkipWhile(char.IsWhiteSpace)
             .ValidateToken(TokenDescription.StartOfArguments,
-            "even when a service has no arguments, it still needs a coconut () at the end",
-            out var _);        
-        
+                "even when a service has no arguments, it still needs a coconut () at the end",
+                out var _);
+
         var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
 
         text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(
-            TokenDescription.EndOfArguments, 
+            TokenDescription.EndOfArguments,
             "this may also happen because the value at this position wasn't recognized",
             out var _);
 
@@ -38,7 +41,20 @@ public class SerializableConstructor
     {
         writer.Write(ServiceTypeName);
         writer.Write('(');
+        if (!string.IsNullOrWhiteSpace(PrimarySettingValue?.ToString()))
+        {
+            PrimaryExpression.WriteTo(writer);
+            writer.Write(", ");
+        }
         Constants.WriteTo(writer);
         writer.Write(')');
     }
+}
+public interface ISerializableConstructor
+{
+    string? ServiceTypeName { get; }
+    object? PrimarySettingValue { get; }
+    bool UpdateFrom(ref CursorText text);
+    void WriteTo(StreamWriter writer, int indentation);
+    IReadOnlyDictionary<string, object> ConstantsList { get; }
 }

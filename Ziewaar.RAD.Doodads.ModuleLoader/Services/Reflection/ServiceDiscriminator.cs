@@ -80,7 +80,7 @@ public class ServiceDiscriminator : IService
         }
         else if (serviceExpression is ServiceDescription<ServiceBuilder> description)
         {
-            if (description.Constructor.ServiceTypeName == null)
+            if (description.CurrentConstructor?.ServiceTypeName == null)
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "service had no type name"));
                 return;
@@ -91,15 +91,15 @@ public class ServiceDiscriminator : IService
                 return;
             }
 
-            OnThen?.Invoke(this, new CommonInteraction(interaction, description.Constructor.ServiceTypeName,
+            OnThen?.Invoke(this, new CommonInteraction(interaction, description.CurrentConstructor.ServiceTypeName,
                 new SortedList<string, object>()
                 {
                     { "expression", description },
-                    { "servicetype", description.Constructor.ServiceTypeName },
+                    { "servicetype", description.CurrentConstructor.ServiceTypeName },
                     { "scopename", description.CurrentNameInScope },
-                    { "primarysetting", description.Constructor.PrimaryExpression.GetValue()?.ToString() ?? "" },
+                    { "primarysetting", description.CurrentConstructor.PrimarySettingValue?.ToString() ?? "" },
                     { "workingdir", description.TextScope.WorkingDirectory },
-                    { "constnames", description.Constructor.Constants.Members.Select(x => x.Key).ToArray() },
+                    { "constnames", description.CurrentConstructor.ConstantsList.Keys.ToArray() },
                     { "childnames", description.Children.Branches?.Select(x => x.key).ToArray() ?? [] },
                 }));
         }

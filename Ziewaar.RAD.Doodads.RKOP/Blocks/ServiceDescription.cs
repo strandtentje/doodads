@@ -6,29 +6,45 @@ namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
 public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
 {
-    public SerializableConstructor Constructor = new();
+    public ISerializableConstructor[] AvailableConstructors =
+    [
+        new PrefixedShorthandConstructor(),
+        new CapturedShorthandConstructor(),
+        new RegularNamedConstructor(),
+    ];
+    public ISerializableConstructor? CurrentConstructor;
     public SerializableBranchBlock<TResultSink> Children = new();
     public CursorText TextScope = CursorText.Empty;
     protected override bool ProtectedUpdateFrom(ref CursorText text)
     {
         TextScope = text;
-        if (!Constructor.UpdateFrom(ref text))
-            return false;
-        ResultSink ??= new();
-        Children.UpdateFrom(ref text);
-        return true;
+
+        foreach (var constructorCandidate in AvailableConstructors)
+        {
+            if (constructorCandidate.UpdateFrom(ref text))
+            {
+                CurrentConstructor = constructorCandidate;
+                ResultSink ??= new();
+                Children.UpdateFrom(ref text);
+                return true;
+            }
+        }
+
+        ResultSink = null;
+        CurrentConstructor = null;
+        return false;
     }
     public override void HandleChanges()
     {        
         if (ResultSink == null)
             throw new ArgumentException("no result sink", nameof(ResultSink));
-        if (Constructor.ServiceTypeName == null)
-            throw new ArgumentException("no service type", nameof(Constructor.ServiceTypeName));
+        if (CurrentConstructor?.ServiceTypeName == null)
+            throw new ArgumentException("no service type or bad constructor", nameof(CurrentConstructor.ServiceTypeName));
         ResultSink.SetDefinition(
             TextScope,
-            Constructor.ServiceTypeName,
-            Constructor.PrimaryExpression.GetValue(),
-            Constructor.Constants.ToSortedList(),
+            CurrentConstructor.ServiceTypeName,
+            CurrentConstructor.PrimarySettingValue,
+            CurrentConstructor.ConstantsList,
             new SortedList<string, ServiceExpression<TResultSink>>((Children.Branches ?? []).ToDictionary(x => x.key, x => x.value)));
     }
     public override void Purge()
@@ -38,7 +54,9 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
     }
     public override void WriteTo(StreamWriter writer, int indentation = 0)
     {
-        Constructor.WriteTo(writer, indentation);
+        if (CurrentConstructor == null)
+            throw new Exception("Bad constructor");
+        CurrentConstructor.WriteTo(writer, indentation);
         Children.WriteTo(writer, indentation);
     }
     public override IEnumerable<TResult> Query<TResult>(Func<TResult, bool>? predicate = null)

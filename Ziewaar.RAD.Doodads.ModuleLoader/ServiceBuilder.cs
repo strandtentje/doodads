@@ -25,7 +25,7 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         CursorText atPosition,
         string typename,
         object? primaryValue,
-        SortedList<string, object> constants,
+        IReadOnlyDictionary<string, object> constants,
         SortedList<string, ServiceExpression<TResult>> wrappers)
         where TResult : class, IInstanceWrapper, new()
     {

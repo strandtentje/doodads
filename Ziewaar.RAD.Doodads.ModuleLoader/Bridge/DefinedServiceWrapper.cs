@@ -19,7 +19,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         CursorText atPosition,
         string typename,
         object? primaryValue,
-        SortedList<string, object> constants,
+        IReadOnlyDictionary<string, object> constants,
         IDictionary<string, ServiceBuilder> branches)
     {
         if (this.Type != null || this.Position != null || this.Instance != null || this.Constants != null)
@@ -143,11 +143,13 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         {
             Instance!.Enter(Constants, interaction);
         }
+        #if !DEBUG || true
         catch (Exception ex)
         {
             Console.WriteLine("Fatal on {0}", Type?.Name ?? "Unknown Type");
             Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
         }
+        #endif
         finally
         {
             DoneDelegate?.DynamicInvoke(this, interaction);

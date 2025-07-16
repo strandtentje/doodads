@@ -14,7 +14,7 @@ public class ProgramDefinition : IDisposable
          throw new StructureException("first service description wasn't a service")).Instance ??
         throw new StructureException("first service description had no instance");
     public string Name => (FirstServiceInstance is Definition)
-        ? FirstServiceDescription.Constructor.PrimaryExpression.GetValue() as string ?? ""
+        ? FirstServiceDescription.CurrentConstructor?.PrimarySettingValue as string ?? ""
         : throw new StructureException("first service must be definition");
     public bool IsPrimary => string.IsNullOrWhiteSpace(Name);
     public UnconditionalSerializableServiceSeries<ServiceBuilder> CurrentSeries { get; private set; } = new();

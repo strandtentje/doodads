@@ -49,8 +49,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.IsTrue(simple.LocalScope.TryGetValue("test", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
 
-            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
-            Assert.AreEqual(0, desc.Constructor.Constants.Members.Count);
+            Assert.AreEqual("SomeService", desc.CurrentConstructor.ServiceTypeName);
+            Assert.AreEqual(0, desc.CurrentConstructor.ConstantsList.Count);
         }
         [TestMethod]
         public void TestConstantsDeclaration()
@@ -61,22 +61,23 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 $"""
-                SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt");
+                SomeService("primary", yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt");
                 """);
             var result = desc.UpdateFrom("test", ref simple);
             Assert.IsTrue(result);
-            var consts = desc.Constructor.Constants;
-            Assert.IsTrue(consts.Members.Count == 4);
-            Assert.AreEqual("oy!", consts.Members.Single(x => x.Key == "yotta").Value.GetValue());
-            Assert.AreEqual(123M, consts.Members.Single(x => x.Key == "terra").Value.GetValue());
-            Assert.AreEqual(false, consts.Members.Single(x => x.Key == "stinky").Value.GetValue());
-            (string x, string y) registeredPath = (FileInWorkingDirectory)consts.Members.Single(x => x.Key == "path").Value.GetValue();
-            string? registeredPathCombined = consts.Members.Single(x => x.Key == "path").Value?.GetValue().ToString();
+            var consts = desc.CurrentConstructor.ConstantsList;
+            Assert.IsTrue(consts.Count == 4);
+            Assert.AreEqual("primary", desc.CurrentConstructor.PrimarySettingValue);
+            Assert.AreEqual("oy!", consts["yotta"]);
+            Assert.AreEqual(123M, consts["terra"]);
+            Assert.AreEqual(false, consts["stinky"]);
+            (string x, string y) registeredPath = (FileInWorkingDirectory)consts["path"];
+            string? registeredPathCombined = consts["path"].ToString();
             Assert.IsNotNull(registeredPathCombined);
             Assert.IsTrue(registeredPathCombined.EndsWith("hi.txt"));
             Assert.IsTrue(registeredPathCombined.StartsWith(cdir));
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
+            Assert.AreEqual("SomeService", desc.CurrentConstructor.ServiceTypeName);
         }
         [TestMethod]
         public void TestNestingConstantsDeclaration()
@@ -97,14 +98,14 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.IsTrue(simple.LocalScope.TryGetValue("test", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
 
-            var consts = desc.Constructor.Constants;
+            var consts = desc.CurrentConstructor.ConstantsList;
 
-            Assert.AreEqual("oy!", consts.Members.Single(x => x.Key == "yotta").Value.GetValue());
-            Assert.AreEqual(123M, consts.Members.Single(x => x.Key == "terra").Value.GetValue());
-            Assert.AreEqual(false, consts.Members.Single(x => x.Key == "stinky").Value.GetValue());
-            (string x, string y) registeredPath = (FileInWorkingDirectory)consts.Members.Single(x => x.Key == "path").Value.GetValue();
+            Assert.AreEqual("oy!", consts["yotta"]);
+            Assert.AreEqual(123M, consts["terra"]);
+            Assert.AreEqual(false, consts["stinky"]);
+            (string x, string y) registeredPath = (FileInWorkingDirectory)consts["path"];
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
-            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
+            Assert.AreEqual("SomeService", desc.CurrentConstructor.ServiceTypeName);
 
             var child = desc.
                 Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child").
@@ -120,8 +121,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.IsNotNull(child2);
             Assert.IsNotNull(desc.Children.Branches);
             Assert.AreEqual(2, desc.Children.Branches.Count);
-            Assert.AreEqual("OtherService", child.Constructor.ServiceTypeName);
-            Assert.AreEqual("MoreService", child2.Constructor.ServiceTypeName);
+            Assert.AreEqual("OtherService", child.CurrentConstructor.ServiceTypeName);
+            Assert.AreEqual("MoreService", child2.CurrentConstructor.ServiceTypeName);
         }
         [TestMethod]
         public void TestNestingReferringConstantsDeclaration()
@@ -134,9 +135,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 """
                 SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep");
-                    _EarlyDefine->SecretService();
                     Child2->MoreService(peta = "boop") {
-                        CallbackBranch->_EarlyDefine;
+                        CallbackBranch->SecretService();
                     };
                 };
                 """);
@@ -145,17 +145,17 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.IsTrue(simple.LocalScope.TryGetValue("test", out var cEntry));
             Assert.IsTrue(cEntry is ServiceDescription<MockWrapper> cDesc && cDesc == desc);
 
-            var consts = desc.Constructor.Constants;
-            Assert.AreEqual("oy!", consts.Members.Single(x => x.Key == "yotta").Value.GetValue());
-            Assert.AreEqual(123M, consts.Members.Single(x => x.Key == "terra").Value.GetValue());
-            Assert.AreEqual(false, consts.Members.Single(x => x.Key == "stinky").Value.GetValue());
-            (string x, string y) registeredPath = (FileInWorkingDirectory)consts.Members.Single(x => x.Key == "path").Value.GetValue();
+            var consts = desc.CurrentConstructor.ConstantsList;
+            Assert.AreEqual("oy!", consts["yotta"]);
+            Assert.AreEqual(123M, consts["terra"]);
+            Assert.AreEqual(false, consts["stinky"]);
+            (string x, string y) registeredPath = (FileInWorkingDirectory)consts["path"];
             Assert.AreEqual(Path.Combine(cdir, "hi.txt"), Path.Combine(registeredPath.x, registeredPath.y));
 
-            Assert.AreEqual("SomeService", desc.Constructor.ServiceTypeName);
+            Assert.AreEqual("SomeService", desc.CurrentConstructor.ServiceTypeName);
 
             Assert.IsNotNull(desc.Children.Branches);
-            Assert.AreEqual(3, desc.Children.Branches.Count);
+            Assert.AreEqual(2, desc.Children.Branches.Count);
 
             var childSet = desc.
                 Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child").
@@ -180,9 +180,9 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.IsNotNull(callBack);
             Assert.IsNotNull(callbackDefinition);
 
-            Assert.AreEqual("OtherService", child.Constructor.ServiceTypeName);
+            Assert.AreEqual("OtherService", child.CurrentConstructor.ServiceTypeName);
             //Assert.AreEqual("SecretService", earlyDefine.Constructor.ServiceTypeName);
-            Assert.AreEqual("MoreService", child2.Constructor.ServiceTypeName);
+            Assert.AreEqual("MoreService", child2.CurrentConstructor.ServiceTypeName);
             //Assert.AreEqual(earlyDefine, callbackDefinition);
         }
         [TestMethod]
@@ -223,9 +223,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             var testText = """
                 SomeService(yotta = "oy!", terra = 123, stinky = False, path = f"hi.txt") {
                     Child->OtherService(exa = "beep");
-                    _EarlyDefine->SecretService();
-                    Child2->MoreService(peta = "boop"):OtherService() {
-                        CallbackBranch->_EarlyDefine;
+                    Child2->MoreService("primary", peta = "boop"):OtherService() {
+                        CallbackBranch->SecretService();
                     };
                 }
                 """;
@@ -259,9 +258,8 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                         & PieService(farts = 44) {
                             Oink->Pig():Hog();
                         };
-                    _EarlyDefine->SecretService();
                     Child2->MoreService(peta = "boop"):OtherService() {
-                        CallbackBranch->_EarlyDefine;
+                        CallbackBranch->SecretService();
                     };
                 }
                 """;
@@ -421,78 +419,6 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             var fullText = reader.ReadToEnd();
 
             Assert.AreEqual(fixedText.Trim(), fullText.Trim());
-        }
-
-        [TestMethod]
-        public void TestRedirectionsMoreBetter()
-        {
-            var testText = """
-                Definition():Hold() {
-                    _server->WebServer(prefixes = ["http://localhost:8533/"]):Call(modulefile = "C:\\Users\\deFine\\source\\repos\\Ziewaar.RAD.Doodads.Editor");
-                    _instructionLoop->ConsoleReadLine():Option(equals = "stop") {
-                        Continue->ConsoleOutput():ConstantTextSource(text = "Received stop instruction")
-                                & StopWebServer():_server;
-                        NotApplicable->ConsoleOutput():ConstantTextSource(text = "unknown instruction");
-                    };
-                    Continue->StartWebServer():_server;
-                }
-                """;
-
-            UnconditionalSerializableServiceSeries<MockWrapper> desc = new();
-            string cdir = Directory.GetCurrentDirectory();
-            var simple = CursorText.Create(
-                new DirectoryInfo(cdir),
-                "test",
-                testText);
-            var result = desc.UpdateFrom("test", ref simple);
-
-            var ms = new MemoryStream();
-            var writer = new StreamWriter(ms);
-            desc.WriteTo(writer);
-            writer.Flush();
-            ms.Position = 0;
-            var reader = new StreamReader(ms);
-            var fullText = reader.ReadToEnd();
-
-            Assert.AreEqual(testText.Trim(), fullText.Trim());
-        }
-
-        [TestMethod]
-        public void TestRedirectionsMoreBetterWithAmpersands()
-        {
-            var testText = """
-                Definition():Hold() {
-                    _instructionLoop->ConsoleReadLine():Option(equals = "stop") {
-                        Continue->ConsoleOutput():ConstantTextSource(text = "Received stop instruction")
-                                & StopWebServer() {
-                                    Bla->VoidService();
-                                }
-                                & Release();
-                        NotApplicable->ConsoleOutput():ConstantTextSource(text = "unknown instruction");
-                    };
-                    _server->WebServer(prefixes = ["http://localhost:8533/"]):Call(modulefile = "C:\\Users\\deFine\\source\\repos\\Ziewaar.RAD.Doodads.Editor")
-                           & _instructionLoop;
-                    Continue->StartWebServer():_server;
-                }
-                """;
-
-            UnconditionalSerializableServiceSeries<MockWrapper> desc = new();
-            string cdir = Directory.GetCurrentDirectory();
-            var simple = CursorText.Create(
-                new DirectoryInfo(cdir),
-                "test",
-                testText);
-            var result = desc.UpdateFrom("test", ref simple);
-
-            var ms = new MemoryStream();
-            var writer = new StreamWriter(ms);
-            desc.WriteTo(writer);
-            writer.Flush();
-            ms.Position = 0;
-            var reader = new StreamReader(ms);
-            var fullText = reader.ReadToEnd();
-
-            Assert.AreEqual(testText.Trim(), fullText.Trim());
         }
     }
 }

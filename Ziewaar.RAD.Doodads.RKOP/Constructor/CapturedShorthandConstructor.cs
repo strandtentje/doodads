@@ -1,0 +1,103 @@
+#nullable enable
+using Ziewaar.RAD.Doodads.RKOP.Text;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
+public class CapturedShorthandConstructor : ISerializableConstructor
+{
+    public enum ShorthandType
+    {
+        NoShorthand,
+        InvalidShorthand,
+        Definition,
+        Call,
+        Case,
+    };
+    public ShorthandType CurrentShorthandType { get; private set; } = ShorthandType.InvalidShorthand;
+    public string? ServiceTypeName
+    {
+        get =>
+            CurrentShorthandType != ShorthandType.InvalidShorthand
+                ? Enum.GetName(typeof(ShorthandType), CurrentShorthandType)
+                : throw new Exception("Unknown Shorthand");
+        set
+        {
+            CurrentShorthandType = (ShorthandType)Enum.Parse(typeof(ShorthandType), value ?? "InvalidShorthand");
+            if (CurrentShorthandType is ShorthandType.InvalidShorthand or ShorthandType.NoShorthand)
+                throw new Exception("May only set this to Definition, Call or Case");
+        }
+    }
+    public object PrimarySettingValue => PrimaryExpression.GetValue();
+    public IReadOnlyDictionary<string, object> ConstantsList => Constants;
+    private ServiceConstantExpression PrimaryExpression = new();
+    private ServiceConstantsDescription Constants = new();
+    public bool UpdateFrom(ref CursorText text)
+    {
+        var temporaryCursorPosition = text
+            .SkipWhile(char.IsWhiteSpace)
+            .TakeToken(TokenDescription.BeakOpen, out var firstBeak)
+            .TakeToken(TokenDescription.BeakOpen, out var secondBeak)
+            .TakeToken(TokenDescription.ArrayOpen, out var firstBlock);
+
+        this.CurrentShorthandType = (firstBeak.IsValid, secondBeak.IsValid, firstBlock.IsValid) switch
+        {
+            (false, false, false) => ShorthandType.NoShorthand,
+            (true, false, false) => ShorthandType.Call,
+            (true, true, false) => ShorthandType.Definition,
+            (false, false, true) => ShorthandType.Case,
+            _ => ShorthandType.InvalidShorthand,
+        };
+
+        if (this.CurrentShorthandType == ShorthandType.NoShorthand) return false;
+        if (this.CurrentShorthandType == ShorthandType.InvalidShorthand)
+            throw new SyntaxException(text, "Strange shorthand configuration; likely to do with <'s and ['s.");
+
+        text = temporaryCursorPosition;
+
+        var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
+
+        switch (CurrentShorthandType)
+        {
+            case ShorthandType.Case:
+                text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.ArrayClose,
+                    "likely forgot to match case close with ]", out var _);
+                break;
+            case ShorthandType.Definition:
+                text = text.SkipWhile(char.IsWhiteSpace)
+                    .ValidateToken(TokenDescription.BeakClose, "close definition with double >>", out var _)
+                    .ValidateToken(TokenDescription.BeakClose, "close definition with double >>", out var _);
+                break;
+            case ShorthandType.Call:
+                text = text.SkipWhile(char.IsWhiteSpace)
+                    .ValidateToken(TokenDescription.BeakClose, "close definition with single >", out var _);
+                break;
+            default:
+                throw new SyntaxException(text, "don't know which shorthand we're closing.");
+        }
+
+        return true;
+    }
+    public void WriteTo(StreamWriter writer, int indentation)
+    {
+        switch (CurrentShorthandType)
+        {
+            case ShorthandType.Case:
+                writer.Write('[');
+                PrimaryExpression.WriteTo(writer);
+                Constants.WriteTo(writer);
+                writer.Write(']');
+                break;
+            case ShorthandType.Definition:
+                writer.Write("<<");
+                PrimaryExpression.WriteTo(writer);
+                Constants.WriteTo(writer);
+                writer.Write(">>");
+                break;
+            case ShorthandType.Call:
+                writer.Write("<");
+                PrimaryExpression.WriteTo(writer);
+                Constants.WriteTo(writer);
+                writer.Write(">");
+                break;
+        }
+    }
+}

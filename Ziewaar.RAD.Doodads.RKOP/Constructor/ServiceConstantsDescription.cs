@@ -1,9 +1,10 @@
-﻿using Ziewaar.RAD.Doodads.RKOP.Text;
+﻿using System.Collections;
+using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
-public class ServiceConstantsDescription : IParityParser
+public class ServiceConstantsDescription : IParityParser, IReadOnlyDictionary<string, object>
 {
-    public List<ServiceConstantsMember> Members = new();
+    private List<ServiceConstantsMember> Members = new();
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
         int oCounter = Members.Count;
@@ -41,33 +42,18 @@ public class ServiceConstantsDescription : IParityParser
                 writer.Write(", ");
         }
     }
-    public SortedList<string, object> ToSortedList() => new SortedList<string, object>(
-        Members.ToDictionary(x => x.Key, x => x.Value.GetValue()));
-
-    public void Set(string reqName, ConstantType type, string reqValue, string workingDir)
+    public IEnumerator<KeyValuePair<string, object>> GetEnumerator() =>
+        Members.ToDictionary(x => x.Key, x => x.Value.GetValue()).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public int Count => Members.Count;
+    public bool ContainsKey(string key) => Members.Any(x => x.Key == key);
+    public bool TryGetValue(string key, out object value)
     {
-        var toChange = Members.SingleOrDefault(x => x.Key == reqName);
-        if (toChange == null)
-            Members.Add(toChange = new ServiceConstantsMember());
-
-        toChange.Value.ConstantType = type;
-        switch (type)
-        {
-            case ConstantType.String:
-                toChange.Value.TextValue = reqValue;
-                break;
-            case ConstantType.Bool:
-                toChange.Value.BoolValue = Convert.ToBoolean(reqValue);
-                break;
-            case ConstantType.Number:
-                toChange.Value.NumberValue = Convert.ToDecimal(reqValue);
-                break;
-            case ConstantType.Path:
-                toChange.Value.PathValue = (workingDir, reqValue);
-                break;
-            default:
-                break;
-        }
-
+        var found = Members.Where(x => x.Key == key).ToArray();
+        value = found.FirstOrDefault()?.Value.GetValue();
+        return found.Length == 1;
     }
+    public object this[string key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
+    public IEnumerable<string> Keys => Members.Select(x => x.Key);
+    public IEnumerable<object> Values => Members.Select(x => x.Value.GetValue());
 }

@@ -41,9 +41,8 @@ public class GetServiceConst : IService
                     "expected service description and const name via register or memory at `constname` and `expression`"));
             return;
         }
-
-        var value = description.Constructor.Constants.Members.SingleOrDefault(x => x.Key == constName);
-        if (value == null)
+        
+        if (description.CurrentConstructor?.ConstantsList.TryGetValue(constName, out var foundValue) != true)
         {
             OnElse?.Invoke(this,
                 new CommonInteraction(interaction,
@@ -51,7 +50,7 @@ public class GetServiceConst : IService
             return;
         }
 
-        OnThen?.Invoke(this, new CommonInteraction(interaction, value.Value.GetValue()));
+        OnThen?.Invoke(this, new CommonInteraction(interaction, foundValue));
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
