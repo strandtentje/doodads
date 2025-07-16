@@ -5,5 +5,6 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Interactions;
 public class NestingValidationInteraction(IInteraction interaction, object registerValue)
     : CommonInteraction(interaction, register: registerValue)
 {
-    public Tristate Validity = Tristate.Unknown;
+    public Tristate AndValidity = Tristate.Unknown;
+    public Tristate OrValidity = Tristate.Unknown;
 }

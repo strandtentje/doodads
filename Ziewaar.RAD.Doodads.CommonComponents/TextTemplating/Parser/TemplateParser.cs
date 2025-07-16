@@ -44,7 +44,7 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
     }
     private static TemplateCommand ParsePlaceholder(string dirtyPayload)
     {
-        var colonPayload = dirtyPayload.TrimTemplateTokens();
+        var colonPayload = dirtyPayload.Trim().TrimTemplateTokens();
         var modifiers = dirtyPayload.Substring(0, dirtyPayload.Length - colonPayload.Length);
         var splitPayload = colonPayload.Split([':'], count: 2);
         var cleanPayload = splitPayload.ElementAtOrDefault(0) ?? "";
@@ -52,8 +52,7 @@ public class TemplateParser(string placeholderStart = "{% ", string placeholderE
         TemplateCommand command = new()
         {
             PayloadText = cleanPayload,
-            Type = modifiers.ElementAtOrDefault(0).ConvertToSourceCommandType() |
-                   modifiers.ElementAtOrDefault(1).ConvertToFilterCommandType(),
+            Type = modifiers.ConvertToCommandType(),
             Formatter = string.IsNullOrWhiteSpace(formatter) ? null : (object o) =>
             {
                 if (o.ConvertNumericToDecimal() is decimal decimalValue)

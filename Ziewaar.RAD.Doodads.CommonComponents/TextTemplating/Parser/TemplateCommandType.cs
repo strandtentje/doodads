@@ -34,6 +34,9 @@ public enum TemplateCommandType
 
     JsFilter =
         0b1_0000_0000,
+
+    UrlDataFilter = 
+        0b10_0000_0000,
     
-    AllFilters = 0b1_1110_0000,
+    AllFilters = 0b11_1110_0000,
 }

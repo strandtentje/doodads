@@ -42,7 +42,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
         var methodFound = formNode.GetAttributeValue("method", "GET").ToUpperInvariant();
         if (methodFound != "POST" && methodFound != "GET")
             throw new FormValidationMarkupException($"Can only post and get");
-        var actionFound = formNode.GetAttributeValue("action", "");
+        var actionFound = HttpUtility.UrlDecode(formNode.GetAttributeValue("action", ""));
         if (string.IsNullOrWhiteSpace(actionFound))
             throw new FormValidationMarkupException($"Action required");
         var inputNodes = formNode.SelectNodes(".//input|.//select|.//textarea")?.ToArray() ?? [];

@@ -19,7 +19,9 @@ public abstract class ModifyValidation : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "This may only be used with a Field that has nest set to true"));
             return;
         }
-        nesting.Validity = GetValidity(constants, interaction) ? Tristate.True : Tristate.False;
+        Tristate tristate = GetValidity(constants, interaction) ? Tristate.True : Tristate.False;
+        nesting.AndValidity &= tristate;
+        nesting.OrValidity |= tristate;
         OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

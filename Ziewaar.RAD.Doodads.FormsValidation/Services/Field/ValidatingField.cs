@@ -205,7 +205,7 @@ public abstract class ValidatingField<TDefault> : IService
                 {
                     var extraValidationInteraction = new NestingValidationInteraction(interaction, validatedValue);
                     OnThen?.Invoke(this, extraValidationInteraction);
-                    switch (extraValidationInteraction.Validity)
+                    switch (extraValidationInteraction.AndValidity)
                     {
                         case Tristate.Unknown:
                             OnException?.Invoke(this,

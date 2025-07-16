@@ -14,7 +14,7 @@ public static class TemplateTokens
     public static string TrimTemplateTokens(this string inputString) =>
         inputString.Trim(
             CALL_OUT_OR_CONTEXT, CONTEXT, CALL_OUT, ARGUMENT_SOURCE,
-            NO_FILTER, HTML_FILTER, URL_FILTER, ATTRIBUTE_FILTER, JS_FILTER);
+            NO_FILTER, HTML_FILTER, URL_FILTER, URL_DATA_FILTER, ATTRIBUTE_FILTER, JS_FILTER);
 
     public const char
         CALL_OUT_OR_CONTEXT = '?',
@@ -24,23 +24,46 @@ public static class TemplateTokens
         NO_FILTER = '_',
         HTML_FILTER = '&',
         URL_FILTER = '%',
+        URL_DATA_FILTER = '~',
         ATTRIBUTE_FILTER = '=',
         JS_FILTER = ';';
 
-    public static TemplateCommandType ConvertToSourceCommandType(this char token) => token switch
+    public static TemplateCommandType ConvertToCommandType(this string tokens)
     {
-        '<' => TemplateCommandType.VariableSource,
-        '>' => TemplateCommandType.CallOutSource,
-        '#' => TemplateCommandType.ConstantSource,
-        _ => TemplateCommandType.CallOutOrVariable,
-    };
-
-    public static TemplateCommandType ConvertToFilterCommandType(this char token) => token switch
-    {
-        '&' => TemplateCommandType.HtmlFilter,
-        '%' => TemplateCommandType.UrlFilter,
-        '=' => TemplateCommandType.AttributeFilter,
-        ';' => TemplateCommandType.JsFilter,
-        _ => TemplateCommandType.NoFilter,
-    };
+        var sourceToken = TemplateCommandType.CallOutOrVariable;
+        var filterToken = TemplateCommandType.NoFilter;
+        foreach (var character in tokens)
+        {
+            switch (character)
+            {
+                case '<':
+                    sourceToken = TemplateCommandType.VariableSource;
+                    break;
+                case '>':
+                    sourceToken = TemplateCommandType.CallOutSource;
+                    break;
+                case '#':
+                    sourceToken = TemplateCommandType.ConstantSource;
+                    break;
+                case '&':
+                    filterToken = TemplateCommandType.HtmlFilter;
+                    break;
+                case '%':
+                    filterToken = TemplateCommandType.UrlFilter;
+                    break;
+                case '~':
+                    filterToken = TemplateCommandType.UrlDataFilter;
+                    break;
+                case '=':
+                    filterToken = TemplateCommandType.AttributeFilter;
+                    break;
+                case ';':
+                    filterToken = TemplateCommandType.JsFilter;
+                    break;
+                default: 
+                    break;
+            }
+        }
+        return sourceToken | filterToken;
+    }
 }
