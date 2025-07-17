@@ -11,6 +11,7 @@ public class PrefixedShorthandConstructor : ISerializableConstructor
         Store,
         Load,
         Format,
+        Case,
         InvalidShorthand
     };
     public ShorthandType CurrentShorthandType { get; private set; } = ShorthandType.InvalidShorthand;
@@ -36,14 +37,16 @@ public class PrefixedShorthandConstructor : ISerializableConstructor
             .SkipWhile(char.IsWhiteSpace)
             .TakeToken(TokenDescription.StoreShorthand, out var exclamation)
             .TakeToken(TokenDescription.LoadShorthand, out var question)
-            .TakeToken(TokenDescription.FormatShorthand, out var dollar);
+            .TakeToken(TokenDescription.FormatShorthand, out var dollar)
+            .TakeToken(TokenDescription.Wiggly, out var wiggly);
 
-        this.CurrentShorthandType = (exclamation.IsValid, question.IsValid, dollar.IsValid) switch
+        this.CurrentShorthandType = (exclamation.IsValid, question.IsValid, dollar.IsValid, wiggly.IsValid) switch
         {
-            (false, false, false) => ShorthandType.NoShorthand,
-            (true, false, false) => ShorthandType.Store,
-            (false, true, false) => ShorthandType.Load,
-            (false, false, true) => ShorthandType.Format,
+            (false, false, false, false) => ShorthandType.NoShorthand,
+            (true, false, false, false) => ShorthandType.Store,
+            (false, true, false, false) => ShorthandType.Load,
+            (false, false, true, false) => ShorthandType.Format,
+            (false,false,false,true) => ShorthandType.Case,
             _ => ShorthandType.InvalidShorthand,
         };
 

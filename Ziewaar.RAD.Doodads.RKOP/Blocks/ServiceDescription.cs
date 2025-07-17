@@ -8,6 +8,7 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
 {
     public ISerializableConstructor[] AvailableConstructors =
     [
+        new ContextValueManipulationConstructor(),
         new PrefixedShorthandConstructor(),
         new CapturedShorthandConstructor(),
         new RegularNamedConstructor(),

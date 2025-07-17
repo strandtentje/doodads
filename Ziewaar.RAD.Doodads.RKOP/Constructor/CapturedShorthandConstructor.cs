@@ -1,7 +1,10 @@
 #nullable enable
+using System.Collections.ObjectModel;
+using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
+
 public class CapturedShorthandConstructor : ISerializableConstructor
 {
     public enum ShorthandType
@@ -10,9 +13,12 @@ public class CapturedShorthandConstructor : ISerializableConstructor
         InvalidShorthand,
         Definition,
         Call,
-        Case,
+        ReturnThen,
+        ReturnElse,
     };
+
     public ShorthandType CurrentShorthandType { get; private set; } = ShorthandType.InvalidShorthand;
+
     public string? ServiceTypeName
     {
         get =>
@@ -26,26 +32,32 @@ public class CapturedShorthandConstructor : ISerializableConstructor
                 throw new Exception("May only set this to Definition, Call or Case");
         }
     }
+
     public object PrimarySettingValue => PrimaryExpression.GetValue();
     public IReadOnlyDictionary<string, object> ConstantsList => Constants;
     private ServiceConstantExpression PrimaryExpression = new();
     private ServiceConstantsDescription Constants = new();
+
     public bool UpdateFrom(ref CursorText text)
     {
         var temporaryCursorPosition = text
             .SkipWhile(char.IsWhiteSpace)
             .TakeToken(TokenDescription.BeakOpen, out var firstBeak)
             .TakeToken(TokenDescription.BeakOpen, out var secondBeak)
-            .TakeToken(TokenDescription.ArrayOpen, out var firstBlock);
+            .TakeToken(TokenDescription.ArrayOpen, out var firstBlock)
+            .TakeToken(TokenDescription.DefaultBranchCoupler, out var colonAfterBlock)
+            .TakeToken(TokenDescription.Pipe, out var pipeAfterBlock);
 
-        this.CurrentShorthandType = (firstBeak.IsValid, secondBeak.IsValid, firstBlock.IsValid) switch
-        {
-            (false, false, false) => ShorthandType.NoShorthand,
-            (true, false, false) => ShorthandType.Call,
-            (true, true, false) => ShorthandType.Definition,
-            (false, false, true) => ShorthandType.Case,
-            _ => ShorthandType.InvalidShorthand,
-        };
+        this.CurrentShorthandType = (firstBeak.IsValid, secondBeak.IsValid, firstBlock.IsValid, colonAfterBlock.IsValid,
+                pipeAfterBlock.IsValid) switch
+            {
+                (false, false, false, false, false) => ShorthandType.NoShorthand,
+                (true, false, false, false, false) => ShorthandType.Call,
+                (true, true, false, false, false) => ShorthandType.Definition,
+                (false, false, true, true, false) => ShorthandType.ReturnThen,
+                (false, false, true, false, true) => ShorthandType.ReturnElse,
+                _ => ShorthandType.InvalidShorthand,
+            };
 
         if (this.CurrentShorthandType == ShorthandType.NoShorthand) return false;
         if (this.CurrentShorthandType == ShorthandType.InvalidShorthand)
@@ -57,7 +69,8 @@ public class CapturedShorthandConstructor : ISerializableConstructor
 
         switch (CurrentShorthandType)
         {
-            case ShorthandType.Case:
+            case ShorthandType.ReturnThen:
+            case ShorthandType.ReturnElse:
                 text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.ArrayClose,
                     "likely forgot to match case close with ]", out var _);
                 break;
@@ -76,12 +89,19 @@ public class CapturedShorthandConstructor : ISerializableConstructor
 
         return true;
     }
+
     public void WriteTo(StreamWriter writer, int indentation)
     {
         switch (CurrentShorthandType)
         {
-            case ShorthandType.Case:
-                writer.Write('[');
+            case ShorthandType.ReturnElse:
+                writer.Write("[|");
+                PrimaryExpression.WriteTo(writer);
+                Constants.WriteTo(writer);
+                writer.Write(']');
+                break;
+            case ShorthandType.ReturnThen:
+                writer.Write("[:");
                 PrimaryExpression.WriteTo(writer);
                 Constants.WriteTo(writer);
                 writer.Write(']');
