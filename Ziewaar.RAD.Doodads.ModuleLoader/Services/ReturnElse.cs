@@ -9,6 +9,11 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
     """)]
 public class ReturnElse : ReturningService
 {
+    [PrimarySetting("If set, will put this value in register")]
+    private readonly UpdatingPrimaryValue OverrideRegisterValueConstant = new();
+
+    private object? OverrideValue;
+
     [NeverHappens]
     public override event CallForInteraction? OnThen;
     [NeverHappens]
@@ -20,8 +25,13 @@ public class ReturnElse : ReturningService
     public override event CallForInteraction? OnException;
     public override void Enter(StampedMap constants, IInteraction interaction)
     {
+        if ((constants, OverrideRegisterValueConstant).IsRereadRequired(out object? toOverride))
+        {
+            this.OverrideValue = toOverride;
+        }
+
         if (FindCallerOfCurrentScope(this, interaction, 0) is CallingInteraction ci)
-            ci.InvokeOnElse(new ReturningInteraction(this, interaction, ci, constants.NamedItems));
+            ci.InvokeOnElse(new ReturningInteraction(this, OverrideValue, interaction, ci, constants.NamedItems));
         else
             OnException?.Invoke(this, new CommonInteraction(interaction, "illegal double return"));
     }
