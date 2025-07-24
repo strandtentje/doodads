@@ -1,5 +1,6 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor

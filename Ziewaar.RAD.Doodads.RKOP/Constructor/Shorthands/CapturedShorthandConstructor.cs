@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
-namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 
 public class CapturedShorthandConstructor : ISerializableConstructor
 {
@@ -48,7 +48,7 @@ public class CapturedShorthandConstructor : ISerializableConstructor
             .TakeToken(TokenDescription.DefaultBranchCoupler, out var colonAfterBlock)
             .TakeToken(TokenDescription.Pipe, out var pipeAfterBlock);
 
-        this.CurrentShorthandType = (firstBeak.IsValid, secondBeak.IsValid, firstBlock.IsValid, colonAfterBlock.IsValid,
+        CurrentShorthandType = (firstBeak.IsValid, secondBeak.IsValid, firstBlock.IsValid, colonAfterBlock.IsValid,
                 pipeAfterBlock.IsValid) switch
             {
                 (false, false, false, false, false) => ShorthandType.NoShorthand,
@@ -59,8 +59,8 @@ public class CapturedShorthandConstructor : ISerializableConstructor
                 _ => ShorthandType.InvalidShorthand,
             };
 
-        if (this.CurrentShorthandType == ShorthandType.NoShorthand) return false;
-        if (this.CurrentShorthandType == ShorthandType.InvalidShorthand)
+        if (CurrentShorthandType == ShorthandType.NoShorthand) return false;
+        if (CurrentShorthandType == ShorthandType.InvalidShorthand)
             throw new SyntaxException(text, "Strange shorthand configuration; likely to do with <'s and ['s.");
 
         text = temporaryCursorPosition;

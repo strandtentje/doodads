@@ -48,11 +48,23 @@ public class Info : IService
             }
             var payload = new SortedList<string, object>()
             {
+                { "visibility", info.IsHidden() ? "visible" : "hidden" },
                 { "path", info.FullName },
-                { "name", info.Name },
+                { "name", info.Name },                
                 { "write", info.LastWriteTimeUtc },
                 { "read", info.LastAccessTimeUtc },
             };
+            if (info is FileInfo fileInfo)
+            {
+                payload["extension"] = fileInfo.Extension;
+                payload["cleanext"] = fileInfo.Extension.TrimStart('.').ToLower();
+                payload["cleanname"] = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+                payload["size"] = fileInfo.Length;
+                payload["cleansize"] = ByteSizeFormatter.ToHumanReadable(fileInfo.Length);
+            } else if (info is DirectoryInfo directoryInfo)
+            {
+                payload["count"] = directoryInfo.GetFiles().Length;
+            }
             if (showHidden == true || !info.Attributes.HasFlag(FileAttributes.Hidden) && !info.Name.StartsWith("."))
                 OnThen?.Invoke(this, new CommonInteraction(interaction, memory: payload));
         }

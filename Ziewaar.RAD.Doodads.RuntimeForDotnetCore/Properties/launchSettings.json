@@ -1,7 +1,8 @@
 {
   "profiles": {
     "Ziewaar.RAD.Doodads.RuntimeForDotnetCore": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-w C:\\Users\\deFine\\source\\repos\\sharing_client"
     }
   }
 }

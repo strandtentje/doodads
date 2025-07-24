@@ -1,9 +1,8 @@
 #nullable enable
 using System.Runtime.InteropServices;
-using Ziewaar;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
-namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 public class RegularNamedConstructor : ISerializableConstructor
 {
     public string? ServiceTypeName { get; private set; }

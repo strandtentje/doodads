@@ -1,8 +1,9 @@
 #nullable enable
+using Ziewaar;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
-namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
+namespace Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 public class PrefixedShorthandConstructor : ISerializableConstructor
 {
     public enum ShorthandType
@@ -40,7 +41,7 @@ public class PrefixedShorthandConstructor : ISerializableConstructor
             .TakeToken(TokenDescription.FormatShorthand, out var dollar)
             .TakeToken(TokenDescription.Wiggly, out var wiggly);
 
-        this.CurrentShorthandType = (exclamation.IsValid, question.IsValid, dollar.IsValid, wiggly.IsValid) switch
+        CurrentShorthandType = (exclamation.IsValid, question.IsValid, dollar.IsValid, wiggly.IsValid) switch
         {
             (false, false, false, false) => ShorthandType.NoShorthand,
             (true, false, false, false) => ShorthandType.Store,
@@ -50,8 +51,8 @@ public class PrefixedShorthandConstructor : ISerializableConstructor
             _ => ShorthandType.InvalidShorthand,
         };
 
-        if (this.CurrentShorthandType == ShorthandType.NoShorthand) return false;
-        if (this.CurrentShorthandType == ShorthandType.InvalidShorthand)
+        if (CurrentShorthandType == ShorthandType.NoShorthand) return false;
+        if (CurrentShorthandType == ShorthandType.InvalidShorthand)
             throw new SyntaxException(text, "Strange shorthand configuration; likely to do with !'s, ?'s and $'s.");
 
         text = temporaryCursorPosition;
