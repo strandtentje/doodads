@@ -14,6 +14,9 @@ public class Print : IService
     private readonly UpdatingPrimaryValue PlainTextValue = new();
     [NamedSetting("contenttype", "Optionally, content type filter this text fits with. Defaults to */*.")]
     private readonly UpdatingKeyValue ContentType = new("contenttype");
+
+    private string PlainText = "";
+
     [EventOccasion("Happens when the print was successful; preserves the interaction for more printing.")]
     public event CallForInteraction? OnThen;
     [NeverHappens]
@@ -22,7 +25,10 @@ public class Print : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        (constants, PlainTextValue).IsRereadRequired(out string? plainText);
+        if ((constants, PlainTextValue).IsRereadRequired(out object? plainText))
+        {
+            this.PlainText = plainText?.ToString() ?? "";
+        }
         (constants, ContentType).IsRereadRequired(() => "*/*", out var contentType);
         
         if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) && 
@@ -36,7 +42,7 @@ public class Print : IService
             try
             {
                 sinkInteraction.SinkTrueContentType = contentType;
-                sinkInteraction.WriteSegment(plainText ?? "", contentType);
+                sinkInteraction.WriteSegment(this.PlainText, contentType);
             } catch(ContentTypeMismatchException ex)
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, ex));

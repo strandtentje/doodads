@@ -12,6 +12,16 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
              """)]
 public class Format : IService
 {
+    private readonly Print Printer = new();
+    private readonly Template TemplatingService = new();
+    private StampedMap Constants = new("");
+
+    public Format()
+    {
+        TemplatingService.OnThen += (s,e) => Printer.Enter(Constants, e);
+        TemplatingService.OnElse += this.OnElse;
+    }
+
     [EventOccasion("After output was written.")]
     public event CallForInteraction? OnThen;
     [EventOccasion("When a template value is unknown, starts sinking text here")]
@@ -19,19 +29,9 @@ public class Format : IService
     [EventOccasion("Likely when an IO error happened")]
     public event CallForInteraction? OnException;
 
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        Print Printer = new();
-        Template TemplatingService = new();
-        void HandleTemplateRequest(object sender, IInteraction templateRequestInteraction)
-        {
-            TemplatingService.OnThen -= HandleTemplateRequest;
-            Printer.Enter(constants, templateRequestInteraction);
-        }
-
-        TemplatingService.OnThen += HandleTemplateRequest;
-        TemplatingService.OnElse += this.OnElse;
+        this.Constants = constants;
         TemplatingService.Enter(constants, interaction);
         this.OnThen?.Invoke(this, interaction);
     }
