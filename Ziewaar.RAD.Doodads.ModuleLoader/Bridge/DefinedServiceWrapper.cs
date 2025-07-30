@@ -1,4 +1,5 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
@@ -74,13 +75,8 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     }
     private void Instance_OnException(object sender, IInteraction interaction)
     {
-        Console.WriteLine(
-            "Service indicates exceptional situation; {0}",
-            JsonConvert.SerializeObject(
-                new ExceptionPayload(
-                    Constants,
-                    Type, Position, interaction),
-                Formatting.Indented));
+        GlobalLog.Instance?.Error($"Service indicates exceptional situation; {JsonConvert.SerializeObject(
+            new ExceptionPayload(Constants, Type, Position, interaction), Formatting.Indented)}");
     }
     public void OnThen(CallForInteraction dlg)
     {
@@ -134,7 +130,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         }
         catch (Exception e)
         {
-            Console.Write($"While disposing: {e}");
+            GlobalLog.Instance?.Error($"While disposing: {e}");
         }
     }
     public void Run(object sender, IInteraction interaction)
@@ -146,7 +142,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         #if !DEBUG || true
         catch (Exception ex)
         {
-            Console.WriteLine("Fatal on {0}", Type?.Name ?? "Unknown Type");
+            GlobalLog.Instance?.Error("Fatal on {0}", Type?.Name ?? "Unknown Type");
             Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
         }
         #endif

@@ -1,4 +1,6 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 public class FileWatcherFactory : IDisposable
 {
@@ -21,7 +23,7 @@ public class FileWatcherFactory : IDisposable
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            GlobalLog.Instance?.Error(ex, "when stopping {name}", nameof(FileWatcherFactory));
         }
     }
     public void Watch(string directory, string file, Action onChange, Action onDelete)

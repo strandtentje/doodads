@@ -1,4 +1,5 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
@@ -27,7 +28,7 @@ public class ProgramDefinition : IDisposable
         programDefinition.CurrentSeries.UpdateFrom(Path.GetFileName(cursor.BareFile), ref cursor);
         try
         {
-            Console.WriteLine($"found additional definition {programDefinition.Name} in {cursor.BareFile}");
+            GlobalLog.Instance?.Information("found additional definition {name} in {file}", programDefinition.Name, cursor.BareFile);
             return true;
         }
         catch (Exception)

@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP.Text;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Text;
 
 public static class ReaderExtensions
 {
@@ -42,11 +44,11 @@ public static class ReaderExtensions
             return continued;
         else
         {
-            Console.Write($"""
-                Syntax error at {text.GetCurrentLine()}:{text.GetCurrentCol()}, 
-                Expected: {description.HumanReadable}
+            GlobalLog.Instance?.Error("""
+                Syntax error at {line}:{col}, 
+                Expected: {description}
                 {hint}
-                """);
+                """, text.GetCurrentLine(), text.GetCurrentCol(), description.HumanReadable, hint);
             throw new SyntaxException(text, $"""
                 Syntax error at {text.GetCurrentLine()}:{text.GetCurrentCol()}, 
                 Expected: {description.HumanReadable}
