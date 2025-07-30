@@ -25,14 +25,26 @@ public class ProgramDefinition : IDisposable
     public static bool TryCreate(ref CursorText cursor, out ProgramDefinition programDefinition)
     {
         programDefinition = new();
-        programDefinition.CurrentSeries.UpdateFrom(Path.GetFileName(cursor.BareFile), ref cursor);
         try
         {
-            GlobalLog.Instance?.Information("found additional definition {name} in {file}", programDefinition.Name, cursor.BareFile);
-            return true;
+            if (programDefinition.CurrentSeries.UpdateFrom(Path.GetFileName(cursor.BareFile), ref cursor))
+            {
+                GlobalLog.Instance?.Information("found additional definition {name} in {file}", programDefinition.Name,
+                    cursor.BareFile);
+                return true;
+            }
+            else
+            {
+                GlobalLog.Instance?.Information("in file {file}, no more defs were found after {row}:{col}",
+                    cursor.BareFile, cursor.GetCurrentLine(), cursor.GetCurrentCol());
+                return false;
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            GlobalLog.Instance?.Warning(ex,
+                "stopped reading definitions in file {file} at {row}:{col} due to an exception; the syntax error is likely before.",
+                cursor.BareFile, cursor.GetCurrentCol(), cursor.GetCurrentLine());
             return false;
         }
     }
