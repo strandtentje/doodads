@@ -53,7 +53,7 @@ public class PrefixProcessor
         var host = Dns.GetHostEntry(Dns.GetHostName());
         foreach (var ip in host.AddressList)
         {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            if (ip.AddressFamily == AddressFamily.InterNetwork && ip.GetAddressBytes().ElementAtOrDefault(0) != 127)
             {
                 addr = ip.ToString();
                 return true;

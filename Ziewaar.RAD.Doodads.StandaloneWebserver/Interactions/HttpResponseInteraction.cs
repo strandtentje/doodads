@@ -21,7 +21,11 @@ public class HttpResponseInteraction(
         context.Response.StatusCode = (int)HttpStatusCode.TemporaryRedirect;
         context.Response.RedirectLocation = url;
     }
-
+    public int StatusCode
+    {
+        get => context.Response.StatusCode;
+        set => context.Response.StatusCode = value;
+    }
     public IInteraction Stack => parent;
     public object Register => parent.Register;
     public IReadOnlyDictionary<string, object> Memory => parent.Memory;

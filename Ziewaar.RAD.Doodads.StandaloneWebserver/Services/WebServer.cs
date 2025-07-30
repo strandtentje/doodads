@@ -3,7 +3,7 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
-public class WebServer : IService
+public class WebServer : IService, IDisposable
 {
     private readonly PrefixProcessor Prefixes = new();
     private readonly ControlCommandInstanceProvider<ServerCommand> Server = new();
@@ -58,7 +58,7 @@ public class WebServer : IService
             this.StartingInteraction = interaction;
             startable.GiveCommand(ServerCommand.Start);
             GlobalLog.Instance?.Information("Server started {prefixes}",
-                JsonConvert.SerializeObject(Prefixes.ActiveExpandedPrefixes));
+                JsonConvert.SerializeObject(Prefixes.ActiveExpandedPrefixes, Formatting.Indented));
             OnStarted?.Invoke(this, StartingInteraction);
         }
     }
@@ -69,4 +69,5 @@ public class WebServer : IService
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    public void Dispose() => Server.Reset();
 }

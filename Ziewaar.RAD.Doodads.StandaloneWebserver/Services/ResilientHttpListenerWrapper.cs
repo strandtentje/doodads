@@ -7,7 +7,6 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
     public ServerCommand CurrentState { get; private set; } = ServerCommand.None;
     public event EventHandler<HttpListenerContext>? NewContext;
     public event EventHandler<Exception>? Fatality;
-
     public void GiveCommand(ServerCommand command)
     {
         switch (command)
@@ -74,7 +73,10 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
         }
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Error(ex, "When trying to get the http context");
+            if (CurrentState == ServerCommand.Start)
+                GlobalLog.Instance?.Error(ex, "When trying to get the http context");
+            else
+                GlobalLog.Instance?.Information("Stopped waiting for context due to server stop.");
             return;
         }
 
@@ -127,7 +129,7 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
     {
         if (CurrentState == ServerCommand.Start)
             throw new InvalidOperationException("Can't stop when state is set to started.");
-        
+
         GlobalLog.Instance?.Information("Stopping webserver; waiting for control to become available.");
         lock (ControlLock)
         {
