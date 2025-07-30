@@ -1,11 +1,12 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
+
 public class HttpRequestInteraction(
     IInteraction parent,
     HttpListenerContext context) :
     ISourcingInteraction
 {
     public CookieCollection IncomingCookies => context.Request.Cookies;
-    public Stream SourceBuffer => context.Request.InputStream;
+    public Stream SourceBuffer => new ProtectedStream(context.Request.InputStream, context);
     public Encoding TextEncoding => context.Request.ContentEncoding ?? Encoding.UTF8;
     public string SourceContentTypePattern => context.Request.ContentType ?? "*/*";
     public long SourceContentLength => context.Request.ContentLength64;
