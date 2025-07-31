@@ -42,7 +42,10 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class Template : IService
 {
     private TextSinkingInteraction? templatefile = null;
+    private readonly UpdatingKeyValue ForceContentTypeConstant = new("contenttype");
     private readonly TemplateParser Parser = new();
+    private string? ContentTypeOverride;
+
     [EventOccasion("When the template needs to buffer an updated version of the template text")]
     public event CallForInteraction? OnThen;
     [EventOccasion("""
@@ -84,9 +87,15 @@ public class Template : IService
         if (templatefile.SinkTrueContentType?.Contains('*') == false)
             output.SinkTrueContentType ??= templatefile.SinkTrueContentType;
         StreamWriter writer;
+
+        if ((constants, ForceContentTypeConstant).IsRereadRequired(out string? contentTypeOverrideCandidate))
+        {
+            this.ContentTypeOverride = contentTypeOverrideCandidate;
+        }
+        
         try
         {
-            writer = output.GetWriter(templatefile.SinkTrueContentType);
+            writer = output.GetWriter(ContentTypeOverride ?? templatefile.SinkTrueContentType);
         } catch(ContentTypeMismatchException ex)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, ex));
