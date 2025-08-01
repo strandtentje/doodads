@@ -17,7 +17,8 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
     public void ParseAndMergeNode(HtmlNode node)
     {
         if (node.GetInputName() == null) return;
-        if (ValidatingSelectbox.TryInsertInto(node, this) ||
+        if (ValidatingButtonGroup.TryInsertInto(node, this) ||
+            ValidatingSelectbox.TryInsertInto(node, this) ||
             ValidatingTextInput.TryInsertInto(node, this) ||
             ValidatingTimePicker.TryInsertInto(node, this) ||
             ValidatingDatePicker.TryInsertInto(node, this) ||

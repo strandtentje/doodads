@@ -1,5 +1,4 @@
 ﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-
 public class FallbackReadOnlyDictionary(IReadOnlyDictionary<string, object> primary, IReadOnlyDictionary<string, object> secondary)
     : IReadOnlyDictionary<string, object>
 {

@@ -4,6 +4,7 @@ using Ziewaar.RAD.Doodads.CommonComponents;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+using Ziewaar.RAD.Doodads.Cryptography;
 using Ziewaar.RAD.Doodads.FormsValidation.Services;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.MySQL;
@@ -29,6 +30,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
                 .AddAssemblyBy<Definition>().AddAssemblyBy<SqliteConnectionSource>().AddAssemblyBy<ValidateForm>()
+                .AddAssemblyBy<LoadSensitive>()
                 .AddAssemblyBy<MySqlConnectionSource>().AddFile("server.rkop",
                     """
                     Definition()

@@ -20,6 +20,8 @@ public class Format : IService
     {
         TemplatingService.OnThen += (s,e) => Printer.Enter(Constants, e);
         TemplatingService.OnElse += this.OnElse;
+        TemplatingService.OnException += (s,e) => this.OnException?.Invoke(this, e);
+        Printer.OnException += (s,e) => this.OnException?.Invoke(this, e);
     }
 
     [EventOccasion("After output was written.")]

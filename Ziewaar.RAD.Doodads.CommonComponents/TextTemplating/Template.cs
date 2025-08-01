@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
+﻿using System.Globalization;
+using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 #nullable enable
@@ -102,9 +103,34 @@ public class Template : IService
             return;
         }
 
+        // default to the server locale
+        string requestedLocale = CultureInfo.CurrentCulture.Name;
+        if (interaction.TryGetClosest(out LocaleInteraction? li) && li != null)
+            // if we have a different locale in scope, lets use that for now
+            requestedLocale = li.Locale;
+
+        // however, if the template defines locales in particular,
+        // but none of them match the one we desire, 
+        // lets select the first true locale it does implement and roll with that.
+        if (Parser.Locales.Any() && !Parser.Locales.Any(x => LocaleMatcher.IsLocaleMatch(requestedLocale, x)))
+        {
+            OnException?.Invoke(
+                this,
+                new CommonInteraction(
+                    interaction, 
+                    $"""
+                     Template render request for locale "{requestedLocale}" was received,
+                     however, this template only supports "{string.Join(@""", """, Parser.Locales)}".
+                     We will default to "{Parser.Locales.First()}"
+                     """));
+            requestedLocale = Parser.Locales.First();
+        }
+        
         try
         {
-            foreach (var segment in Parser.TemplateCommands)
+            var applicableGroups = Parser.CommandsByLocale.Where(group => LocaleMatcher.IsLocaleMatch(group.Key, requestedLocale));
+            var applicableSegments = applicableGroups.SelectMany(x => x).OrderBy(x => x.Position);
+            foreach (var segment in applicableSegments)
             {
                 switch (segment.Type & TemplateCommandType.AllSources)
                 {

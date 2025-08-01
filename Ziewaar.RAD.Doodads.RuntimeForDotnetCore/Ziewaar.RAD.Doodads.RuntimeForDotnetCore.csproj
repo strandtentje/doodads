@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Ziewaar.Common.Aardvargs\Ziewaar.Common.Aardvargs.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CommonComponents\Ziewaar.RAD.Doodads.CommonComponents.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.Cryptography\Ziewaar.RAD.Doodads.Cryptography.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.FormsValidation\Ziewaar.RAD.Doodads.FormsValidation.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.ModuleLoader\Ziewaar.RAD.Doodads.ModuleLoader.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.MySQL\Ziewaar.RAD.Doodads.MySQL.csproj" />
