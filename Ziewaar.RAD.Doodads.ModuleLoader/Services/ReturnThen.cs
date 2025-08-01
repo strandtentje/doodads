@@ -25,13 +25,13 @@ public class ReturnThen : ReturningService
 
     public override void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, OverrideRegisterValueConstant).IsRereadRequired(out object? toOverride))
+        if ((constants, OverrideRegisterValueConstant).IsRereadRequired(out object? toOverride) && toOverride is string or decimal)
         {
             this.OverrideValue = toOverride;
         }
 
         if (FindCallerOfCurrentScope(this, interaction, 0) is CallingInteraction ci)
-            ci.InvokeOnThen(new ReturningInteraction(this, OverrideValue, interaction, ci, constants.NamedItems));
+            ci.InvokeOnThen(new ReturningInteraction(this, OverrideValue ?? interaction.Register, interaction, ci, constants.NamedItems));
         else
             OnException?.Invoke(this, new CommonInteraction(interaction, "illegal double return"));
     }

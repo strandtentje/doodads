@@ -1,16 +1,7 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
-public class RouteEvaluationInteraction(
-    IInteraction parent,
-    IEnumerable<string> components,
-    string currentPath,
-    HttpHeadInteraction head) : IInteraction
+public class ExactRoute : Route
 {
-    public IInteraction Stack => parent;
-    public object Register => parent.Register;
-    public IReadOnlyDictionary<string, object> Memory => parent.Memory;
-    public IEnumerable<string> Components => components;
-    public string CurrentPath => currentPath;
-    public HttpHeadInteraction Head => head;
+    protected override bool IsExact => true;
 }
 public class Route : IService
 {
@@ -21,6 +12,7 @@ public class Route : IService
     private readonly List<IRouteComponent> RouteTemplateComponents = new();
     private bool IsAbsoluteRoute;
     private string CurrentMethod = "GET";
+    protected virtual bool IsExact => false;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, RouteTemplateConst).IsRereadRequired(out string? routeWithMethodTemplate) &&
@@ -108,6 +100,7 @@ public class Route : IService
             OnElse?.Invoke(this, evaluation);
             return;
         }
+        
 
         var componentArray = evaluation.Components.ToArray();
 
@@ -115,7 +108,7 @@ public class Route : IService
         var currentPath = new StringBuilder(evaluation.CurrentPath);
         int currentPositionInUrlComponents = 0;
 
-        if (RouteTemplateComponents.Count > componentArray.Length)
+        if (RouteTemplateComponents.Count > componentArray.Length || IsExact && RouteTemplateComponents.Count != componentArray.Length)
         {
             OnElse?.Invoke(this, evaluation);
             return;

@@ -93,14 +93,11 @@ public class HtmlForm : IService
 
         if (csrfFields != null)
             fieldset.ApplyObfuscation(csrfFields);
-        try
-        {
-            doc.Save(targetSink.SinkBuffer, targetSink.TextEncoding);
-        }
-        catch (Exception)
-        {
-            // that's probably due to a redirect killing the connection. dont worry about it.
-        }
+
+        if (interaction.TryGetClosest<IMayRedirectInteraction>(out var redirect) &&
+            redirect is { IsRedirecting: true }) return;
+        
+        doc.Save(targetSink.SinkBuffer, targetSink.TextEncoding);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

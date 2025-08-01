@@ -1,4 +1,5 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Delegates;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
@@ -20,7 +21,7 @@ public class ResilientCursorTextEmitter(FileInfo file)
             if (!file.Exists)
             {
                 file.Create().Close();
-                Console.WriteLine("Creating empty file");
+                GlobalLog.Instance?.Information("making empty file for {file}", file.FullName);
             }
 
             readCallback();
@@ -68,7 +69,7 @@ public class ResilientCursorTextEmitter(FileInfo file)
     {
         LockCatchRetry(() =>
         {
-            Console.WriteLine("Reloading program {0}", file.Name);
+            GlobalLog.Instance?.Information("Reloading program {filename}", file.Name);
             var cursor = CursorText.Create(this.DirectoryInfo, file.Name, File.ReadAllText(file.FullName));
             CursorTextAvailable?.Invoke(this, cursor);
         });

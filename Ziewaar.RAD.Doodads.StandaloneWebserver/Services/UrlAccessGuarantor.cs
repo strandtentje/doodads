@@ -9,7 +9,7 @@ public class UrlAccessGuarantor
         var prefixdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "doodads-prefixes");
         if (!Directory.Exists(prefixdir)) Directory.CreateDirectory(prefixdir);
         var prefixfile = Path.Combine(prefixdir, "prefixes.txt");
-        Console.WriteLine($"using {prefixfile} for keeping track of registered prefixes");
+        GlobalLog.Instance?.Information($"using {prefixfile} for keeping track of registered prefixes");
         if (!File.Exists(prefixfile)) File.WriteAllText(prefixfile, "");
         var prefixLines = File.ReadAllLines(prefixfile).Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
@@ -49,12 +49,12 @@ public class UrlAccessGuarantor
                 if (p != null)
                     p.WaitForExit();
                 else
-                    Console.Error.WriteLine("URL ACL didn't start");
+                    GlobalLog.Instance?.Error("URL ACL didn't start");
             }
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Failed to add URL ACL for {prefix}: {ex.Message}");
+            GlobalLog.Instance?.Error("Failed to add URL ACL for {Prefix}: {ExMessage}", prefix, ex.Message);
         }
     }
 
@@ -79,12 +79,12 @@ public class UrlAccessGuarantor
                 if (p != null)
                     p.WaitForExit();
                 else
-                    Console.Error.WriteLine("URL ACL didn't start");
+                    GlobalLog.Instance?.Error("URL ACL didn't start");
             }
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Failed to remove URL ACL for {prefix}: {ex.Message}");
+            GlobalLog.Instance?.Error("Failed to remove URL ACL for {Prefix}: {ExMessage}", prefix, ex.Message);
         }
     }
 }
