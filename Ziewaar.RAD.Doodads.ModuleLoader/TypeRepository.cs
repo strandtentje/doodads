@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using System.Threading.Tasks;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
@@ -21,9 +23,11 @@ public class TypeRepository : IDisposable
         IEnumerable<Type> serviceTypes;
 
         if (typeof(IService).Assembly.FullName == assembly.FullName)
-            serviceTypes = typeof(IService).Assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+            serviceTypes = typeof(IService).Assembly.GetTypes()
+                .Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
         else if (typeof(TypeRepository).Assembly.FullName == assembly.FullName)
-            serviceTypes = typeof(TypeRepository).Assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+            serviceTypes = typeof(TypeRepository).Assembly.GetTypes()
+                .Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
         else
             serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
 
@@ -39,6 +43,42 @@ public class TypeRepository : IDisposable
             else
             {
                 NamedServiceTypes.Add(serviceType.Name, serviceType);
+                var attributes = serviceType.GetCustomAttributes().ToArray();
+
+                Task.Run(() =>
+                {
+                    if (!attributes.Any(x => x is TitleAttribute) || !attributes.Any(x => x is CategoryAttribute) ||
+                        !attributes.Any(x => x is DescriptionAttribute))
+                        GlobalLog.Instance?.Warning(
+                            "Missing Category, Title or Description attributes on {typeName}",
+                            serviceType.Name);
+
+                    foreach (var item in serviceType.GetEvents())
+                    {
+                        var ca = item.GetCustomAttributes();
+                        if (!ca.Any(x => x is EventOccasionAttribute || x is NeverHappensAttribute))
+                        {
+                            GlobalLog.Instance?.Warning(
+                                "Missing EventOccasion or NeverHappens Attribute on {typeName}:{eventName}",
+                                serviceType.Name, item.Name);
+                        }
+                    }
+
+                    var allFields = serviceType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+                    foreach (var setting in allFields)
+                    {
+                        if (typeof(UpdatingPrimaryValue).IsAssignableFrom(setting.FieldType) &&
+                            !setting.GetCustomAttributes().Any(x => x is PrimarySettingAttribute))
+                            GlobalLog.Instance?.Warning(
+                                "Missing PrimarySettingAttribute on {typeName}:{settingName}",
+                                serviceType.Name, setting.Name);
+                        else if (typeof(UpdatingKeyValue).IsAssignableFrom(setting.FieldType) &&
+                                 !setting.GetCustomAttributes().Any(x => x is NamedSettingAttribute))
+                            GlobalLog.Instance?.Warning(
+                                "Missing NamedSettingAttribute on {typeName}:{settingName}",
+                                serviceType.Name, setting.Name);
+                    }
+                });
             }
         }
         return this;
