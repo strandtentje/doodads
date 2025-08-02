@@ -24,8 +24,13 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             GlobalLog.Instance = new LoggerConfiguration().WriteTo.File(
-                Path.Combine(dir, $"{DateTime.Now:O}.log.txt")
-            ).WriteTo.Console().CreateLogger();
+                    Path.Combine(dir, $"{DateTime.Now:O}.log.txt")
+                ).WriteTo.Console().
+#if DEBUG
+                MinimumLevel.Verbose().
+#endif
+                CreateLogger();
+
             BootstrappedStartBuilder
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()

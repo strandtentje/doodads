@@ -2,12 +2,29 @@ using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
 
+[Category("Html")]
+[Title("Parse and Validate HTML form")]
+[Description("""
+             Provided a standard HTML form, this service 
+              - Figures out to which route its data is posted
+              - With what method its posted (POST->Body, GET->Query) 
+              - In case the method and route apply, validates.
+              - Optionally replaces field names with CSRF hardened field names
+             It will always print out the form to the nearest sink unless: 
+              - There was no method or maybe a not a query in memory
+              - OnValid or OnInvalid triggered a redirect right after validation but before printing
+             """)]
 public class HtmlForm : IService
 {
+    [EventOccasion("Sink the form text here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the form was valid, the form values are in memory here.")]
     public event CallForInteraction? OnValid;
+    [EventOccasion("When the form was invalid, no new data is here, but the form will be printed with its error spans")]
     public event CallForInteraction? OnInvalid;
+    [EventOccasion("When there was no sink")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

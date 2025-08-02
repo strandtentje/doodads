@@ -6,8 +6,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 [Description("""Sink data into file""")]
 public class SinkToFile : IService
 {
+    [EventOccasion("Sink filename here")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Sink data for file here")]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

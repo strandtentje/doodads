@@ -43,6 +43,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class Template : IService
 {
     private TextSinkingInteraction? templatefile = null;
+    [NamedSetting("contenttype", "Force the content type to be the specified MIME instead of deriving it from the file")]
     private readonly UpdatingKeyValue ForceContentTypeConstant = new("contenttype");
     private readonly TemplateParser Parser = new();
     private string? ContentTypeOverride;

@@ -1,10 +1,20 @@
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+
 namespace Ziewaar.RAD.Doodads.Cryptography;
+[Category("Cryptography")]
+[Title("Load string as sensitive")]
+[Description("""
+             Find a string by name in memory, make it unreadable and save it for
+             single use as a sensitive interaction.
+             """)]
 public class LoadSensitive : IService
 {
-    private readonly UpdatingPrimaryValue NameConstant = new();
+    [PrimarySetting("Name in memory")] private readonly UpdatingPrimaryValue NameConstant = new();
     private string? CurrentName;
+    [EventOccasion("When the string was found and protected from repeated reading")]
     public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
+    [NeverHappens] public event CallForInteraction? OnElse;
+    [EventOccasion("When the name was missing or no value was found")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

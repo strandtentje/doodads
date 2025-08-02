@@ -26,11 +26,3 @@ public abstract class ModifyValidation : IService
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
-
-public class PasswordValidation : ModifyValidation
-{
-    protected override bool GetValidity(StampedMap constants, IInteraction interaction)
-    {
-        return false;
-    }
-}

@@ -1,10 +1,23 @@
+using System.Diagnostics.CodeAnalysis;
 using Isopoh.Cryptography.Argon2;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 namespace Ziewaar.RAD.Doodads.Cryptography;
+[Category("Cryptography")]
+[Title("Validate Password with Argon2")]
+[Description("""
+             When triggered with a sensitive interaction that's not been consumed (use LoadSensitive),
+             And a password hash in the register,
+             It will validate the sensitive string against the password hash.
+             Argon2 is used.
+             """)]
 public class ValidateHash : IService
 {
+    [EventOccasion("When the hash and sensitive string matched")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the hash and sensitive string mismatched")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no sensitive string was found, or all of them were consumed")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

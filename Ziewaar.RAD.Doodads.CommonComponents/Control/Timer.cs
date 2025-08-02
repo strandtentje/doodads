@@ -3,7 +3,8 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 [Category("Flow Control")]
-[Title("""
+[Title("Delay and/or Repeat")]
+[Description("""
        Will delay or intermittently repeat the underlying block.
        Be ware when using this with blocks that produce transient interactions, like HTTP servers.
        If the timer fires when the request has long ended, it will likely not do its work correctly,
