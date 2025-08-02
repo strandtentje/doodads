@@ -18,6 +18,7 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
     }
     public int MinLength, MaxLength;
     public Regex Pattern = new(".*");
+    public string TextInputType = "text";
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
     public List<IValidatingInputField> AltValidators { get; } = new();
@@ -25,9 +26,27 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
     public bool IsMaxUnbound => false;
     public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
-        var readPw = submittedValue.Where(x => x.Length >= MinLength && x.Length <= MaxLength && Pattern.IsMatch(x)).ToArray();
-        result = readPw;
-        return readPw.Length == submittedValue.Length;
+        if (TextInputType == "password")
+        {
+            var distinctValues = submittedValue.Distinct().ToArray();
+            if (MaxExpectedValues != submittedValue.Length || distinctValues.Length != 1)
+            {
+                result = Enumerable.Empty<string>();
+                return false;
+            }
+            else
+            {
+                result = new[] { distinctValues[0] };
+                return true;
+            }
+        }
+        else
+        {
+            var readPw = submittedValue.Where(x => x.Length >= MinLength && x.Length <= MaxLength && Pattern.IsMatch(x))
+                .ToArray();
+            result = readPw;
+            return readPw.Length == submittedValue.Length;
+        }
     }
     public bool TryIdentityMerge(IValidatingInputFieldInSet otherFieldInSet)
     {
@@ -44,7 +63,7 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
             return false;
         }
     }
-    private static readonly string[] FieldTypes = ["password", "text", "search", "tel", "text", "url"];
+    private static readonly string[] FieldTypes = ["password", "text", "search", "tel", "text", "url", "hidden"];
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
         var nodeType = node.GetInputTypeName();
@@ -55,6 +74,7 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
         var isRequired = node.IsRequired();
         set.Merge(new ValidatingTextInput(node)
         {
+            TextInputType = nodeType,
             IsRequired = isRequired,
             MinLength = node.GetMinLength(),
             MaxLength = node.GetMaxLength(),

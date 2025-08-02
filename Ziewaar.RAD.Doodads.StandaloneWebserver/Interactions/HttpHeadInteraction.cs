@@ -2,7 +2,7 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpHeadInteraction : IInteraction
 {
-    public readonly string RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort;
+    public readonly string RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort, RequestLocale;
     public HttpHeadInteraction(IInteraction parent, HttpListenerContext context, Services.ExpandedPrefixes expandedPrefixes)
     {
         var urlHalves = context.Request.RawUrl?.Split("?") ?? ["/", ""];
@@ -15,8 +15,12 @@ public class HttpHeadInteraction : IInteraction
         this.RemoteIp = context.Request.RemoteEndPoint.Address.ToString();
         this.RemotePort = context.Request.RemoteEndPoint.Port.ToString();
         this.RequestTime = DateTime.Now.ToString("yyMMdd HH:mm:ss");
-        this.Memory = new SwitchingDictionary(["method", "query", "url", "remoteip", "requesttime", "loopbackurl", "localipurl", "localnameurl"], x => x switch
+        this.RequestLocale =
+            context.Request.Headers["Accept-Language"]?.Split(',').ElementAtOrDefault(0)?.Trim().ToLower() ??
+            CultureInfo.CurrentCulture.Name;
+        this.Memory = new SwitchingDictionary(["requestlocale", "method", "query", "url", "remoteip", "requesttime", "loopbackurl", "localipurl", "localnameurl"], x => x switch
         {
+            "requestlocale" => RequestLocale,
             "method" => Method,
             "query" => QueryString,
             "url" => RouteString,

@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata;
+﻿using System.Data;
+using System.Reflection.Metadata;
 using Serilog;
 using Ziewaar.RAD.Doodads.CommonComponents;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
@@ -11,6 +12,7 @@ using Ziewaar.RAD.Doodads.MySQL;
 using Ziewaar.RAD.Doodads.SQLite;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 using Ziewaar.RAD.Starter;
+using DataRow = Ziewaar.RAD.Doodads.Data.Services.DataRow;
 
 namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
 {
@@ -35,7 +37,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
                 .AddAssemblyBy<Definition>().AddAssemblyBy<SqliteConnectionSource>().AddAssemblyBy<ValidateForm>()
-                .AddAssemblyBy<LoadSensitive>()
+                .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>()
                 .AddAssemblyBy<MySqlConnectionSource>().AddFile("server.rkop",
                     """
                     Definition()

@@ -61,10 +61,10 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
     }
     public void Merge(IValidatingInputFieldInSet fieldInSet)
     {
+        fieldInSet.MinExpectedValues = fieldInSet.IsRequired ? 1 : 0;
+        fieldInSet.MaxExpectedValues = fieldInSet.IsMaxUnbound ? short.MaxValue : 1;
         if (fieldIngestors.SingleOrDefault(x => x.Name == fieldInSet.Name) is not IValidatingInputField existingField)
         {
-            fieldInSet.MinExpectedValues = fieldInSet.IsRequired ? 1 : 0;
-            fieldInSet.MaxExpectedValues = fieldInSet.IsMaxUnbound ? short.MaxValue : 1;
             fieldIngestors.Add(fieldInSet);
         }
         else if (existingField.TryIdentityMerge(fieldInSet))
@@ -92,45 +92,39 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
             {
                 result[i] = new(validator.Name, Enumerable.Empty<object>(), validator.MinExpectedValues > 0);
             }
-            else if (
-                stringsToValidate.Count() < validator.MinExpectedValues ||
-                stringsToValidate.Count() > validator.MaxExpectedValues)
+            else
             {
-                result[i] = new(validator.Name, Enumerable.Empty<object>(), true);
-            }
-            else if (validator.TryValidate(stringsToValidate.ToArray(), out var resultValues))
-            {
-                var resultArray = resultValues.OfType<object>().ToArray();
-                if (resultArray.Length < validator.MinExpectedValues ||
-                    resultArray.Length > validator.MaxExpectedValues)
+                var toValidate = stringsToValidate as string[] ?? stringsToValidate.ToArray();
+                if (
+                    toValidate.Length < validator.MinExpectedValues ||
+                    toValidate.Length > validator.MaxExpectedValues)
                 {
-                    result[i] = new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
+                    result[i] = new(validator.Name, Enumerable.Empty<object>(), true);
+                }
+                else if (validator.TryValidate(toValidate.ToArray(), out var resultValues))
+                {
+                    var resultArray = resultValues.OfType<object>().ToArray();
+                    result[i] = validator.IsExactValueCountCorrect(resultArray)
+                        ? new ValidationResult(validator.Name, resultArray, false)
+                        : new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
                 }
                 else
                 {
-                    result[i] = new ValidationResult(validator.Name, resultArray, false);
-                }
-            }
-            else if (validator.AltValidators != null)
-            {
-                foreach (var alt in validator.AltValidators)
-                {
-                    if (alt.TryValidate(stringsToValidate.ToArray(), out var altOutput))
+                    foreach (var alt in validator.AltValidators)
                     {
-                        var resultArray = altOutput.OfType<object>().ToArray();
-                        if (resultArray.Length >= validator.MinExpectedValues ||
-                            resultArray.Length <= validator.MaxExpectedValues)
+                        if (alt.TryValidate(toValidate.ToArray(), out var altOutput))
                         {
-                            result[i] = new ValidationResult(validator.Name, resultArray, false);
-                            break;
+                            var resultArray = altOutput.OfType<object>().ToArray();
+                            if (resultArray.Length >= validator.MinExpectedValues ||
+                                resultArray.Length <= validator.MaxExpectedValues)
+                            {
+                                result[i] = new ValidationResult(validator.Name, resultArray, false);
+                                break;
+                            }
                         }
                     }
+                    result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
                 }
-                result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
-            }
-            else
-            {
-                result[i] ??= new ValidationResult(validator.Name, Enumerable.Empty<object>(), true);
             }
         }
         return result;

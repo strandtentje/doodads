@@ -67,13 +67,6 @@ public class SessionCookie : IService
                 new CommonInteraction(interaction, "can only set cookie when CookieRealm is defined"));
             return;
         }
-        if (head.Context.Response.OutputStream.Position > 0 ||
-            head.Context.Response.OutputStream.Length > 0)
-        {
-            OnException?.Invoke(this,
-                new CommonInteraction(interaction, "can only set cookie on request that doesn't have a body yet"));
-            return;
-        }
         ProceedToCook(interaction, head, realm);
     }
     private void ProceedToCook(IInteraction interaction, HttpHeadInteraction head, CookieRealmInteraction realm)
@@ -112,8 +105,11 @@ public class SessionCookie : IService
         {
             var goodCookie = realm.Cookies.ValidateOrReplace(cookie);
             cookieWorkingSet[0].Value = goodCookie.ToString();
-            cookieWorkingSet[0].Expires += TimeSpan.FromHours((double)CurrentCookieLifetimeHours);
-            head.Context.Response.SetCookie(cookieWorkingSet[0]);
+            var maxage = TimeSpan.FromHours((double)CurrentCookieLifetimeHours);
+            cookieWorkingSet[0].Expires += maxage;
+            
+            head.Context.Response.Headers.Add("Set-Cookie", $"{cookieWorkingSet[0].Name}={cookieWorkingSet[0].Value}; Max-Age={maxage.TotalSeconds}; Path=/; SameSite=Strict");
+            
             OnThen?.Invoke(this, new RetrievedCookieInteraction(interaction, head, realm, cookie, cookieWorkingSet[0]));
         }
     }

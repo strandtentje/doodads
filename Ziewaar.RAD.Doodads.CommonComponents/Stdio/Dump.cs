@@ -40,12 +40,13 @@ public class Dump : IService
         dumpHeader = $"{nameof(Dump)}|{dumpHeader}|{GlobalStopwatch.Instance.ElapsedMilliseconds:x8}";
         var depth = 0;
         GlobalLog.Instance?.Debug("[{dumpHeader}|Start]", dumpHeader);
+        
         for (var working = interaction; working is not StopperInteraction; working = working.Stack)
         {
             var dumpBlob = JsonConvert.SerializeObject(new
             {
                 Type = working.GetType().Name,
-                Memory = working.Memory,
+                Memory = working.Memory.Select(x => (x.Key, x.Value)).ToArray(),
                 Register = working.Register
             }, Formatting.Indented);
             GlobalLog.Instance?.Debug("[{dumpHeader}|{depth}] : {blob}", dumpHeader,
