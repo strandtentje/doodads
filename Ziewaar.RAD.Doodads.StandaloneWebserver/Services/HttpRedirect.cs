@@ -2,10 +2,18 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #nullable enable
 
+[Category("Http Status")]
+[Title("Http redirect to")]
+[Description("""
+             Does a 307 Temporary Redirect to the path sunk into OnThen
+             """)]
 public class HttpRedirect : IService
 {
+    [EventOccasion("Sink redirect URL here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when we're trying to redirect something other than a webserver.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

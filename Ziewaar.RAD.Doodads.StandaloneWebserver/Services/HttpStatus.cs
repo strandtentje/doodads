@@ -1,11 +1,20 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
+[Category("Http Status")]
+[Title("Set HTTP Status code")]
+[Description("""
+             Force the HTTP status code.
+             """)]
 public class HttpStatus : IService
 {
+    [PrimarySetting("Status code number")]
     private readonly UpdatingPrimaryValue HttpStatusCodeConstant = new();
     private int CurrentStatusCode;
+    [EventOccasion("When the status code was set")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when we're trying to set status on something else than a webserver")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

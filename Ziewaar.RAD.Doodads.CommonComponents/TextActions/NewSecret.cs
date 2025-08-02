@@ -2,10 +2,16 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
+[Category("Tokens")]
+[Title("New Secret")]
+[Description("""Generate a Secret and stick it into the register.""")]
 public class NewSecret : IService
 {
+    [EventOccasion("When the secret is available in register")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

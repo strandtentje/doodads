@@ -12,9 +12,13 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
     """)]
 public class RegexMatches : IService
 {
+    [EventOccasion("Sink regex here")]
     public event CallForInteraction? Expression;
+    [EventOccasion("For each match in register")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When no matches were found in register")]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

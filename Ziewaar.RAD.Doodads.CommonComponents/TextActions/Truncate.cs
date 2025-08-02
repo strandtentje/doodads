@@ -10,11 +10,15 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
     """)]
 public class Truncate : IService
 {
+    [PrimarySetting("Max length of string")]
     private readonly UpdatingPrimaryValue LengthConstant = new();
     private decimal CurrentTruncLength = -1;
 
+    [EventOccasion("With the (potentially) shorter string in register")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("No length was provided")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

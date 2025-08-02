@@ -7,8 +7,11 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
              """)]
 public class RevokeCookie : IService
 {
+    [EventOccasion("When the cookie was revoked")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Either there was no cookie or we can't change the headers anymore.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

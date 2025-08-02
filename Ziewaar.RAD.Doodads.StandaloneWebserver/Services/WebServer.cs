@@ -3,18 +3,28 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
+[Category("Http")]
+[Title("Http Webserver")]
+[Description("Starts listening for web requests when it receives a start command.")]
 public class WebServer : IService, IDisposable
 {
     private readonly PrefixProcessor Prefixes = new();
     private readonly ControlCommandInstanceProvider<ServerCommand> Server = new();
+    [PrimarySetting(@"Set a whitelist array of prefixes here ie [""http://*:8008/""]")]
     private readonly UpdatingPrimaryValue PrimaryPrefixesConstant = new();
     private string[] ActivePrefixStrings = [];
     private IInteraction? StartingInteraction;
+    [EventOccasion("When a request came in ready for processing")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the prefixes weren't set up right, or when the server was DDoSed to death.")]
     public event CallForInteraction? OnException;
+    [EventOccasion("Before the requst body, but after the head of the request is ready")]
     public event CallForInteraction? OnHead;
+    [EventOccasion("When the server is ready to send requests to.")]
     public event CallForInteraction? OnStarted;
+    [EventOccasion("When the server is no longer ready for requesting.")]
     public event CallForInteraction? OnStopping;
 
     public void Enter(StampedMap constants, IInteraction interaction)

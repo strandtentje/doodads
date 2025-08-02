@@ -10,9 +10,13 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
     """)]
 public class StartsWith : IService
 {
+    [EventOccasion("Sink an expression here that the register string should start with")]
     public event CallForInteraction? Expression;
+    [EventOccasion("When the register string did indeed start with the expression")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the register string did not start with the expression")]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

@@ -19,8 +19,11 @@ public class SessionCookie : IService
     private readonly UpdatingKeyValue CookieLifetimeConst = new("expires");
     private string? CurrentCookieName, CurrentCookieDomain, CurrentCookiePath;
     private decimal CurrentCookieLifetimeHours;
+    [EventOccasion("Continues here with a cookie")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when misconfigured; read the error.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

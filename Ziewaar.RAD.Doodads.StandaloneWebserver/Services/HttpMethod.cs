@@ -2,12 +2,21 @@ using System.Runtime.InteropServices;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
+[Category("Http")]
+[Title("Match HTTP Method")]
+[Description("""
+             Does a hard check against a certain HTTP method.
+             """)]
 public class HttpMethod : IService
 {
+    [PrimarySetting("Method name to filter for ie. POST, GET, PUT, HEAD, etc.")]
     private readonly UpdatingPrimaryValue MethodNameConstant = new();
     private System.Net.Http.HttpMethod? CurrentMethod;
+    [EventOccasion("When the request method is matching")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the request method is not matching")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when the method was strange, or there was no request.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

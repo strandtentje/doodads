@@ -6,10 +6,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 [Description("Make text in memory readable as a stream")]
 public class SourceFrom : IService
 {
+    [PrimarySetting("Name in memory to source text from")]
     private readonly UpdatingPrimaryValue SourceVariableConstant = new();
     private string? CurrentSourceVariable;
+    [EventOccasion("When text is available to source")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Either no name was given, or no data was in memory")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

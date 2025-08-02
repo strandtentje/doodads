@@ -1,13 +1,46 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
+[Category("Http")]
+[Title("Match route exactly")]
+[Description("Behaves like Route, but will only match if the route matches exactly, without subdirectories.")]
 public class ExactRoute : Route
 {
     protected override bool IsExact => true;
 }
+[Category("Http")]
+[Title("Match (parent) route")]
+[Description("""
+             Will by default route GET only
+             Will route single or multiple path segments.
+             Will route relative to the previous Route expression,
+             or absolutely regardless of what routing happened before.
+             Can take route parameters. 
+             Methods may be specified, in place of a method ANY can be specified to allow any method
+             
+             ```Route("/about")```
+             ```Route("/about"):Route("GET mission")```
+             ```Route("/"):Route("ANY about/mission")```
+             will match `/about` and `/about/mission`
+             
+             ```Route("/product/{#id#}/{$color$}")```
+             Will match `/product/123/blue` and stick `123` into memory at `id`, and `blue` into memory at `color`
+             Will not match `/product/blue/123` because {##} means parsable decimal with . and {$$} means text.
+             As such, `/product/123/123` will match.
+             
+             ```Route("POST /purchase")```
+             Will only match POST requests on `/purchase` and its subdirs
+             
+             ```ExactRoute("POST /purchase")```
+             Will only match POST requests on `/purchase` and no subdirs.
+             """)]
 public class Route : IService
 {
+    [PrimarySetting("Routing template as specified in the description above")]
     private readonly UpdatingPrimaryValue RouteTemplateConst = new();
+    [EventOccasion("When the route matched")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the route did not match")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the route template was wrong, or a relative Route was defined before an absolute Route was defined.")]
     public event CallForInteraction? OnException;
     private readonly List<IRouteComponent> RouteTemplateComponents = new();
     private bool IsAbsoluteRoute;
