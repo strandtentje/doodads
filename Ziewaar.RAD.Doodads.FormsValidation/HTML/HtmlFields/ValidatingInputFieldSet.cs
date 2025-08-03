@@ -46,7 +46,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route) : IValidat
         var actionFound = HttpUtility.UrlDecode(formNode.GetAttributeValue("action", ""));
         if (string.IsNullOrWhiteSpace(actionFound))
             throw new FormValidationMarkupException($"Action required");
-        var inputNodes = formNode.SelectNodes(".//input|.//select|.//textarea")?.ToArray() ?? [];
+        var inputNodes = formNode.SelectNodes(".//input|.//select|.//textarea|.//button")?.ToArray() ?? [];
         var fieldset = new ValidatingInputFieldSet(HttpMethod.Parse(methodFound), actionFound);
         foreach (var inputElement in inputNodes)
             fieldset.ParseAndMergeNode(inputElement);
