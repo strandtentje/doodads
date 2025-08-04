@@ -24,6 +24,8 @@ public class Hold : IService, IDisposable
     private readonly UpdatingPrimaryValue LockNameConstant = new();
     [EventOccasion("Happens before blocking")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Get blocking name dynamically")]
+    public event CallForInteraction? GetName;
     [EventOccasion("Happens after underlying release was triggered")]
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely happens when a name was not provided.")]
@@ -35,12 +37,26 @@ public class Hold : IService, IDisposable
         string? desiredName = lockName;
         if (string.IsNullOrWhiteSpace(desiredName))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Hold Lock required name"));
-            return;
+            var tsi = new TextSinkingInteraction(interaction);
+            GetName?.Invoke(this, tsi);
+            desiredName = tsi.ReadAllText();
+            if (string.IsNullOrWhiteSpace(desiredName))
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, "Hold Lock required name"));
+                return;
+            }
         }
-        var currentResident = ResidentialInteraction.CreateBlocked(
-            interaction, desiredName);
-        History.Add(currentResident);
+        ResidentialInteraction currentResident;
+        if (History.SingleOrDefault(x => x.Name == desiredName) is ResidentialInteraction ri)
+        {
+            currentResident = ri;
+        }
+        else
+        {
+            currentResident = ResidentialInteraction.CreateBlocked(
+                interaction, desiredName);
+            History.Add(currentResident);
+        }
         OnThen?.Invoke(this, currentResident);
         currentResident.Enter();
         History.Remove(currentResident);

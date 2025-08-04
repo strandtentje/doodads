@@ -40,14 +40,20 @@ public class Dump : IService
         dumpHeader = $"{nameof(Dump)}|{dumpHeader}|{GlobalStopwatch.Instance.ElapsedMilliseconds:x8}";
         var depth = 0;
         GlobalLog.Instance?.Debug("[{dumpHeader}|Start]", dumpHeader);
-        
+
         for (var working = interaction; working is not StopperInteraction; working = working.Stack)
         {
             var dumpBlob = JsonConvert.SerializeObject(new
             {
                 Type = working.GetType().Name,
-                Memory = working.Memory.Select(x => (x.Key, x.Value)).ToArray(),
-                Register = working.Register
+                Memory = working.Memory.Select<KeyValuePair<string, object>, (string, object)>(x => (x.Key, x.Value switch
+                {
+                    IEnumerable<string> strEnumerable => strEnumerable,
+                    IEnumerable<object> objEnumerable => objEnumerable.Select(x => x.ToString()),
+                    object anything => anything.ToString(),
+                    _ => "Don't know"
+                })).ToArray(),
+                Register = working.Register.ToString()
             }, Formatting.Indented);
             GlobalLog.Instance?.Debug("[{dumpHeader}|{depth}] : {blob}", dumpHeader,
                 $"{depth++:0000}", dumpBlob);
@@ -60,5 +66,5 @@ public class Dump : IService
         var duration = GlobalStopwatch.Instance.ElapsedMilliseconds - offset;
         GlobalLog.Instance?.Debug("[{dumpHeader}|OnThen Finished] {duration}ms", dumpHeader, duration);
     }
-    public void HandleFatal(IInteraction source, Exception ex) =>  OnException?.Invoke(this, source);
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

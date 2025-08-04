@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using System.Threading;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 public class CircularPop : IService
@@ -21,11 +23,11 @@ public class CircularPop : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "loop must have name"));
             return;
         }
-        if (!CircularPush.Stacks.TryGetValue(loopName, out var circularStack))
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "cant pop from non-existing stack"));
-            return;
-        }
+        CircularStack<object> circularStack;
+        while (!CircularPush.Stacks.TryGetValue(loopName, out circularStack))
+            Thread.Sleep(100);
+        while (circularStack.Count == 0)
+            Thread.Sleep(100);
         OnThen?.Invoke(this, new CommonInteraction(interaction, circularStack.Pop()));
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
