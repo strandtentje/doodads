@@ -34,7 +34,7 @@ public class Repeat : IService
             IsDeep = mustGoDeep == true
         };
         OnElse?.Invoke(this, ri);
-        while(ri.IsRunning)
+        while (ri.IsRunning)
         {
             ri.IsRunning = false;
             OnThen?.Invoke(this, ri.ContinueFrom ?? ri);
