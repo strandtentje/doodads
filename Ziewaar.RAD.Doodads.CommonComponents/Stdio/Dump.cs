@@ -49,6 +49,7 @@ public class Dump : IService
                 Memory = working.Memory.Select<KeyValuePair<string, object>, (string, object)>(x => (x.Key, x.Value switch
                 {
                     IEnumerable<string> strEnumerable => strEnumerable,
+                    string text => text,
                     IEnumerable<object> objEnumerable => objEnumerable.Select(x => x.ToString()),
                     object anything => anything.ToString(),
                     _ => "Don't know"
