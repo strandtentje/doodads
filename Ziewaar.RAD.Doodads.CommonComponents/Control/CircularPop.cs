@@ -3,10 +3,19 @@ using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Control")]
+[Title("Consume from an infinite stack")]
+[Description("""
+             Take an item from an infinite stack;
+             when the last item was reached, it wraps back around.
+             """)]
 public class CircularPop : IService
 {
+    [EventOccasion("Has stack item in register here")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Sink name of stack here.")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no name was provided")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
