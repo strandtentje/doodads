@@ -35,6 +35,17 @@ public static class InteractionExtensions
         else 
             return new ResurfacedSinkingInteraction(canonicalInteraction, sinkingInteraction);
     }
+    public static IEnumerable<TInteraction> FindInStack<TInteraction>(
+        this IInteraction interaction)
+        where TInteraction : IInteraction
+    {
+        while(true)
+        {
+            if (interaction is StopperInteraction) yield break;
+            else if (interaction is TInteraction tinteraction) yield return tinteraction;
+            interaction = interaction.Stack;
+        }
+    }
     public static bool TryGetClosest<TInteraction>(
         this IInteraction childInteraction,
         out TInteraction? candidateParentInteraction,
