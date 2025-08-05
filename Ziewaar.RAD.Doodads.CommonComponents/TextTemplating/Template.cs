@@ -11,7 +11,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
              will happen. The basic construction of template tags is {% tagname %}
              Keys in the template tags may be prefixed with modifiers to alter behaviour of 
              the templating routine;
-             
+
              Source modifiers: 
               - `<` : Prefixing with a left arrow will restrict sourcing to taking from memory; t
                 agnames become memory names.
@@ -20,7 +20,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
               - `#` : Prefixing with a pound sign restricts value sources to the service constants 
                 ie. Template(tagname = "cheese") 
               - No source modifier means it will first look in memory, then call out.
-             
+
              Filter modifiers:
               - `&` : Prefixing with an ampersand will escape strings to be safe for HTML pages.
               - `%` : Prefixing with a percent sign will escape strings to be safe for URL usage.
@@ -43,11 +43,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class Template : IService
 {
     private TextSinkingInteraction? templatefile = null;
-    [NamedSetting("contenttype", "Force the content type to be the specified MIME instead of deriving it from the file")]
+    [NamedSetting("contenttype",
+        "Force the content type to be the specified MIME instead of deriving it from the file")]
     private readonly UpdatingKeyValue ForceContentTypeConstant = new("contenttype");
     private readonly TemplateParser Parser = new();
     private string? ContentTypeOverride;
-
     [EventOccasion("When the template needs to buffer an updated version of the template text")]
     public event CallForInteraction? OnThen;
     [EventOccasion("""
@@ -59,7 +59,6 @@ public class Template : IService
                    Likely happens when the template couldn't find a place to write the result to.
                    """)]
     public event CallForInteraction? OnException;
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var output) || output == null)
@@ -94,11 +93,12 @@ public class Template : IService
         {
             this.ContentTypeOverride = contentTypeOverrideCandidate;
         }
-        
+
         try
         {
             writer = output.GetWriter(ContentTypeOverride ?? templatefile.SinkTrueContentType);
-        } catch(ContentTypeMismatchException ex)
+        }
+        catch (ContentTypeMismatchException ex)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, ex));
             return;
@@ -118,7 +118,7 @@ public class Template : IService
             OnException?.Invoke(
                 this,
                 new CommonInteraction(
-                    interaction, 
+                    interaction,
                     $"""
                      Template render request for locale "{requestedLocale}" was received,
                      however, this template only supports "{string.Join(@""", """, Parser.Locales)}".
@@ -126,10 +126,11 @@ public class Template : IService
                      """));
             requestedLocale = Parser.Locales.First();
         }
-        
+
         try
         {
-            var applicableGroups = Parser.CommandsByLocale.Where(group => LocaleMatcher.IsLocaleMatch(group.Key, requestedLocale));
+            var applicableGroups =
+                Parser.CommandsByLocale.Where(group => LocaleMatcher.IsLocaleMatch(group.Key, requestedLocale));
             var applicableSegments = applicableGroups.SelectMany(x => x).OrderBy(x => x.Position);
             foreach (var segment in applicableSegments)
             {
@@ -144,7 +145,8 @@ public class Template : IService
                         if (rawValue is string rawText)
                             writer.Write(segment.Type.ApplyFilterTo(rawText));
                         else
-                            writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(segment.GetFormattedPayload(rawValue))));
+                            writer.Write(
+                                segment.Type.ApplyFilterTo(Convert.ToString(segment.GetFormattedPayload(rawValue))));
                         break;
 
                     case TemplateCommandType.CallOutSource
@@ -156,7 +158,8 @@ public class Template : IService
                         when (segment.Type & TemplateCommandType.AllFilters) != TemplateCommandType.NoFilter:
                         var callOutIntermediate = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
                         OnElse?.Invoke(this, callOutIntermediate);
-                        writer.Write(segment.Type.ApplyFilterTo(callOutIntermediate.GetDisposingSinkReader().ReadToEnd()));
+                        writer.Write(
+                            segment.Type.ApplyFilterTo(callOutIntermediate.GetDisposingSinkReader().ReadToEnd()));
                         break;
 
                     case TemplateCommandType.CallOutOrVariable:
@@ -176,7 +179,7 @@ public class Template : IService
                         else
                             writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(defaultValue)));
 
-                            break;
+                        break;
 
                     case TemplateCommandType.ConstantSource:
                         if (!constants.NamedItems.TryGetValue(segment.PayloadText, out var rawObjectConstant))

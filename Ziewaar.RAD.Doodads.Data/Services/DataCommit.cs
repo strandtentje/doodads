@@ -26,7 +26,7 @@ public class DataCommit : IService
     {
         if ((constants, TransactionNameConstant).IsRereadRequired(out string? candidateTransactionName))
             this.TransactionName = candidateTransactionName;
-        if (TryValidateTransactionName(interaction)) return;
+        if (!TryValidateTransactionName(interaction)) return;
         if (interaction.TryGetClosest(out TransactionCommandSourceInteraction? tcsi,
                 x => x.TransactionName == this.TransactionName) && tcsi != null)
         {
