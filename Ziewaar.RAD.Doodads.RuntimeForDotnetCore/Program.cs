@@ -26,7 +26,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
             GlobalLog.Instance = new LoggerConfiguration().WriteTo.File(
-                    Path.Combine(dir, $"{DateTime.Now:O}.log.txt")
+                    Path.Combine(dir, $"{DateTime.Now:yyMMddHHmm}.log.txt")
                 ).WriteTo.Console().
 #if DEBUG
                 MinimumLevel.Verbose().

@@ -38,7 +38,7 @@ public class DataCommit : IService
     }
     private bool TryValidateTransactionName(IInteraction interaction)
     {
-        if (string.IsNullOrWhiteSpace(TransactionName))
+        if (!string.IsNullOrWhiteSpace(TransactionName))
             return true;
         OnException?.Invoke(this,
             new CommonInteraction(interaction,
