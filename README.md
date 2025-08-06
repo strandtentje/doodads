@@ -1,0 +1,3521 @@
+Doodads
+=======
+
+A bag of tricks with some hyroglyphs.
+
+RKOP syntax docs will come along later. 
+
+Service definitions:
+
+
+# Service Docs!
+
+Call Definition Return
+
+-   Call
+
+    ## Head
+
+    Title
+    :   Call to Definition in File
+
+    Description
+
+    :   Configured Programs can be put into separate rkop files with separate Definition blocks.
+            These Definition blocks can be given a name as their primary constant between the coconut operators 
+            like `Definition("Bake Cookies")` - it is encouraged to make these definition names human readable 
+            titles with spaces and such. Same for the filenames. Call can then recall them in a way that is understandable 
+            like `Call(f"Oven.rkop @ Bake Cookies")` - the `f` before the quotes will make it look from the directory 
+            of the current definition file. the @ means a definition name is coming. 
+
+    ## Settings
+
+      -------------------- ------------ --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      Technical Name       Usage Name   Description
+      ModuleNameConstant                Name and Definition name separated by an @ At least one of those is required. If only a file is given, the first and only Definition without a name in its primary setting will be invoked. If only a Definition name after an @ is given, the current file will be looked at.
+      -------------------- ------------ --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the called configuration returns control using ReturnElse
+
+    OnException
+
+        Likely when a module file or definition name wasn't given or wasn't found
+
+    OnThen
+
+        When the called configuration returns control using ReturnThen
+
+-   Definition
+
+    ## Head
+
+    Title
+    :   Call to Definition in File
+
+    Description
+
+    :   One of multiple root services in an rkop file; make sure each Definition name in a file 
+            is unique and descriptive. No programming casing is needed, so where you would normally do 
+            something like `bakeCookies(temp=100)` or `BakeCookies(100)`, you are encouraged to say 
+            `Definition("Bake Cookies at 100 degrees")` - rkop has no comments in its syntax. It is 
+            encouraged to instead title Definitions consistently and clearly.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when Definition wasn't the first thing after a call
+
+    OnThen
+
+        When the Definition was Called for
+
+-   ReturnElse
+
+    ## Head
+
+    Title
+    :   Return to the OnElse of the invoking Call
+
+    Description
+
+    :   Returns control to the caller, on either the OnThen, or the OnElse branch. 
+
+    ## Settings
+
+      ------------------------------- ------------ -----------------------------------------
+      Technical Name                  Usage Name   Description
+      OverrideRegisterValueConstant                If set, will put this value in register
+      ------------------------------- ------------ -----------------------------------------
+
+    ## Events
+
+    OnException
+
+        When some sort of infinite return loop was created. This means you're trying to do big brained stuff.
+        Don't do big brained stuff.
+
+-   ReturnThen
+
+    ## Head
+
+    Title
+    :   Return to the OnThen of the invoking Call
+
+    Description
+
+    :   Returns control to the caller, on either the OnThen, or the OnElse branch. 
+
+    ## Settings
+
+      ------------------------------- ------------ -----------------------------------------
+      Technical Name                  Usage Name   Description
+      OverrideRegisterValueConstant                If set, will put this value in register
+      ------------------------------- ------------ -----------------------------------------
+
+    ## Events
+
+    OnException
+
+        When some sort of infinite return loop was created. This means you're trying to do big brained stuff.
+        Don't do big brained stuff.
+
+Databases & Querying
+
+-   BufferedDataQuery
+
+    ## Head
+
+    Title
+    :   Cursor through query results after the query completes
+
+    Description
+
+    :   Retrieve all result rows then iterate through them.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataCommand
+
+    ## Head
+
+    Title
+    :   Execute DB Command that affects rows
+
+    Description
+
+    :   Uses the in-context command source to execute a command that may affect rows.
+            Depending on the affected rows, it may propagate differently; OnElse happens if nothing
+            was affected. OnThen happens is something was affected.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataCommit
+
+    ## Head
+
+    Title
+    :   Commit a transaction
+
+    Description
+
+    :   Commits a transaction provided a fixed name. 
+
+    ## Settings
+
+      ------------------------- ------------ ------------------------------------------
+      Technical Name            Usage Name   Description
+      TransactionNameConstant                Set a name for this transaction to match
+      ------------------------- ------------ ------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely when the transaction was committed already, or none was found with our name.
+
+    OnThen
+
+        When the transaction was committed; commands here after will not be in a transaction.
+
+-   DataNonQuery
+
+    ## Head
+
+    Title
+    :   Execute a non-query; ignore result.
+
+    Description
+
+    :   Regardless of what the query returns, or if it produces any data at all, OnThen
+            will happen after the query ran.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataQuery
+
+    ## Head
+
+    Title
+    :   Cursor through query results
+
+    Description
+
+    :   Execute a query, and after each result row was retrieved, invoke OnThen.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataRow
+
+    ## Head
+
+    Title
+    :   Read a row
+
+    Description
+
+    :   Gets a data row when it's present. Otherwise, OnElse happens.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataScalar
+
+    ## Head
+
+    Title
+    :   Get the first row/first column decimal
+
+    Description
+
+    :   Executes a full query, but returns the result out of the first row and column as a decimal in register.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataSingleColumn
+
+    ## Head
+
+    Title
+    :   Iterate the first column of the query result
+
+    Description
+
+    :   For each result row in the query, it'll take the value of the first column, and stick
+            it into Register and hit OnThen for each row.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataSingleFile
+
+    ## Head
+
+    Title
+    :   First column into list
+
+    Description
+
+    :   Works like DataSingleColumn, but instead of iterating while the query runs, it accumulates the entire
+            column into a list and sticks that into Register.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   DataTransaction
+
+    ## Head
+
+    Title
+    :   Start a transaction
+
+    Description
+
+    :   Opens a transaction and commits it with DataCommit. If not committed, a rollback will happen.
+
+    ## Settings
+
+      ------------------------- ------------ ----------------------------------------------------------------
+      Technical Name            Usage Name   Description
+      TransactionNameConstant                Set a name for this transaction to match the one in the commit
+      ------------------------- ------------ ----------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the transaction was not committed
+
+    OnException
+
+        Likely when no name was set, no connection was present or nesting transactions were attempted
+
+    OnThen
+
+        When the transaction has opened, it is available for querying against here.
+
+-   MySqlConnectionSource
+
+    ## Head
+
+    Title
+    :   Connect to MySQL
+
+    Description
+
+    :   Provided a MySQL connection string, connect to a server for querying. Dont forget 
+            `Allow User Variables`
+
+    ## Settings
+
+      ----------------------- ------------ -------------------
+      Technical Name          Usage Name   Description
+      ConnectionStringConst                Connection string
+      ----------------------- ------------ -------------------
+
+    ## Events
+
+    OnException
+
+        When the current configuration could not result in a valid connection
+
+    OnThen
+
+        When the connection has become available
+
+-   MySqlLocalConnectionSource
+
+    ## Head
+
+    Title
+    :   Connect to MySQL
+
+    Description
+
+    :   Connects to mysql at localhost, with the username, password and database parameters having the same name
+            in the connection string. Usually "good enough" for local use but be aware of the implications.
+
+    ## Settings
+
+      ---------------------- ------------ -------------------------------------
+      Technical Name         Usage Name   Description
+      LocalCredentialConst                Databasename, username and password
+      ---------------------- ------------ -------------------------------------
+
+    ## Events
+
+    OnException
+
+        When the current configuration could not result in a valid connection
+
+    OnThen
+
+        When the connection has become available
+
+-   OptionalDataRow
+
+    ## Head
+
+    Title
+    :   Optionally read a row
+
+    Description
+
+    :   Gets a data row when it's present and there's a connection. Otherwise, OnElse happens.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        After the query ran, or when it had no output
+
+    OnException
+
+        Likely when the query text was wrong.
+
+    OnThen
+
+        When the query ran successfully or has a result
+
+-   SqliteConnectionSource
+
+    ## Head
+
+    Title
+    :   Connect to a Sqlite File
+
+    Description
+
+    :   Open an SQLite file for querying and modifying using the data commands.
+
+    ## Settings
+
+      ------------------------ ------------ ----------------------
+      Technical Name           Usage Name   Description
+      DataSourceFileConstant                Data source filename
+      ------------------------ ------------ ----------------------
+
+    ## Events
+
+    OnException
+
+        When the current configuration could not result in a valid connection
+
+    OnThen
+
+        When the connection has become available
+
+Deprecated
+
+-   CircularPop
+
+    ## Head
+
+    Title
+    :   Consume from an infinite stack
+
+    Description
+
+    :   Take an item from an infinite stack;
+            when the last item was reached, it wraps back around.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        Sink name of stack here.
+
+    OnException
+
+        When no name was provided
+
+    OnThen
+
+        Has stack item in register here
+
+-   CircularPush
+
+    ## Head
+
+    Title
+    :   Add to infinite stack
+
+    Description
+
+    :   Access a stack globally available under a name.
+            Adds the current register to it.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        Sink name of stack here
+
+    OnException
+
+        When no name was provided.
+
+-   For
+
+    ## Head
+
+    Title
+    :   Loops over enumeration
+
+    Description
+
+    :   This loops over an enumeration in Register, and fires OnThen for each item, putting the Item
+            in the Register. This is similar to Pop, except it'll keep on going on its own without needing to recurse.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When the enumeration ends
+
+    OnException
+
+        Likely happens when no enumeration was in Register
+
+    OnThen
+
+        When an item was pulled from the enumeration
+
+-   Peek
+
+    ## Head
+
+    Title
+    :   Peek an item from an enumeration and continue
+
+    Description
+
+    :   For an enumeration in Register, or optionally in memory if a memory name is provided via 
+            the primary setting, it will look at the first item from the enumeration without taking it out.
+            So it's like Pop, but non-destructive.
+
+    ## Settings
+
+      ------------------------ ------------ --------------------------------------------------------------------------------------
+      Technical Name           Usage Name   Description
+      ListSourceNameConstant                Optionally provide a memory name for getting the list from and putting it back into.
+      ------------------------ ------------ --------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the list was empty
+
+    OnException
+
+        Likely happens when the memory location or register didn't contain a list.
+
+    OnThen
+
+        When an item was popped and the list was advanced; contains the item in register
+
+-   Pop
+
+    ## Head
+
+    Title
+    :   Pop an item from an enumeration and continue
+
+    Description
+
+    :   For an enumeration in Register, or optionally in memory if a memory name is provided via 
+            the primary setting, it will take the first item from the enumeration and move along.
+            In case the list was taken from Register, enumeration cannot be continued after the first
+            item. 
+            If the list is taken from Memory as configured using the primary setting, it will advance 
+            the list cursor and put that back in memory again in the same name. The item will go into
+            register. 
+
+    ## Settings
+
+      ------------------------ ------------ --------------------------------------------------------------------------------------
+      Technical Name           Usage Name   Description
+      ListSourceNameConstant                Optionally provide a memory name for getting the list from and putting it back into.
+      ------------------------ ------------ --------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the list was empty
+
+    OnException
+
+        Likely happens when the memory location or register didn't contain a list.
+
+    OnThen
+
+        When an item was popped and the list was advanced; contains the item in register
+
+-   Single
+
+    ## Head
+
+    Title
+    :   Ensure the list contains one item, and take it.
+
+    Description
+
+    :   Provided a list in Register, it will take one item, and make sure it was the only one.
+            If that was the case, OnThen will continue. For any different amount of items, OnElse will be 
+            triggered.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When the list didn't contain exactly one item
+
+    OnException
+
+        Likely occurs when the register didn't contain a list at all
+
+    OnThen
+
+        When the list contained exactly one item
+
+Diagnostics & Debug
+
+-   Dump
+
+    ## Head
+
+    Title
+    :   Dump the full context to console
+
+    Description
+
+    :   Dont do this in prod.
+
+    ## Settings
+
+      ------------------ ------------ ---------------------------------------------
+      Technical Name     Usage Name   Description
+      DumpNameConstant                Name of the dump for finding it in the log.
+      LimitConstant      limit        Maximum depth to dump before stopping
+      ------------------ ------------ ---------------------------------------------
+
+    ## Events
+
+    OnThen
+
+        After dump has happened. Logs before and after OnThen
+
+-   ReleaseAllResources
+
+    ## Head
+
+    Title
+    :   Dispose of every resource
+
+    Description
+
+    :   For all services that consume tangible resources, stop them and release the resources.
+            This doesn't kill the app per say but this is hard to recover from; typically 
+            used in conjunction with EnvironmentExit
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        After disposal happened
+
+-   VoidService
+
+    ## Head
+
+    Title
+    :   It does absolutely nothing
+
+    Description
+
+    :   This service is responsible for 
+             - nothing
+
+            This may be very useful if you for example have
+             - everything
+
+            And you don't want that.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        For some reason it still does this, but why?
+
+    OnException
+
+        Can't do it wrong if you ain't doing it.
+
+Http & Routing
+
+-   CookieRealm
+
+    ## Head
+
+    Title
+    :   Define Realm of Cookie
+
+    Description
+
+    :   Scopes the cookie lookup, this is not the cookie name itself - required to use RevokeCookie and SessionCookie.
+
+    ## Settings
+
+      ---------------- ------------ --------------------
+      Technical Name   Usage Name   Description
+      RealmName                     Name of the cookie
+      ---------------- ------------ --------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when a name is missing
+
+    OnThen
+
+        Continues with cookie name
+
+-   CsrfEnable
+
+    ## Head
+
+    Title
+    :   Enable CSRF Field Obfuscation
+
+    Description
+
+    :   For the services that support it, initializes a system that turns plaintext
+            field names into obfuscated field names that may only be used once.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Likely when CSRF was already enabled
+
+    OnThen
+
+        Forms from here on out will be CSRF hardened
+
+-   ExactRoute
+
+    ## Head
+
+    Title
+    :   Match route exactly
+
+    Description
+
+    :   Behaves like Route, but will only match if the route matches exactly, without subdirectories.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When the route did not match
+
+    OnException
+
+        When the route template was wrong, or a relative Route was defined before an absolute Route was defined.
+
+    OnThen
+
+        When the route matched
+
+-   Fileserver
+
+    ## Head
+
+    Title
+    :   Routing to files based on filesystem
+
+    Description
+
+    :   By default, when combined with Route(), will serve files relative to that url, out of the 
+            directory configured in the primary setting. Content Types and Content Lengths will be set.
+
+            To enable dealing with directory urls, indexfiles may be configured with an array of filenames
+            that can handle directory roots.
+
+            .rkop files will not be served statically or otherwise by default, but running them 
+            may be enabled by setting "run" to true.
+
+    ## Settings
+
+      ------------------------ ------------ ----------------------------------------------------------------------------------------------------------------------
+      Technical Name           Usage Name   Description
+      DefaultIndexFilesConst   indexfiles   array of filenames that may be considered for serving a directory index; the first filename takes highest precedence
+      DirectoryToServeConst                 Set the directory path to serve here
+      RunProgramsConst         run          Enable this to execute rkop files, otherwise, rkop files will not be served; statically or otherwise.
+      ------------------------ ------------ ----------------------------------------------------------------------------------------------------------------------
+
+    ## Events
+
+    NotFound
+
+        When the file was not found whatsoever
+
+    OnElse
+
+        Only when `run` is enabled; will pass through Returns from rkop files
+
+    OnException
+
+        Likely when the directory wasn't configured right, or this wasn't used in conjunction with Route
+
+    OnThen
+
+        Only when `run` is enabled; will pass through Returns from rkop files
+
+-   HttpMethod
+
+    ## Head
+
+    Title
+    :   Match HTTP Method
+
+    Description
+
+    :   Does a hard check against a certain HTTP method.
+
+    ## Settings
+
+      -------------------- ------------ ----------------------------------------------------------
+      Technical Name       Usage Name   Description
+      MethodNameConstant                Method name to filter for ie. POST, GET, PUT, HEAD, etc.
+      -------------------- ------------ ----------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the request method is not matching
+
+    OnException
+
+        Likely when the method was strange, or there was no request.
+
+    OnThen
+
+        When the request method is matching
+
+-   HttpRedirect
+
+    ## Head
+
+    Title
+    :   Http redirect to
+
+    Description
+
+    :   Does a 307 Temporary Redirect to the path sunk into OnThen
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when we're trying to redirect something other than a webserver.
+
+    OnThen
+
+        Sink redirect URL here.
+
+-   HttpStatus
+
+    ## Head
+
+    Title
+    :   Set HTTP Status code
+
+    Description
+
+    :   Force the HTTP status code.
+
+    ## Settings
+
+      ------------------------ ------------ --------------------
+      Technical Name           Usage Name   Description
+      HttpStatusCodeConstant                Status code number
+      ------------------------ ------------ --------------------
+
+    ## Events
+
+    OnException
+
+        Likely when we're trying to set status on something else than a webserver
+
+    OnThen
+
+        When the status code was set
+
+-   RevokeCookie
+
+    ## Head
+
+    Title
+    :   Revoke the cookie in this realm
+
+    Description
+
+    :   If theres a cookie for this realm, revoke it.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Either there was no cookie or we can't change the headers anymore.
+
+    OnThen
+
+        When the cookie was revoked
+
+-   Route
+
+    ## Head
+
+    Title
+    :   Match (parent) route
+
+    Description
+
+    :   Will by default route GET only
+            Will route single or multiple path segments.
+            Will route relative to the previous Route expression,
+            or absolutely regardless of what routing happened before.
+            Can take route parameters. 
+            Methods may be specified, in place of a method ANY can be specified to allow any method
+
+            ```Route("/about")```
+            ```Route("/about"):Route("GET mission")```
+            ```Route("/"):Route("ANY about/mission")```
+            will match `/about` and `/about/mission`
+
+            ```Route("/product/{#id#}/{$color$}")```
+            Will match `/product/123/blue` and stick `123` into memory at `id`, and `blue` into memory at `color`
+            Will not match `/product/blue/123` because {##} means parsable decimal with . and {$$} means text.
+            As such, `/product/123/123` will match.
+
+            ```Route("POST /purchase")```
+            Will only match POST requests on `/purchase` and its subdirs
+
+            ```ExactRoute("POST /purchase")```
+            Will only match POST requests on `/purchase` and no subdirs.
+
+    ## Settings
+
+      -------------------- ------------ --------------------------------------------------------
+      Technical Name       Usage Name   Description
+      RouteTemplateConst                Routing template as specified in the description above
+      -------------------- ------------ --------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the route did not match
+
+    OnException
+
+        When the route template was wrong, or a relative Route was defined before an absolute Route was defined.
+
+    OnThen
+
+        When the route matched
+
+-   SessionCookie
+
+    ## Head
+
+    Title
+    :   Define Realm of Cookie
+
+    Description
+
+    :   Within a CookieRealm, either find out if its a known cookie, or create one.
+            Puts the cookie value in the body.
+
+    ## Settings
+
+      --------------------- ------------ ----------------------------------------------------------
+      Technical Name        Usage Name   Description
+      CookieDomainConst     domain       Domain to which the cookie is restricted in the response
+      CookieLifetimeConst   expires      Cookie lifetime in whole or decimal hours
+      CookieNameConst                    Name of the cookie as it goes over HTTP
+      CookiePathConst       path         Path to which the cookie is restricted in the response
+      --------------------- ------------ ----------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely when misconfigured; read the error.
+
+    OnThen
+
+        Continues here with a cookie
+
+-   StartWebServer
+
+    ## Head
+
+    Title
+    :   Start underlying webserver
+
+    Description
+
+    :   When pointing this to a WebServer, it'll start it.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        Hook up the webserver to start here.
+
+-   StopWebServer
+
+    ## Head
+
+    Title
+    :   Cease underlying webserver
+
+    Description
+
+    :   When pointing this to a WebServer, it'll stop it.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        Hook up the webserver to stop here.
+
+-   WebServer
+
+    ## Head
+
+    Title
+    :   Http Webserver
+
+    Description
+
+    :   Starts listening for web requests when it receives a start command.
+
+    ## Settings
+
+      ------------------------- ------------ -------------------------------------------------------------------
+      Technical Name            Usage Name   Description
+      PrimaryPrefixesConstant                Set a whitelist array of prefixes here ie \[\"http://\*:8008/\"\]
+      ------------------------- ------------ -------------------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        When the prefixes weren't set up right, or when the server was DDoSed to death.
+
+    OnHead
+
+        Before the requst body, but after the head of the request is ready
+
+    OnStarted
+
+        When the server is ready to send requests to.
+
+    OnStopping
+
+        When the server is no longer ready for requesting.
+
+    OnThen
+
+        When a request came in ready for processing
+
+Input & Validation
+
+-   Clamp
+
+    ## Head
+
+    Title
+    :   Clamp numeric value in registry to a range
+
+    Description
+
+    :   Does a best effort at turning the Register contents into a decimal number,
+            and attempt to limit that numeric value between min and max. If the value
+            cannot be retrieved, default is used.
+
+    ## Settings
+
+      ---------------- ------------ -----------------------------------------------------------------------------------------------------------------------------------------------------------
+      Technical Name   Usage Name   Description
+      DefaultValue     default      Default numeric value to fall back to.
+      MaxValue         max          Maximum numeric value to clamp to
+      MinMaxRange                   An expression of numbers with one or two \<\'s ie. 0\<5\<10. Outer numbers go to min/max, middle number to default. When a single value is provided, 0\<0
+      MinValue         min          Minimum numeric value to clamp to
+      ---------------- ------------ -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnThen
+
+        After the clamped value was put into register
+
+-   EndsWith
+
+    ## Head
+
+    Title
+    :   Check if register text ends with something
+
+    Description
+
+    :   Sinks an expression at Expression, and then validates the text in register
+            against it. OnThen if matches, otherwise OnElse.
+
+    ## Settings
+
+      -------------------- ------------ ------------------------
+      Technical Name       Usage Name   Description
+      IgnoreCaseConstant   ci           Ignore case true/false
+      -------------------- ------------ ------------------------
+
+    ## Events
+
+    Expression
+
+        Sink an expression here that the register string should end with
+
+    OnElse
+
+        When the register string did not end with the expression
+
+    OnThen
+
+        When the register string did indeed end with the expression
+
+-   HtmlForm
+
+    ## Head
+
+    Title
+    :   Parse and Validate HTML form
+
+    Description
+
+    :   Provided a standard HTML form, this service 
+             - Figures out to which route its data is posted
+             - With what method its posted (POST->Body, GET->Query) 
+             - In case the method and route apply, validates.
+             - Optionally replaces field names with CSRF hardened field names
+            It will always print out the form to the nearest sink unless: 
+             - There was no method or maybe a not a query in memory
+             - OnValid or OnInvalid triggered a redirect right after validation but before printing
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        When there was no sink
+
+    OnInvalid
+
+        When the form was invalid, no new data is here, but the form will be printed with its error spans
+
+    OnThen
+
+        Sink the form text here.
+
+    OnValid
+
+        When the form was valid, the form values are in memory here.
+
+-   NumberBigger
+
+    ## Head
+
+    Title
+    :   Check if number is bigger
+
+    Description
+
+    :   Provided a number in memory, and a primary constant lower bound, will tell if its bigger or not.
+
+    ## Settings
+
+      ---------------- ------------ ----------------------------------------
+      Technical Name   Usage Name   Description
+      ValueConstant                 Minimum value for the number in memory
+      ---------------- ------------ ----------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the number in memory was not bigger
+
+    OnException
+
+        Likely when there was not a number in memory
+
+    OnThen
+
+        When the number in memory was bigger
+
+-   ReadJsonEncodedBody
+
+    ## Head
+
+    Title
+    :   JSON Body Reading
+
+    Description
+
+    :   Reads the top level JSON values into the memory based on whitelist or csrf lookup.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when no data could be read, or no field names could be determined via 
+        either the primary constant or the CSRF names
+
+    OnThen
+
+        Puts body values in memory either under whitelist names, or under CSRF obfuscated field names
+
+-   ReadUrlEncodedBody
+
+    ## Head
+
+    Title
+    :   URL Encoded Body Reading
+
+    Description
+
+    :   Reads URL Encoded Form values into the memory based on whitelist or csrf lookup.
+            May be used with URL Query string, or POST body.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when no data could be read, or no field names could be determined via 
+        either the primary constant or the CSRF names
+
+    OnThen
+
+        Puts body values in memory either under whitelist names, or under CSRF obfuscated field names
+
+-   RegexMatches
+
+    ## Head
+
+    Title
+    :   Check if register text matches regex
+
+    Description
+
+    :   Sinks an expression at Expression, and then validates the text in register
+            against it. OnThen if matches, otherwise OnElse.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    Expression
+
+        Sink regex here
+
+    OnElse
+
+        When no matches were found in register
+
+    OnThen
+
+        For each match in register
+
+-   SourceFrom
+
+    ## Head
+
+    Title
+    :   Memory to Stream
+
+    Description
+
+    :   Make text in memory readable as a stream
+
+    ## Settings
+
+      ------------------------ ------------ ------------------------------------
+      Technical Name           Usage Name   Description
+      SourceVariableConstant                Name in memory to source text from
+      ------------------------ ------------ ------------------------------------
+
+    ## Events
+
+    OnException
+
+        Either no name was given, or no data was in memory
+
+    OnThen
+
+        When text is available to source
+
+-   StartsWith
+
+    ## Head
+
+    Title
+    :   Check if register text starts with something
+
+    Description
+
+    :   Sinks an expression at Expression, and then validates the text in register
+            against it. OnThen if matches, otherwise OnElse.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    Expression
+
+        Sink an expression here that the register string should start with
+
+    OnElse
+
+        When the register string did not start with the expression
+
+    OnThen
+
+        When the register string did indeed start with the expression
+
+-   Trim
+
+    ## Head
+
+    Title
+    :   Remove spaces at both ends of text
+
+    Description
+
+    :   Removes spaces at ends of text in register, then continues.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        Register string trimmed of spaces on both ends
+
+-   Truncate
+
+    ## Head
+
+    Title
+    :   Makes sure text in register is not too long
+
+    Description
+
+    :   Takes text in register and if its longer than the primary setting specifies,
+            it'll be chopped on the right side.
+
+    ## Settings
+
+      ---------------- ------------ ----------------------
+      Technical Name   Usage Name   Description
+      LengthConstant                Max length of string
+      ---------------- ------------ ----------------------
+
+    ## Events
+
+    OnException
+
+        No length was provided
+
+    OnThen
+
+        With the (potentially) shorter string in register
+
+Memory & Register
+
+-   Case
+
+    ## Head
+
+    Title
+    :   Conditional branch on register value
+
+    Description
+
+    :   Checks if the register's string-converted value is an exact match with the provided primary
+            setting text. 
+
+    ## Settings
+
+      ------------------ ------------ --------------------------------------------
+      Technical Name     Usage Name   Description
+      MatchStringConst                String value to match the Register against
+      ------------------ ------------ --------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When there was no match
+
+    OnThen
+
+        When the string representation of the register matches the setting
+
+-   Default
+
+    ## Head
+
+    Title
+    :   If a name doesn\'t exist in memory, set it to a default value
+        from stream
+
+    Description
+
+    :   Provided a memory name, and a stream via OnThen, read either the memory value into
+            register, or the stream data.
+
+    ## Settings
+
+      ------------------- ------------ ---------------------------------------------
+      Technical Name      Usage Name   Description
+      DefaultValueConst   set          Fixed default value to use
+      MemoryNameConst                  Name of memory place to default a value for
+      ------------------- ------------ ---------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Text sink for default text value
+
+    OnException
+
+        Likely when the memory name has not been specified
+
+    OnThen
+
+        Guaranteed to have a value of the specified name in register
+
+-   Load
+
+    ## Head
+
+    Title
+    :   Load value from memory into register
+
+    Description
+
+    :   Services communicate via interactions. Interactions always have 
+             - Memory 
+             - Register
+             
+            Memory is addressed using names, the Register is not; the Register generally
+            contains the working value a service may presume it needs to do work on. 
+
+            When invoking child services, a service may override things in memory or the
+            register, but when control leaves the service to its parent service, those 
+            overrides will not persist; hence Memory and Register is scoped as one traverses
+            deeper into the program.
+
+            This idea puts variables and variable naming into the back seat for focussing on the 
+            order of operations instead. However, it does mean, sometimes you need to move something
+            into or out of the Register, or Memory. This is what Load and Store are for.
+
+    ## Settings
+
+      ---------------------- ------------ -------------------------------------------------------------
+      Technical Name         Usage Name   Description
+      DefaultValueConstant   default      When no value was found, store this value instead.
+      KeyConstant                         The memory key to look at for retrieving the Register value
+      ---------------------- ------------ -------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        When the value was not found in memory, the default value will be in register from here
+
+    OnException
+
+        Likely happens when no memory key was provided.
+
+    OnThen
+
+        When the value was found in memory, the memory value will be in register from here
+
+-   Override
+
+    ## Head
+
+    Title
+    :   Regardless of whether a name exists in memory, set it to a
+        default value from stream
+
+    Description
+
+    :   Provided a memory name, and a stream via OnThen, read the stream data into the memory name.
+
+    ## Settings
+
+      ------------------- ------------ ----------------------------------------------
+      Technical Name      Usage Name   Description
+      DefaultValueConst   set          Fixed default value to use
+      MemoryName                       Name of memory place to override a value for
+      ------------------- ------------ ----------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Text sink for default text value
+
+    OnException
+
+        Likely when the memory name has not been specified
+
+    OnThen
+
+        Guaranteed to have a value of the specified name in register
+
+-   Store
+
+    ## Head
+
+    Title
+    :   Put register value back into memory
+
+    Description
+
+    :   In effect, the opposite of Load; read its documentation.
+            This takes the register value and puts it back into memory at the 
+            configured name. Unless the `constant`-setting is specified; 
+            then the configuration value is put into memory at the specified location.
+
+    ## Settings
+
+      -------------------- ------------ --------------------------------------------------------
+      Technical Name       Usage Name   Description
+      KeyConstant                       Key in memory to write to
+      StoreValueConstant   constant     Optional override value to use instead of the Register
+      -------------------- ------------ --------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens because no key setting was provided
+
+    OnThen
+
+        Having the register value in memory from here
+
+Parsing & Composing
+
+-   FormatDate
+
+    ## Head
+
+    Title
+    :   Print Register as Date Time
+
+    Description
+
+    :   Use Template {% syntax %} in the primary settings to format date and time.
+            The following tags become available for the datetime that was in register:
+            {% year %} {% month %} {% day %} {% hour %} {% hour12 %} {% ampm %} {% minute %} {% second %} 
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        When the datetime was printed
+
+-   FormatTime
+
+    ## Head
+
+    Title
+    :   Print Register as Timespan
+
+    Description
+
+    :   Use Template {% syntax %} in the primary settings to format timespan.
+            The following tags become available for the datetime that was in register:
+            {% day %} {% hour %} {% minute %} {% second %} {% milli %} {% tick %}
+            You may also use these variations to get totals:
+            {% totalday %} {% totalhour %} {% totalminute %} {% totalsecond %} {% totalmilli %} 
+            If there was a number in register, it is assumed that it is in seconds.
+            If this is not the case, use ReadTime and Format separately to get more control.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        When the timespan was printed
+
+-   ReadDate
+
+    ## Head
+
+    Title
+    :   Read Register into its Date and Time components
+
+    Description
+
+    :   A best effort will be made to derive date time components from register contents. These will then be output 
+            such that in memory exist:
+            year, month, day, hour, hour12, ampm, minute, second
+
+    ## Settings
+
+      ----------------------- ------------ -----------------------------------------------------
+      Technical Name          Usage Name   Description
+      MemoryNameOfDateConst                Optionally name of memory location to get date from
+      ----------------------- ------------ -----------------------------------------------------
+
+    ## Events
+
+    OnThen
+
+        Date components
+
+-   ReadTime
+
+    ## Head
+
+    Title
+    :   Read Register into its Date and Time components
+
+    Description
+
+    :   A best effort will be made to derive timespan components from register contents. These will then be output 
+            such that in memory exist:
+            day, hour, minute, second, milli, tick
+            You may also use these variations to get totals:
+            totalday, totalhour, totalminute, totalsecond, totalmilli
+            In case a number is provided, use Significance to configure what unit the number is in. options are:
+            day, hour, minute, second, milli, tick
+
+    ## Settings
+
+      ----------------------- -------------- -------------------------------------------------------------------------------------------
+      Technical Name          Usage Name     Description
+      DefaultConst            default        In case of no timespan in memory, the amount of units to default to
+      MemoryNameOfTimeConst                  Optionally name of memory location to get date from
+      SignificanceConst       significance   In case of numeric input, the unit of the number (day, hour, minute, second, milli, tick)
+      ----------------------- -------------- -------------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnThen
+
+        Date components
+
+-   Same
+
+    ## Head
+
+    Title
+    :   Compare two memroy values
+
+    Description
+
+    :   Compares string representations of memory values.
+
+    ## Settings
+
+      ------------------ ------------ --------------------------------------------------------------------------
+      Technical Name     Usage Name   Description
+      MemoryNamesConst                constant names in memory, may be string with commas, or array of strings
+      OnEmptyConstant    onempty      what to do if there were no values (else or then)
+      ------------------ ------------ --------------------------------------------------------------------------
+
+    ## Events
+
+    GetNames
+
+        Get names dynamically (print with comma separation)
+
+    OnElse
+
+        when some names were different
+
+    OnThen
+
+        when all names were thesame
+
+-   SnakeCase
+
+    ## Head
+
+    Title
+    :   Make text snakecase safe
+
+    Description
+
+    :   Turns a string of text with lEttERs and numb3rs into snakecase,  such that it becomes:
+            turns_a_string_of_text_with_letters_and_numb_rs_into_snakecase_such_that_it_becomes
+            - Makes all lower case
+            - Replaces non alphanumeric with underscores
+            - Cleans up double underscores
+            - Trims trailing and leading underscores
+
+    ## Settings
+
+      ---------------------- ------------ --------------------------------------------------------------------------------
+      Technical Name         Usage Name   Description
+      VariableNameConstant                Set a variable name here to not snakify the register but a memory item instead
+      ---------------------- ------------ --------------------------------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely when register contents could not be turned into string
+
+    OnThen
+
+        Snake comes out here in register
+
+-   Split
+
+    ## Head
+
+    Title
+    :   Turn text into a list
+
+    Description
+
+    :   Does a best effort to turn Register contents into a string if it isn't already,
+            and uses the configured split character to turn the string into a list of strings.
+            The default split character is '/', which makes this suitable for routing duties in 
+            conjunction with Pop.
+
+    ## Settings
+
+      ---------------- ------------ ------------------------------------------------------
+      Technical Name   Usage Name   Description
+      SplitCharacter                Splitting character; defaults to forward slash \`/\`
+      ---------------- ------------ ------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when the register content couldn't be turned into a string.
+
+    OnThen
+
+        When a string was indeed turned into a list, puts the list in Register
+
+Printing & Formatting
+
+-   DataUrl
+
+    ## Head
+
+    Title
+    :   Sink binary data and output it as a base64 data url
+
+    Description
+
+    :   Hook up something that produces binary data with a mime type, typically some image or file reader, to the OnThen.
+            OnElse will then have base64 encoded data url in its register.
+
+    ## Settings
+
+      ----------------------- ------------ --------------------------------------------------------------------
+      Technical Name          Usage Name   Description
+      ForceContentTypeConst                Force the content type of the data url regardless of what was sunk
+      ----------------------- ------------ --------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Sink binary data here.
+
+    OnThen
+
+        Happens after the conversion
+
+-   FileTemplate
+
+    ## Head
+
+    Title
+    :   Template from File service
+
+    Description
+
+    :   This is a shorthand for Template():PrintContent(), and as such 
+            will template using the contents of the file provided in the primary 
+            constant. 
+
+    ## Settings
+
+      ---------------- ------------ -----------------------
+      Technical Name   Usage Name   Description
+      ContentFile                   File to template from
+      ---------------- ------------ -----------------------
+
+    ## Events
+
+    OnElse
+
+        When a template value is unknown, starts sinking text here
+
+    OnException
+
+        Likely when an IO error happened
+
+    OnThen
+
+        For further templating text, after the file has been read.
+
+-   Format
+
+    ## Head
+
+    Title
+    :   Template from Text service
+
+    Description
+
+    :   This is a shorthand for Template():Print(), and as such 
+            will template using the contents of the text provided in the primary 
+            constant. 
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When a template value is unknown, starts sinking text here
+
+    OnException
+
+        Likely when an IO error happened
+
+    OnThen
+
+        After output was written.
+
+-   Print
+
+    ## Head
+
+    Title
+    :   Outputs text to the closest output stream
+
+    Description
+
+    :   Almost behaves like you would expect. For example, when used in conjunction with a webserver,
+            it will simply write the configured text to the Response body, attempting to bring along its content type.
+
+    ## Settings
+
+      ---------------- ------------- -------------------------------------------------------------------------
+      Technical Name   Usage Name    Description
+      ContentType      contenttype   Optionally, content type filter this text fits with. Defaults to \*/\*.
+      PlainTextValue                 Text to print to output
+      ---------------- ------------- -------------------------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when not used in conjunction with something has an output stream
+
+    OnThen
+
+        Happens when the print was successful; preserves the interaction for more printing.
+
+-   PrintContent
+
+    ## Head
+
+    Title
+    :   Print a File as Content
+
+    Description
+
+    :   Combines Print and PrintFile such that the content type of the file is figured out based
+            on its extension, and pushed to the output, along with the file size in bytes.
+            Then, the file contents are printed.
+
+    ## Settings
+
+      ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------------
+      Technical Name     Usage Name   Description
+      ConstantFilename                Filename to read from
+      SetContentLength   setlength    Set this to true, to pass down the length of the file as well. Don\'t do this when there\'s multiple files, or they\'re not too big.
+      ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when there was no file or it couldn't be written.
+
+    OnThen
+
+        Happens when the file was written to output
+
+-   PrintContentByFilenames
+
+    ## Head
+
+    Title
+    :   Select a file based on its name in the Register, and print its
+        contents to output.
+
+    Description
+
+    :   Useful for hosting multiple whitelisted files, based on their name. 
+
+    ## Settings
+
+      ------------------ ------------ ----------------------------------------------
+      Technical Name     Usage Name   Description
+      AllowedFileConst                Array of permissible file names (full paths)
+      ------------------ ------------ ----------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        In case the file in the register was not whitelisted
+
+    OnException
+
+        Likely happens because there was no file in the whitelist.
+
+-   PrintFile
+
+    ## Head
+
+    Title
+    :   Works like Print, but uses the contents of a file instead
+
+    Description
+
+    :   Provide a file path as the primary setting to write its contents to the output. Unless specified otherwise,
+            this will also take notice of the File encoding, and Output encoding. It will then translate if necessary
+            to prevent weird characters.
+
+    ## Settings
+
+      ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------
+      Technical Name     Usage Name   Description
+      ConstantFilename                File name to read data from
+      PrintBinary        binary       Set this to true to force reading the file as bytes
+      SetContentLength   setlength    Set this to true to pass down the length of the file as well. Only do this if this file is big, and the only output component.
+      ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens if the file was not found or accessible, or there was no output to write to.
+
+-   StoreLocale
+
+    ## Head
+
+    Title
+    :   Set current locale string
+
+    Description
+
+    :   Takes a string from the register and marks it as the current locale string.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        Continues with locale here.
+
+-   Template
+
+    ## Head
+
+    Title
+    :   Templating service
+
+    Description
+
+    :   This service will use the OnThen-branch to buffer some text, and passes it 
+            down to the closest sink. In case this buffered text contains template tags, templating
+            will happen. The basic construction of template tags is {% tagname %}
+            Keys in the template tags may be prefixed with modifiers to alter behaviour of 
+            the templating routine;
+
+            Source modifiers: 
+             - `<` : Prefixing with a left arrow will restrict sourcing to taking from memory; t
+               agnames become memory names.
+             - `>` : Prefixing with a right arrow will restrict sourcing to letting an OnElse-
+               service write based on the Register-content; tagname will be put into register.
+             - `#` : Prefixing with a pound sign restricts value sources to the service constants 
+               ie. Template(tagname = "cheese") 
+             - No source modifier means it will first look in memory, then call out.
+
+            Filter modifiers:
+             - `&` : Prefixing with an ampersand will escape strings to be safe for HTML pages.
+             - `%` : Prefixing with a percent sign will escape strings to be safe for URL usage.
+             - `=` : Prefixing with an equals-sign will escape strings to be safe for HTML attribute usage.
+             - `;` : Prefixing with a semicolon will escape strings to be safe for JS string literal usage.
+
+            Scalar values such as numbers, datetimes and timespans may be formatted using a colon and then
+            a format.
+
+            Examples:
+             - {% `
+             - {% %cake %} makes hello%20world if cake is `hello world`
+
+            Exactly one filter modifier and one source modifier may be combined. When omitted, the engine
+            defaults to sourcing from memory first, and never filtering.
+
+    ## Settings
+
+      -------------------------- ------------- --------------------------------------------------------------------------------------
+      Technical Name             Usage Name    Description
+      ForceContentTypeConstant   contenttype   Force the content type to be the specified MIME instead of deriving it from the file
+      -------------------------- ------------- --------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        For tags that started with an `>`, or didn't start with anything and weren't found in memory. 
+        Will put the tag name in Register.
+
+    OnException
+
+        Likely happens when the template couldn't find a place to write the result to.
+
+    OnThen
+
+        When the template needs to buffer an updated version of the template text
+
+Reflection & Documentation
+
+-   CategoryServices
+
+    ## Head
+
+    Title
+    :   Find services that belong to a category
+
+    Description
+
+    :   Provided a category name through the primary setting or the Register, it will list all 
+            services that belong to it.
+
+    ## Settings
+
+      -------------------- ------------ --------------
+      Technical Name       Usage Name   Description
+      RepeatNameConstant                Name of Loop
+      -------------------- ------------ --------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when no category name could be acquired
+
+    OnThen
+
+        A list with 0 or more service names provided a category
+
+-   DefinitionsInFile
+
+    ## Head
+
+    Title
+    :   Get all the definitions that exist in the file.
+
+    Description
+
+    :   Provided with a full file path in Register, will enumerate the definitions that exist in it.
+            Enumeration goes into memory at `names`, path to file will be kept in register, and memory, at `path`.
+
+    ## Settings
+
+      ---------------- ------------ --------------------------------
+      Technical Name   Usage Name   Description
+      ServicePath                   Optionally hardcoded rkop path
+      ---------------- ------------ --------------------------------
+
+    ## Events
+
+    OnException
+
+        likely happens when the path couldn't be determined
+
+    OnThen
+
+        with a list of definition names in register, and the path to the file in memory at `path`
+
+-   EventDescription
+
+    ## Head
+
+    Title
+    :   Get detailed event description by service name and event name
+
+    Description
+
+    :   Provided an event name in the register, and service name in memory at 'service',
+            or with the service name as the primary setting, and the event name as the 'event' settings,
+            puts the description of the event in the register.
+
+    ## Settings
+
+      ---------------- ------------ -----------------------------------
+      Technical Name   Usage Name   Description
+      EventName        event        Optionally hardcoded event name
+      ServiceName                   Optionally hardcoded service name
+      ---------------- ------------ -----------------------------------
+
+    ## Events
+
+    OnException
+
+        When the service name or event name were not available via settings or interaction
+
+    OnThen
+
+        When the event was found, has description in register
+
+-   GetServiceChild
+
+    ## Head
+
+    Title
+    :   Get child service information from service branches
+
+    Description
+
+    :   Provided a childname and service info under expression, will attempt to put the child service
+            expression into the register. this either works with a key string in register, and expression
+            in memory, or expression in register, and key string in memory.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When no child was found under that name
+
+    OnException
+
+        When `childname` or `expression` couldn't be determined
+
+    OnThen
+
+        When child service information was found and put into register
+
+-   GetServiceConst
+
+    ## Head
+
+    Title
+    :   Get value of a service constant
+
+    Description
+
+    :   Provided a constname and service info under expression, will attempt to put the configured 
+            settings value into the register. this either works with a key string in register, and expression
+            in memory, or expression in register, and key string in memory.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        when the const wasn't assigned.
+
+    OnException
+
+        When `expression` and `constname` weren't found (they cant both come from memory)
+
+    OnThen
+
+        When a value was found and put into register
+
+-   ProgDirs
+
+    ## Head
+
+    Title
+    :   List all directories that contain running programs
+
+    Description
+
+    :   For the currently running doodads instance, this service enumerates 
+            all open working directories / common ancestors.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        A list with 0 or more directory info's
+
+-   ServiceCategories
+
+    ## Head
+
+    Title
+    :   Find service category names
+
+    Description
+
+    :   For the currently running doodads instance, explores all loaded assemblies for 
+            IService implementations and finds the distinct categories these exist in.
+
+    ## Settings
+
+      -------------------- ------------ --------------
+      Technical Name       Usage Name   Description
+      RepeatNameConstant                Name of Loop
+      -------------------- ------------ --------------
+
+    ## Events
+
+    OnThen
+
+        Iterates for each service category while Continue is provided.
+
+-   ServiceDiscriminator
+
+    ## Head
+
+    Title
+    :   Determine service expression type
+
+    Description
+
+    :   Provided the special service information, this determines whether this is a nested
+            series of expressions (the stuff that handles colons, pipes and ampersands), or a discrete 
+            service definition such as Template("hi") {  }
+
+            OnElse emits when a series was found, and puts the following data in memory:
+             - expression : propagates the incoming memory service information
+             - seriestype : string saying `unconditional` (&) , `alternative` (|) or `conditional` (:)
+             - scopename  : name the parser came up with to uniquely identify this expression in the scope
+             - children   : list of underlying service information which may be iterated.
+             
+            OnThen emits when a discrete service definition was found, and puts the following data in memory:
+             - expression : propagation of service information in memory
+             - servicetype : name of type as its defined in the .net libs
+             - scopename : name of this definition in scope as figured out by the parser.
+             - primarysetting : string-cast value of the primary setting.
+             - workingdir : working directory of this service's file; useful for relative path strings.
+             - constnames : list of settings that have values assigned
+             - childnames : list of children hooked up to named event branches. does not include series. 
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When a service series was found
+
+    OnException
+
+        may happen when:
+         - there was no service expression information in the register
+         - series or service had no scope name 
+         - series or service had no children collection
+         - the series or service type could not be determined
+
+    OnThen
+
+        When a discrete service definition was found
+
+-   ServiceHeader
+
+    ## Head
+
+    Title
+    :   Get information of a service by its name
+
+    Description
+
+    :   Provided a service name through the primary setting or the Register, it will put information 
+            about this service in memory;
+             - service: The full name of the service as it was used to query this service.
+             - title : Documentation title of service 
+             - description : Documentation description of service in markdown
+             - events: List of event names that may occur on this service
+             - primary: Name of the primary setting on this service, or empty string if none.
+             - named: List of names of the named settings on this service 
+            Also puts the service name in register.
+
+    ## Settings
+
+      ---------------- ------------ ------------------------------------
+      Technical Name   Usage Name   Description
+      ServiceName                   Optionally hardcoded category name
+      ---------------- ------------ ------------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when no service name was provided via register or primary setting
+
+    OnThen
+
+        Contains the payload as described for the requested service
+
+-   ServiceInDefinition
+
+    ## Head
+
+    Title
+    :   Get the service at the root of a definition
+
+    Description
+
+    :   Provided with a definition name in register, and a path in memory, will produce special service information
+            and put it in Register. This information can only be used by other reflection services.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when path or name couldn't be determined, or no definition was found for the given name
+
+    OnThen
+
+        When the definition with name has been found, and has a service
+
+-   SettingInformation
+
+    ## Head
+
+    Title
+    :   Get detailed settings information by service name and setting
+        name
+
+    Description
+
+    :   Provided with a setting name in the register, and a service name in memory at 'service',
+            or with those values programmed using the settings, 
+            Will output a payload containing
+             - setting: the full name of the setting as it was used to query this service 
+             - key: the actual key of the setting as its used in the rkop file, unless its a primary setting, then empty.
+             - description: the documentative description of the setting
+
+    ## Settings
+
+      ---------------- ------------ -----------------------------------
+      Technical Name   Usage Name   Description
+      ServiceName                   Optionally hardcoded service name
+      SettingName      event        Optionally hardcoded setting name
+      ---------------- ------------ -----------------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens when the service name or setting name weren't found or provided.
+
+    OnThen
+
+        When the setting was found, has description in memory
+
+Scheduling & Flow
+
+-   Continue
+
+    ## Head
+
+    Title
+    :   Find the originating Repeat call, and invoke its children again.
+
+    Description
+
+    :   Read the docs on Repeat, for Continue will behave according to its definition. 
+
+    ## Settings
+
+      -------------------- ------------ -------------------------------------------
+      Technical Name       Usage Name   Description
+      RepeatNameConstant                Name of the Repeat block to fall back to.
+      -------------------- ------------ -------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Is never invoked; Continue is terminating for a block.
+
+    OnException
+
+        Likely happens if the Repeat name was missing, or no Repeat with the configured name could be found.
+
+    OnThen
+
+        Is never invoked; Continue is terminating for a block.
+
+-   Delay
+
+    ## Head
+
+    Title
+    :   Delay continuing of execution
+
+    Description
+
+    :   pass a fixed value to the primary parameter. execution of onthen will delay by that time in ms.
+
+    ## Settings
+
+      ----------------- ------------ --------------------
+      Technical Name    Usage Name   Description
+      DelayInMsConest                Time to delay with
+      ----------------- ------------ --------------------
+
+    ## Events
+
+    OnThen
+
+        When the delay expires
+
+-   Hold
+
+    ## Head
+
+    Title
+    :   Blocks from here on out to prevent premature finishing of the
+        execution
+
+    Description
+
+    :   Will pass on the interaction simply into OnThen, but will only return control when
+            a Release was hit with the same name in the underlying block. This is useful for 
+            keeping the application alive, or preventing requests from terminating prematurely,
+            but should be using sparingly because it can cause application deadlocks.
+
+    ## Settings
+
+      ------------------ ------------ ----------------------------------------
+      Technical Name     Usage Name   Description
+      LockNameConstant                Name that the Release should also use.
+      ------------------ ------------ ----------------------------------------
+
+    ## Events
+
+    GetName
+
+        Get blocking name dynamically
+
+    OnElse
+
+        Happens after underlying release was triggered
+
+    OnException
+
+        Likely happens when a name was not provided.
+
+    OnThen
+
+        Happens before blocking
+
+-   Interval
+
+    ## Head
+
+    Title
+    :   Interval repetition
+
+    Description
+
+    :   Repeat an action while continue
+
+    ## Settings
+
+      -------------------- ------------ -------------------
+      Technical Name       Usage Name   Description
+      DelayInMsConstant    ms           ms to delay with
+      RepeatNameConstant                Name for continue
+      -------------------- ------------ -------------------
+
+    ## Events
+
+    OnException
+
+        Likely when repeat name was forgotten
+
+    OnThen
+
+        When the delay expires
+
+-   Latch
+
+    ## Head
+
+    Title
+    :   At Most One At A Time
+
+    Description
+
+    :   Passes through control transparently, but makes sure of whatever is running 
+            on the OnThen branch, it's only one; the rest of the interactions will be dropped.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        If someone else is in here already, this happens.
+
+    OnThen
+
+        Runs one at a time using the provided interaction
+
+-   Maintain
+
+    ## Head
+
+    Title
+    :   Tend to a long running task with an interval
+
+    Description
+
+    :   Provided
+             an interval in seconds, will run a task until its done, wait the 
+            specified time, and do it again so long as the Continue.
+            Works like a combination of Postpone and Repeat
+
+    ## Settings
+
+      -------------------- ------------ ------------------------------------------------------------------------------------------------------------------
+      Technical Name       Usage Name   Description
+      RepeatNameConstant                Use this name to explain what is being repeated. Use in conjunction with Continue to make sure Repeating happens
+      -------------------- ------------ ------------------------------------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Dynamic source of timespan string
+
+    OnException
+
+        Likely happens when the repeat name was not set.
+
+    OnThen
+
+        The job to maintain
+
+-   Postpone
+
+    ## Head
+
+    Title
+    :   Postpone continuing of execution
+
+    Description
+
+    :   pass
+             a fixed value to the primary parameter. execution of onthen will delay 
+            by that time in ms; repeated invocations will postpone further instead 
+            of causing repeated delays.
+
+    ## Settings
+
+      ----------------- ------------ --------------------
+      Technical Name    Usage Name   Description
+      DelayInMsConest                Time to delay with
+      ----------------- ------------ --------------------
+
+    ## Events
+
+    OnThen
+
+        When the delay expires
+
+-   Release
+
+    ## Head
+
+    Title
+    :   Release the Hold above
+
+    Description
+
+    :   Should be used in conjunction with a Hold having the same name, and tells it there's no need
+            to hold up anymore.  
+
+    ## Settings
+
+      ------------------ ------------ ------------------------
+      Technical Name     Usage Name   Description
+      LockNameConstant                Name also used on Hold
+      ------------------ ------------ ------------------------
+
+    ## Events
+
+    GetName
+
+        Get blocking name dynamically
+
+    OnException
+
+        Likely happens when the name was not provided, or no Hold with this name could be found
+
+    OnThen
+
+        Happens after the Hold was release
+
+-   Repeat
+
+    ## Head
+
+    Title
+    :   Repeat instructions while Continue is being encountered
+
+    Description
+
+    :   It's recommended not to use this, and always prefer recursing using the Call-method.
+            Repeat won't loop unless it encounters a "Continue". Repeat will play nice with
+            Calls to other Definitions, but it is hard to understand if it works. Only use locally.
+
+    ## Settings
+
+      -------------------- ------------ ---------------------------------------------------------------------------------------
+      Technical Name       Usage Name   Description
+      IsDeepConstant       deep         When Continue is encountered, bring its Buffer, Memory and Stack into the repetition.
+      RepeatNameConstant                Description of this repeat block, must be the same for Repeat and related Continue
+      -------------------- ------------ ---------------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        If logic is hooked up here, it is called first. The repeat block will only repeat if this logic invokes a Continue
+
+    OnException
+
+        Likely happens when the repeat name is missing.
+
+    OnThen
+
+        Logic to repeat hooks up to this
+
+Sourcing & Sinking
+
+-   Close
+
+    ## Head
+
+    Title
+    :   Close the line reader
+
+    Description
+
+    :   Use in conjunction with Open, for example when you've seen enough lines, or when you've run out.
+
+    ## Settings
+
+      ------------------------ ------------ -------------------------
+      Technical Name           Usage Name   Description
+      LineReaderNameConstant                Name also given to Open
+      ------------------------ ------------ -------------------------
+
+    ## Events
+
+    OnException
+
+        Likely happens because there was no preceding open.
+
+    OnThen
+
+        When the close was successful
+
+-   Open
+
+    ## Head
+
+    Title
+    :   Open input text stream for reading its lines
+
+    Description
+
+    :   Useful for example with console or CSV; takes the lines of the file
+            and exposes them as a list, without loading them into memory directly.
+
+    ## Settings
+
+      ------------------------ ------------ ------------------------------------------------------------------
+      Technical Name           Usage Name   Description
+      LineReaderNameConstant                Name to use for this line reader; must be the same for the Close
+      ------------------------ ------------ ------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Happens when no more lines were left to read.
+
+    OnException
+
+        Likely happens because no name was set.
+
+    OnThen
+
+        List of lines comes out here. Useful in conjunction with ie. Pop.
+
+-   SinkPlug
+
+    ## Head
+
+    Title
+    :   Buffer Sink
+
+    Description
+
+    :   Use this to proxy whatever is currently sinking.
+            This will hold that data until control leaves the BufferSink;
+            then it's flushed immediately.
+
+            You may find this useful to hold back HTTP body content while headers
+            are still being set, for example, when Redirecting or doing stuff with
+            cookies.
+
+            Use Continue to Flush.
+
+    ## Settings
+
+      ---------------------- ------------ --------------
+      Technical Name         Usage Name   Description
+      ContinueNameConstant                Undocumented
+      ---------------------- ------------ --------------
+
+    ## Events
+
+    OnException
+
+        Likely when no original sink could be found
+
+    OnThen
+
+        New sink shows up here and buffers until control is returned to BufferSink
+
+-   SourceToSink
+
+    ## Head
+
+    Title
+    :   Copy incoming data to outgoing data
+
+    Description
+
+    :   Provided a sourcing and sinking interaction, copies one to the other.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        Before the copy was done
+
+    OnException
+
+        Likely when copy failed or source/sink was missing
+
+    OnThen
+
+        After the copy was done
+
+System & IO
+
+-   ConsoleInput
+
+    ## Head
+
+    Title
+    :   Open input stream
+
+    Description
+
+    :   Provides a source for reading lines from the console
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        Console stream is ready to source
+
+-   ConsoleOutput
+
+    ## Head
+
+    Title
+    :   Sink to Console
+
+    Description
+
+    :   Scopes a sink to write text to the console.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        Sink console text here
+
+-   Dir
+
+    ## Head
+
+    Title
+    :   Produces a list of directories, given the path currently in the
+        Register.
+
+    Description
+
+    :   Dir will query filesystem for the directory path provided in the Register.
+            The events are intended for finding out if the Directory exists, what its 
+            subdirectories are, and what its files are.
+
+    ## Settings
+
+      --------------------------- ------------ ----------------------------------------------------------------------------------
+      Technical Name              Usage Name   Description
+      DirSearchPattern            filterdirs   Wildcard-enabled pattern specifically to filter the directories
+      FileSearchPatternConstant                Wildcard-enabled pattern to filter the files to be shown, ie \*.txt or cheese.\*
+      --------------------------- ------------ ----------------------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        This will happen after OnThen, and puts a list of file paths in the register
+
+    OnException
+
+        This will happen instead of OnThen/OnElse, in case the directory in the Register did not exist
+
+    OnThen
+
+        This puts a list of subdirectory paths in the register
+
+-   EnvironmentExit
+
+    ## Head
+
+    Title
+    :   Stop Application
+
+    Description
+
+    :   Stop the entire application with exit code 0. There's no coming back from this one.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+-   Info
+
+    ## Head
+
+    Title
+    :   Extra file and directory information reader
+
+    Description
+
+    :   Commonly used in conjunction with Dir. Provided a path in the register,
+            Info reads the full path, just the name and some dates.
+            It will also query the hidden-attribute and reject files and folders starting with a period '.'
+
+    ## Settings
+
+      ---------------- ------------ -----------------------------------------------------------------------
+      Technical Name   Usage Name   Description
+      Hidden           hidden       Set this to True, if it is not desired Info filters out hidden files.
+      ---------------- ------------ -----------------------------------------------------------------------
+
+    ## Events
+
+    OnElse
+
+        Occurs when the file or directory did not exist. Register and Memory are not altered.
+
+    OnException
+
+        Occurs when the contents of the Register was not something that could be queried in the filesystem.
+
+    OnThen
+
+        Occurs when the file or directory existed, and information is available. Information is not 
+        put in the Register, but into Memory directly, such that: 
+         - `path` contains the full path to this filesystem entry
+         - `name` contains only the name of this entry itself. this may include extensions
+         - `write` contains the last time the file was written to
+         - `read` contains the last time the file was read from
+
+-   ParentDirectory
+
+    ## Head
+
+    Title
+    :   Parent Directory
+
+    Description
+
+    :   Get Parent Directory
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When no parent directory could be determined
+
+    OnThen
+
+        When the parent directory exists and is in register
+
+-   ShellExecute
+
+    ## Head
+
+    Title
+    :   Open File or Folder in System Shell
+
+    Description
+
+    :   Open a file or folder using the OS appropriate app.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        Sink filename here.
+
+    OnThen
+
+        When file was opened.
+
+-   SinkToFile
+
+    ## Head
+
+    Title
+    :   Save to File
+
+    Description
+
+    :   Sink data into file
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        Sink data for file here
+
+    OnThen
+
+        Sink filename here
+
+-   StdioExecute
+
+    ## Head
+
+    Title
+    :   Run program and access stdio via source and sink
+
+    Description
+
+    :   Runs a command and exposes stdio via the source and sink streams via OnThen
+
+    ## Settings
+
+      ---------------------- ------------ -------------------------
+      Technical Name         Usage Name   Description
+      ContinueNameConstant                Name for continue block
+      ---------------------- ------------ -------------------------
+
+    ## Events
+
+    Arguments
+
+        Sink argument text here
+
+    Command
+
+        Sink command text here
+
+    ErrorLine
+
+        When an error line was received on stderr
+
+    OnElse
+
+        When the stdio loop died; use Continue here to prevent the process from dying. Not recommended
+
+    OnException
+
+        Likely when the continue name was not there.
+
+    OnThen
+
+        When the process was started an stdio is available; use Continue keep on looping stdio
+
+-   UserProfileDirectory
+
+    ## Head
+
+    Title
+    :   User Directory
+
+    Description
+
+    :   Put path to /home/user or C:\\Users\\User into register
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        When the user profile dir was found and put into register
+
+Tokens & Cryptography
+
+-   GenerateToken
+
+    ## Head
+
+    Title
+    :   Random+Unique Token
+
+    Description
+
+    :   Generates a token that hopes to be both unique and hard to guess.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        When the token is ready, it's in register here.
+
+-   LoadSensitive
+
+    ## Head
+
+    Title
+    :   Load string as sensitive
+
+    Description
+
+    :   Find a string by name in memory, make it unreadable and save it for
+            single use as a sensitive interaction.
+
+    ## Settings
+
+      ---------------- ------------ ----------------
+      Technical Name   Usage Name   Description
+      NameConstant                  Name in memory
+      ---------------- ------------ ----------------
+
+    ## Events
+
+    OnException
+
+        When the name was missing or no value was found
+
+    OnThen
+
+        When the string was found and protected from repeated reading
+
+-   NewGuid
+
+    ## Head
+
+    Title
+    :   New GUID
+
+    Description
+
+    :   Generate a GUID and stick it into the register.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        When the guid is available in register
+
+-   NewSecret
+
+    ## Head
+
+    Title
+    :   New Secret
+
+    Description
+
+    :   Generate a Secret and stick it into the register.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnThen
+
+        When the secret is available in register
+
+-   PasswordHash
+
+    ## Head
+
+    Title
+    :   Hash Password with Argon2
+
+    Description
+
+    :   When triggered with a sensitive interaction that's not been consumed (use LoadSensitive), 
+            It will hash the string in the sensitive interaction for use as a password hash.
+            Argon2 is used.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnException
+
+        When there was no sensitive string to hash
+
+    OnThen
+
+        When the password was hashed
+
+-   ValidateHash
+
+    ## Head
+
+    Title
+    :   Validate Password with Argon2
+
+    Description
+
+    :   When triggered with a sensitive interaction that's not been consumed (use LoadSensitive),
+            And a password hash in the register,
+            It will validate the sensitive string against the password hash.
+            Argon2 is used.
+
+    ## Settings
+
+      ---------------- ------------ -------------
+      Technical Name   Usage Name   Description
+      ---------------- ------------ -------------
+
+    ## Events
+
+    OnElse
+
+        When the hash and sensitive string mismatched
+
+    OnException
+
+        When no sensitive string was found, or all of them were consumed
+
+    OnThen
+
+        When the hash and sensitive string matched
