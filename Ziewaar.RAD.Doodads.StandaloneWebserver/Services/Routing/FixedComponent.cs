@@ -1,10 +1,17 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
 public class FixedComponent(string exactMatch) : IRouteComponent
 {
-    public string Name => exactMatch;
+    public string Name => exactMatch; 
+    private static bool IsUrlSafe(char c)
+    {
+        return (c >= 'A' && c <= 'Z') ||
+               (c >= 'a' && c <= 'z') ||
+               (c >= '0' && c <= '9') ||
+               c == '-' || c == '_' || c == '.' || c == '~';
+    }
     public static bool TryParse(string component, [NotNullWhen(true)] out IRouteComponent? result)
     {
-        if (!component.All(char.IsLetterOrDigit))
+        if (!component.All(IsUrlSafe))
         {
             result = null;
             return false;

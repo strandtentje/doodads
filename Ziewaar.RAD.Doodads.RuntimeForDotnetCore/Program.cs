@@ -25,57 +25,82 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                 "logging");
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
+            string logfilePath = Path.Combine(dir, $"{DateTime.Now:yyMMddHHmm}.log.txt");
             GlobalLog.Instance = new LoggerConfiguration().WriteTo.File(
-                    Path.Combine(dir, $"{DateTime.Now:yyMMddHHmm}.log.txt")
+                    logfilePath
                 ).WriteTo.Console().
 #if DEBUG
                 MinimumLevel.Verbose().
 #endif
                 CreateLogger();
+            GlobalLog.Instance.Information("Logfile in: {file}", logfilePath);
 
             BootstrappedStartBuilder
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
                 .AddAssemblyBy<Definition>().AddAssemblyBy<SqliteConnectionSource>().AddAssemblyBy<ValidateForm>()
                 .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>()
-                .AddAssemblyBy<MySqlConnectionSource>().AddFile("server.rkop",
-                    """
-                    Definition()
-                    {
-                        OnThen->WebServer(["http://localhost:8243/"]) {
-                            OnStarted->Print("server started");
-                            OnHead->Template():Print("[{% requesttime %}|{% remoteip %}] {% <method %} {% <url %}");
-                            OnThen->Load("url"):Case("/"):Print("Doodads!");
-                            OnStopping->Print("cleaning up after server");
-                            OnException->Store("message"):ConsoleOutput():Template():Print("Server complains {% message %}");
-                        } & ReturnThen();
-                    }            
-                    """).AddFile("boot.rkop",
-                    """
-                    Definition():Hold("Lock against shutting down"):ConsoleOutput() {
-                        OnThen->StartWebServer()
-                            : Call(f"server.rkop")
-                            : Print("Doodads. Type help for commands.")
-                            : ConsoleInput()
-                            : Open("Console Input for Reading Commands")
-                            : Store("Command Reader")
-                            : Repeat("To stay interactive")
-                            : Print("#")
-                            : Pop("Command Reader") {
-                                OnThen->
-                                        Print("...")
-                                    & Case("exit"):Close("Console Input for Reading Commands"):Release("Lock against shutting down")
-                                    | Case("ver"):Print("version -1"):Continue("To stay interactive")
-                                    | Case("stop"):StopWebServer():Call(f"server.rkop"):Continue("To stay interactive")
-                                    | Case("start"):StartWebServer():Call(f"server.rkop"):Continue("To stay interactive")
-                                    | Print("exit: stop runtime")
-                                    : Print("ver:  version information")
-                                    : Print("stop: stop server")
-                                    : Print("start: start server")
-                                    : Continue("To stay interactive");
-                        };    
-                    }; 
-                    """).SetStarter("boot.rkop").ReadArgs(args).Build().Run();
+                .AddAssemblyBy<MySqlConnectionSource>().
+                AddFile("site.rkop", """
+                <<>> {
+                    : Route("GET /static") : Fileserver(f"static")
+                    | ExactRoute("GET /favicon.ico") : HttpStatus(404)
+                    | ExactRoute("GET /") : Print("
+                        <html><head><title>Doodads!</title></head>
+                        <body>
+                            <h1>Doodads!</h1>
+                            <p>This is the default page.</p>
+                        </body></html>", 
+                        contenttype="text/html")
+                    | HttpStatus(404) : Print("
+                        <html><head><title>Page not found</title></head>
+                        <body>
+                            <h1>Doodads!</h1>
+                            <p>There's nothing here.</p>
+                        </body></html>", 
+                        contenttype="text/html");
+                };
+                """
+                ).
+                AddFile("server.rkop",
+                """
+                <<>> : WebServer(["http://+:8243/"]) {
+                    : <f"site.rkop">;
+                    OnStarted->Dump("Webserver Running", limit = 0) & [:];
+                    OnHead->Template():$"[{% requesttime %}|{% remoteip %}] {% <method %} {% <url %}";
+                    OnStopping->$"Webserver Stopped";
+                    OnException->!"message" : ConsoleOutput() : $"Server complains {% message %}";
+                };
+                """).
+                AddFile("boot.rkop",
+                """
+                <<>> 
+                    : Hold("Lock against shutting down")
+                    : ConsoleOutput() : StartWebServer() : <f"server.rkop">
+                    : $"Doodads. Type help for commands." : ConsoleInput() : Open("Console Input for Reading Commands")
+                    :! "Command Reader" : Repeat("To stay interactive") : $"#" : Pop("Command Reader") {
+                        : $"... "
+                        & ~"exit":Close("Console Input for Reading Commands"):Release("Lock against shutting down")
+                        | ~"ver":$"version -1":Continue("To stay interactive")
+                        | ~"stop":StopWebServer():<f"server.rkop">:Continue("To stay interactive")
+                        | ~"start":StartWebServer():<f"server.rkop">:Continue("To stay interactive")
+                        | ~"config" : ShellExecute() { |$f""; } : $"Opened config directory"  : Continue("To stay interactive")
+                        | ~"appdata": ShellExecute() { |$c""; } : $"Opened appdata directory" : Continue("To stay interactive")
+                        | ~"profile": ShellExecute() { |$p""; } : $"Opened home directory"    : Continue("To stay interactive")
+                        | ~"browse" : ShellExecute() { |$"{% localipurl %}"; } : $"Opened {% localipurl %} in browser": Continue("To stay interactive")
+                        | ~"help":$"
+                        exit: stop runtime
+                        ver:  version information
+                        stop: stop server
+                        start: start server
+                        browse: open in browser
+                        config: open configuration directory
+                        appdata: open appdata directory
+                        profile: open user profile directory"
+                        : Continue("To stay interactive")
+                        | Continue("To stay interactive");
+                    };    
+                """).SetStarter("boot.rkop").ReadArgs(args).Build().Run();
         }
     }
 }

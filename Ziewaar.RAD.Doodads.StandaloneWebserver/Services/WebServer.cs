@@ -52,6 +52,13 @@ public class WebServer : IService, IDisposable
         if (Server.TryHandleCommand<ResilientHttpListenerWrapper>(interaction, ServerCommand.Start,
                 ListenerWrapperFactory, out var startable))
         {
+            try
+            {
+                UrlAccessGuarantor.EnsureUrlAcls(ActivePrefixStrings);
+            } catch(Exception ex)
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, ex));
+            }
             startable.Fatality += (sender, exception) =>
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, exception));
@@ -65,10 +72,18 @@ public class WebServer : IService, IDisposable
                 var responseInteraction = new HttpResponseInteraction(requestInteraction, context);
                 OnThen?.Invoke(this, responseInteraction);
             };
-            this.StartingInteraction = interaction;
+            this.StartingInteraction = new CommonInteraction(
+                interaction, memory: new SwitchingDictionary(
+                    ["loopbackurl", "localipurl", "localhostnameurl"], x => x switch
+                    {
+                        "loopbackurl" => Prefixes.ActiveExpandedPrefixes.LoopbackURL,
+                        "localipurl" => Prefixes.ActiveExpandedPrefixes.LocalIPURL,
+                        "localhostnameurl" => Prefixes.ActiveExpandedPrefixes.LocalHostnameURL,
+                        _ => throw new KeyNotFoundException(),
+                    }));
             startable.GiveCommand(ServerCommand.Start);
-            GlobalLog.Instance?.Information("Server started {prefixes}",
-                JsonConvert.SerializeObject(Prefixes.ActiveExpandedPrefixes, Formatting.Indented));
+            // GlobalLog.Instance?.Information("Server started {prefixes}",
+                // JsonConvert.SerializeObject(Prefixes.ActiveExpandedPrefixes, Formatting.Indented));
             OnStarted?.Invoke(this, StartingInteraction);
         }
     }

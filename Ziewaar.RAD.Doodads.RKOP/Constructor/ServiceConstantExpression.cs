@@ -52,6 +52,45 @@ public class ServiceConstantExpression : IParityParser
             return pathRes;
         }
 
+        text = text.TakeToken(TokenDescription.ConfigurationPathAnnouncement, out var cpa);
+        if (cpa.IsValid)
+        {
+            var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var appdataDirInfo = new DirectoryInfo(appdata);
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(appdataDirInfo, x));
+            inText = text;
+            return pathRes;
+        }
+        text = text.TakeToken(TokenDescription.ProfilePathAnnouncement, out var ppa);
+        if (ppa.IsValid)
+        {
+            var profilepath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var profileDirInfo = new DirectoryInfo(profilepath);
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x=>SetPathValue(profileDirInfo, x));
+            inText = text;
+            return pathRes;
+        }
+
+        text = text.TakeToken(TokenDescription.QueryPathAnnouncement, out var tpa);
+        if (tpa.IsValid)
+        {
+            var queryDirectory = text.WorkingDirectory.GetDirectories().SingleOrDefault(x => x.Name == "queries")
+                ?? text.WorkingDirectory.CreateSubdirectory("queries");
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(queryDirectory, x));
+            inText = text;
+            return pathRes;
+        }
+
+        text = text.TakeToken(TokenDescription.TemplatePathAnnouncement, out var tppa);
+        if (tppa.IsValid)
+        {
+            var templateDirectory = text.WorkingDirectory.GetDirectories().SingleOrDefault(x => x.Name == "templates")
+                ?? text.WorkingDirectory.CreateSubdirectory("templates");
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(templateDirectory, x));
+            inText = text;
+            return pathRes;
+        }
+
         text = text.TakeToken(TokenDescription.DoubleQuotes, out var dqt);
         if (dqt.IsValid)
         {

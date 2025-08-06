@@ -1,5 +1,9 @@
 ﻿#nullable enable
 #pragma warning disable 67
+using System.Runtime.InteropServices.ComTypes;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 
 [Category("Filesystem")]
