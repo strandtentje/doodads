@@ -1,7 +1,7 @@
 ﻿#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
-[Category("Control")]
+[Category("Deprecated")]
 [Title("Add to infinite stack")]
 [Description("""
              Access a stack globally available under a name.

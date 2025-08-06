@@ -1,7 +1,7 @@
 ﻿#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Text Data")]
+[Category("Printing & Formatting")]
 [Title("Sink binary data and output it as a base64 data url")]
 [Description("""
     Hook up something that produces binary data with a mime type, typically some image or file reader, to the OnThen.

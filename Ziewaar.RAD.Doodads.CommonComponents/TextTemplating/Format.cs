@@ -3,7 +3,7 @@ using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
-[Category("Output to Sink")]
+[Category("Printing & Formatting")]
 [Title("Template from Text service")]
 [Description("""
              This is a shorthand for Template():Print(), and as such 
@@ -19,7 +19,7 @@ public class Format : IService
     public Format()
     {
         TemplatingService.OnThen += (s,e) => Printer.Enter(Constants, e);
-        TemplatingService.OnElse += this.OnElse;
+        TemplatingService.OnElse += (s,e) => this.OnElse?.Invoke(this, e);
         TemplatingService.OnException += (s,e) => this.OnException?.Invoke(this, e);
         Printer.OnException += (s,e) => this.OnException?.Invoke(this, e);
     }

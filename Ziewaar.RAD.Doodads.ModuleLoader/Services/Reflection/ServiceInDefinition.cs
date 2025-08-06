@@ -1,7 +1,7 @@
 #nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("Get the service at the root of a definition")]
 [Description("""
              Provided with a definition name in register, and a path in memory, will produce special service information

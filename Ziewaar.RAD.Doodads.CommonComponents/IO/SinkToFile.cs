@@ -1,7 +1,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 #pragma warning disable 67
-[Category("Filesystem")]
+[Category("System & IO")]
 [Title("Save to File")]
 [Description("""Sink data into file""")]
 public class SinkToFile : IService

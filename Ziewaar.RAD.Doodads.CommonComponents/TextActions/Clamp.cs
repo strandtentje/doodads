@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Validation")]
+[Category("Input & Validation")]
 [Title("Clamp numeric value in registry to a range")]
 [Description("""
              Does a best effort at turning the Register contents into a decimal number,

@@ -4,7 +4,7 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.InteropServices;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
-[Category("Console")]
+[Category("System & IO")]
 [Title("Open input stream")]
 [Description("Provides a source for reading lines from the console")]
 public class ConsoleInput : IService

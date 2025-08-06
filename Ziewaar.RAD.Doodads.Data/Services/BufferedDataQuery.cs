@@ -9,7 +9,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Cursor through query results after the query completes")]
 [Description("""
     Retrieve all result rows then iterate through them.

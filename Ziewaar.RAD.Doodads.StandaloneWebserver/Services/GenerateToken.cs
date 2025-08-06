@@ -1,6 +1,6 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
-[Category("Tokens")]
+[Category("Tokens & Cryptography")]
 [Title("Random+Unique Token")]
 [Description("""
              Generates a token that hopes to be both unique and hard to guess.

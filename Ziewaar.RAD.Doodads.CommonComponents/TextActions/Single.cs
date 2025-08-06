@@ -3,7 +3,7 @@
 using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Lists and Items")]
+[Category("Deprecated")]
 [Title("Ensure the list contains one item, and take it.")]
 [Description("""
              Provided a list in Register, it will take one item, and make sure it was the only one.

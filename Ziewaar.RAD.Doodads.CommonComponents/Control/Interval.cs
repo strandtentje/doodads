@@ -1,10 +1,11 @@
 ﻿#nullable enable
 #pragma warning disable 67
 using System.Threading;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Interval repetition")]
 [Description("Repeat an action while continue")]
 public class Interval : IService

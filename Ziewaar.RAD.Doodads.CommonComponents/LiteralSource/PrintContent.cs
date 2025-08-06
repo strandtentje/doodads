@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
-[Category("Output to Sink")]
+[Category("Printing & Formatting")]
 [Title("Print a File as Content")]
 [Description("""
              Combines Print and PrintFile such that the content type of the file is figured out based

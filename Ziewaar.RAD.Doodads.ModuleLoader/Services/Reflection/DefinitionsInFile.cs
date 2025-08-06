@@ -1,7 +1,7 @@
 #nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("Get all the definitions that exist in the file.")]
 [Description("""
              Provided with a full file path in Register, will enumerate the definitions that exist in it.

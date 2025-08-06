@@ -8,7 +8,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("First column into list")]
 [Description("""
     Works like DataSingleColumn, but instead of iterating while the query runs, it accumulates the entire

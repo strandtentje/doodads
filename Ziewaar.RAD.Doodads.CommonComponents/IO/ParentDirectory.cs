@@ -1,7 +1,7 @@
 ﻿#nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
-[Category("Filesystem")]
+[Category("System & IO")]
 [Title("Parent Directory")]
 [Description("""Get Parent Directory""")]
 public class ParentDirectory : IService

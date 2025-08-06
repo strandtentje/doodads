@@ -4,7 +4,7 @@ using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Text in Register")]
+[Category("Parsing & Composing")]
 [Title("Compare two memroy values")]
 [Description("""
              Compares string representations of memory values.

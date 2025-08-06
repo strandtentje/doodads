@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-[Category("Http")]
+[Category("Http & Routing")]
 [Title("Cease underlying webserver")]
 [Description("""
              When pointing this to a WebServer, it'll stop it.

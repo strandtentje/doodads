@@ -6,7 +6,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Cursor through query results")]
 [Description("""
     Execute a query, and after each result row was retrieved, invoke OnThen.

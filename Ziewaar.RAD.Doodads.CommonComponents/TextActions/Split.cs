@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Text in Register")]
+[Category("Parsing & Composing")]
 [Title("Turn text into a list")]
 [Description("""
              Does a best effort to turn Register contents into a string if it isn't already,

@@ -1,7 +1,7 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Cookies;
 
-[Category("Http")]
+[Category("Http & Routing")]
 [Title("Define Realm of Cookie")]
 [Description("""
              Within a CookieRealm, either find out if its a known cookie, or create one.

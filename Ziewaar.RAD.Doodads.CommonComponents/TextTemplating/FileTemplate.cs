@@ -3,7 +3,7 @@ using System.ComponentModel.Design;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
-[Category("Output to Sink")]
+[Category("Printing & Formatting")]
 [Title("Template from File service")]
 [Description("""
              This is a shorthand for Template():PrintContent(), and as such 

@@ -2,7 +2,7 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 
-[Category("IO")]
+[Category("System & IO")]
 [Title("Open File or Folder in System Shell")]
 [Description("""
     Open a file or folder using the OS appropriate app.

@@ -1,7 +1,7 @@
 #nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Documentation;
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("Get detailed event description by service name and event name")]
 [Description("""
              Provided an event name in the register, and service name in memory at 'service',

@@ -4,7 +4,6 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
-
 public class CapturedShorthandConstructor : ISerializableConstructor
 {
     public enum ShorthandType
@@ -15,10 +14,9 @@ public class CapturedShorthandConstructor : ISerializableConstructor
         Call,
         ReturnThen,
         ReturnElse,
+        Continue
     };
-
     public ShorthandType CurrentShorthandType { get; private set; } = ShorthandType.InvalidShorthand;
-
     public string? ServiceTypeName
     {
         get =>
@@ -32,12 +30,10 @@ public class CapturedShorthandConstructor : ISerializableConstructor
                 throw new Exception("May only set this to Definition, Call or Case");
         }
     }
-
     public object PrimarySettingValue => PrimaryExpression.GetValue();
     public IReadOnlyDictionary<string, object> ConstantsList => Constants;
     private ServiceConstantExpression PrimaryExpression = new();
     private ServiceConstantsDescription Constants = new();
-
     public bool UpdateFrom(ref CursorText text)
     {
         var temporaryCursorPosition = text
@@ -54,6 +50,7 @@ public class CapturedShorthandConstructor : ISerializableConstructor
                 (false, false, false, false, false) => ShorthandType.NoShorthand,
                 (true, false, false, false, false) => ShorthandType.Call,
                 (true, true, false, false, false) => ShorthandType.Definition,
+                (false, false, true, false, false) => ShorthandType.Continue,
                 (false, false, true, true, false) => ShorthandType.ReturnThen,
                 (false, false, true, false, true) => ShorthandType.ReturnElse,
                 _ => ShorthandType.InvalidShorthand,
@@ -71,6 +68,7 @@ public class CapturedShorthandConstructor : ISerializableConstructor
         {
             case ShorthandType.ReturnThen:
             case ShorthandType.ReturnElse:
+            case ShorthandType.Continue:
                 text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.ArrayClose,
                     "likely forgot to match case close with ]", out var _);
                 break;
@@ -89,7 +87,6 @@ public class CapturedShorthandConstructor : ISerializableConstructor
 
         return true;
     }
-
     public void WriteTo(StreamWriter writer, int indentation)
     {
         switch (CurrentShorthandType)

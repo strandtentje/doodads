@@ -6,7 +6,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Execute a non-query; ignore result.")]
 [Description("""
     Regardless of what the query returns, or if it produces any data at all, OnThen

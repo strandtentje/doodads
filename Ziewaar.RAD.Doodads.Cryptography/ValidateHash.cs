@@ -3,7 +3,7 @@ using Isopoh.Cryptography.Argon2;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 namespace Ziewaar.RAD.Doodads.Cryptography;
-[Category("Cryptography")]
+[Category("Tokens & Cryptography")]
 [Title("Validate Password with Argon2")]
 [Description("""
              When triggered with a sensitive interaction that's not been consumed (use LoadSensitive),

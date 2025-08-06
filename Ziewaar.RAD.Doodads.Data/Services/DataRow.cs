@@ -10,7 +10,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Read a row")]
 [Description("Gets a data row when it's present. Otherwise, OnElse happens.")]
 public class DataRow : DataService<object>

@@ -2,7 +2,7 @@ using HtmlAgilityPack;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
 
-[Category("Html")]
+[Category("Input & Validation")]
 [Title("Parse and Validate HTML form")]
 [Description("""
              Provided a standard HTML form, this service 

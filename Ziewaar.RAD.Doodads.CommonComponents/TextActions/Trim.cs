@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Text in register")]
+[Category("Input & Validation")]
 [Title("Remove spaces at both ends of text")]
 [Description("""
     Removes spaces at ends of text in register, then continues.

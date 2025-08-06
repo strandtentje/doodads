@@ -3,7 +3,7 @@
 using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Lists and Items")]
+[Category("Deprecated")]
 [Title("Loops over enumeration")]
 [Description("""
              This loops over an enumeration in Register, and fires OnThen for each item, putting the Item

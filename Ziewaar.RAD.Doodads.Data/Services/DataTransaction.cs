@@ -9,7 +9,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 #pragma warning disable 67
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Start a transaction")]
 [Description("Opens a transaction and commits it with DataCommit. If not committed, a rollback will happen.")]
 public class DataTransaction : IService

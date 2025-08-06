@@ -2,7 +2,7 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions
 {
 #pragma warning disable 67
-    [Category("Sourcing and Sinking")]
+    [Category("Sourcing & Sinking")]
     [Title("Copy incoming data to outgoing data")]
     [Description("""
                  Provided a sourcing and sinking interaction, copies one to the other.

@@ -6,7 +6,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Execute DB Command that affects rows")]
 [Description("""
     Uses the in-context command source to execute a command that may affect rows.

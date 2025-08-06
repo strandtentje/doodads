@@ -3,7 +3,7 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
-[Category("Http")]
+[Category("Http & Routing")]
 [Title("Http Webserver")]
 [Description("Starts listening for web requests when it receives a start command.")]
 public class WebServer : IService, IDisposable

@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Text in register")]
+[Category("Input & Validation")]
 [Title("Check if register text ends with something")]
 [Description("""
              Sinks an expression at Expression, and then validates the text in register

@@ -1,7 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-[Category("Memory and Register")]
+[Category("Memory & Register")]
 [Title("Load value from memory into register")]
 [Description("""
              Services communicate via interactions. Interactions always have 

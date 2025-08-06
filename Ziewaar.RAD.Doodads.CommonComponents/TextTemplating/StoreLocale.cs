@@ -1,6 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
-[Category("Templating")]
+[Category("Printing & Formatting")]
 [Title("Set current locale string")]
 [Description("""
              Takes a string from the register and marks it as the current locale string.

@@ -1,6 +1,8 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Repeat instructions while Continue is being encountered")]
 [Description("""
              It's recommended not to use this, and always prefer recursing using the Call-method.

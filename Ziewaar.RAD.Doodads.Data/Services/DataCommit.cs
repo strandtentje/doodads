@@ -8,7 +8,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 #pragma warning disable 67
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Commit a transaction")]
 [Description("Commits a transaction provided a fixed name. ")]
 public class DataCommit : IService

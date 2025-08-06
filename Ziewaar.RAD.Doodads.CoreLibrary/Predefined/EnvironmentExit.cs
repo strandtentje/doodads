@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-[Category("Application Lifecycle")]
+[Category("System & IO")]
 [Title("Stop Application")]
 [Description("""
              Stop the entire application with exit code 0. There's no coming back from this one.

@@ -9,7 +9,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Get the first row/first column decimal")]
 [Description("""
     Executes a full query, but returns the result out of the first row and column as a decimal in register.

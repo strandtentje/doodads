@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
-[Category("Output to Sink")]
+[Category("Printing & Formatting")]
 [Title("Outputs text to the closest output stream")]
 [Description("""
              Almost behaves like you would expect. For example, when used in conjunction with a webserver,

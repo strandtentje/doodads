@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 #nullable enable
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Blocks from here on out to prevent premature finishing of the execution")]
 [Description("""
              Will pass on the interaction simply into OnThen, but will only return control when

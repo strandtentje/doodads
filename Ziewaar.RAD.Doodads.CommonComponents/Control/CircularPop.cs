@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
-[Category("Control")]
+[Category("Deprecated")]
 [Title("Consume from an infinite stack")]
 [Description("""
              Take an item from an infinite stack;

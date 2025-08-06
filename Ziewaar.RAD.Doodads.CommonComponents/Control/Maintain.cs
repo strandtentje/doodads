@@ -1,9 +1,10 @@
 ﻿#nullable enable
 using System.Threading;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Tend to a long running task with an interval")]
 [Description("""
     Provided an interval in seconds, will run a task until its done, wait the specified time, and do it again so long as the Continue.

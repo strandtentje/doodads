@@ -1,6 +1,6 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
-[Category("Http")]
+[Category("Http & Routing")]
 [Title("Enable CSRF Field Obfuscation")]
 [Description("""
              For the services that support it, initializes a system that turns plaintext

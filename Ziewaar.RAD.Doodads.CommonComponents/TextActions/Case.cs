@@ -1,7 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Lists and Items")]
+[Category("Memory & Register")]
 [Title("Conditional branch on register value")]
 [Description("""
              Checks if the register's string-converted value is an exact match with the provided primary

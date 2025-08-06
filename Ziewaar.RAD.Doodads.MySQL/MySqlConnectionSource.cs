@@ -7,7 +7,7 @@ using Ziewaar.RAD.Doodads.Data.Implementable.Support;
 
 namespace Ziewaar.RAD.Doodads.MySQL;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Connect to MySQL")]
 [Description("""
     Provided a MySQL connection string, connect to a server for querying. Dont forget 

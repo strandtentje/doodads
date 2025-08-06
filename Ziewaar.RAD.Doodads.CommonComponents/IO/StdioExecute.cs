@@ -2,10 +2,11 @@
 #pragma warning disable 67
 using System.Diagnostics;
 using Ziewaar.RAD.Doodads.CommonComponents.Control;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 
-[Category("IO")]
+[Category("System & IO")]
 [Title("Run program and access stdio via source and sink")]
 [Description("""
     Runs a command and exposes stdio via the source and sink streams via OnThen

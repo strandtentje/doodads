@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
-[Category("Console")]
+[Category("System & IO")]
 [Title("Sink to Console")]
 [Description("""
              Scopes a sink to write text to the console.

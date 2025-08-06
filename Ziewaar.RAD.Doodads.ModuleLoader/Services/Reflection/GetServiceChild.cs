@@ -1,6 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("Get child service information from service branches")]
 [Description("""
              Provided a childname and service info under expression, will attempt to put the child service

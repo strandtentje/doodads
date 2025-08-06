@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
-[Category("Input from source")]
+[Category("Sourcing & Sinking")]
 [Title("Open input text stream for reading its lines")]
 [Description("""
              Useful for example with console or CSV; takes the lines of the file

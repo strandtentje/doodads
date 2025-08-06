@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Text in register")]
+[Category("Input & Validation")]
 [Title("Makes sure text in register is not too long")]
 [Description("""
     Takes text in register and if its longer than the primary setting specifies,

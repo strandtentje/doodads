@@ -1,12 +1,5 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
-[Category("Http")]
-[Title("Match route exactly")]
-[Description("Behaves like Route, but will only match if the route matches exactly, without subdirectories.")]
-public class ExactRoute : Route
-{
-    protected override bool IsExact => true;
-}
-[Category("Http")]
+[Category("Http & Routing")]
 [Title("Match (parent) route")]
 [Description("""
              Will by default route GET only

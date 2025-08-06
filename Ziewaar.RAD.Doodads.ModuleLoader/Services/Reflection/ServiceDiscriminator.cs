@@ -1,6 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("Determine service expression type")]
 [Description("""
              Provided the special service information, this determines whether this is a nested

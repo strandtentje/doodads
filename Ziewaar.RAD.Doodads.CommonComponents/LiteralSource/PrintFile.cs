@@ -1,7 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
-[Category("Output to Sink")]
+[Category("Printing & Formatting")]
 [Title("Works like Print, but uses the contents of a file instead")]
 [Description("""
              Provide a file path as the primary setting to write its contents to the output. Unless specified otherwise,

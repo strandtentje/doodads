@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Tokens")]
+[Category("Tokens & Cryptography")]
 [Title("New Secret")]
 [Description("""Generate a Secret and stick it into the register.""")]
 public class NewSecret : IService

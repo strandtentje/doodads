@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
-[Category("Filesystem")]
+[Category("System & IO")]
 [Title("Produces a list of directories, given the path currently in the Register.")]
 [Description("""
              Dir will query filesystem for the directory path provided in the Register.

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 
-[Category("Filesystem")]
+[Category("System & IO")]
 [Title("User Directory")]
 [Description("""Put path to /home/user or C:\\Users\\User into register""")]
 public class UserProfileDirectory : IService

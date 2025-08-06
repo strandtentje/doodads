@@ -1,7 +1,7 @@
 #nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Documentation;
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("Get detailed settings information by service name and setting name")]
 [Description("""
              Provided with a setting name in the register, and a service name in memory at 'service',

@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-[Category("Does Nothing")]
+[Category("Diagnostics & Debug")]
 [Title("It does absolutely nothing")]
 [Description("""
              This service is responsible for 

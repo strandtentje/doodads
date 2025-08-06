@@ -1,7 +1,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 #pragma warning disable 67
-[Category("Lists and Items")]
+[Category("Memory & Register")]
 [Title("Regardless of whether a name exists in memory, set it to a default value from stream")]
 [Description("""
              Provided a memory name, and a stream via OnThen, read the stream data into the memory name.

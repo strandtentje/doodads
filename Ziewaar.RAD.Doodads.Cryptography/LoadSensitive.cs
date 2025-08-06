@@ -1,7 +1,7 @@
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 namespace Ziewaar.RAD.Doodads.Cryptography;
-[Category("Cryptography")]
+[Category("Tokens & Cryptography")]
 [Title("Load string as sensitive")]
 [Description("""
              Find a string by name in memory, make it unreadable and save it for

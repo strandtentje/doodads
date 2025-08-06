@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Validation")]
+[Category("Input & Validation")]
 [Title("Check if number is bigger")]
 [Description("""
             Provided a number in memory, and a primary constant lower bound, will tell if its bigger or not.

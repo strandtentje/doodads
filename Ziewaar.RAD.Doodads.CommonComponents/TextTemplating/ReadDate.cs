@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
-[Category("Dates and Times")]
+[Category("Parsing & Composing")]
 [Title("Read Register into its Date and Time components")]
 [Description("""
              A best effort will be made to derive date time components from register contents. These will then be output 

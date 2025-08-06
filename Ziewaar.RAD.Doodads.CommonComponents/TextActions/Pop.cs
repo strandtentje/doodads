@@ -3,7 +3,7 @@
 using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Lists and Items")]
+[Category("Deprecated")]
 [Title("Pop an item from an enumeration and continue")]
 [Description("""
              For an enumeration in Register, or optionally in memory if a memory name is provided via 

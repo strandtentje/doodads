@@ -1,8 +1,9 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CommonComponents.Control;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
-[Category("Sink")]
+[Category("Sourcing & Sinking")]
 [Title("Buffer Sink")]
 [Description("""
              Use this to proxy whatever is currently sinking.

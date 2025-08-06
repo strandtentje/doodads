@@ -1,8 +1,8 @@
 ﻿#nullable enable
 #pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
+namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Find the originating Repeat call, and invoke its children again.")]
 [Description("""Read the docs on Repeat, for Continue will behave according to its definition. """)]
 public class Continue : IService

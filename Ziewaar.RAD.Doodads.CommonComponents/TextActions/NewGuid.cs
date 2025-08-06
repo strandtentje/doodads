@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Tokens")]
+[Category("Tokens & Cryptography")]
 [Title("New GUID")]
 [Description("""Generate a GUID and stick it into the register.""")]
 public class NewGuid : IService

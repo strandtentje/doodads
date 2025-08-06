@@ -1,7 +1,7 @@
 ﻿#nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
-[Category("Filesystem")]
+[Category("System & IO")]
 [Title("Extra file and directory information reader")]
 [Description("""
              Commonly used in conjunction with Dir. Provided a path in the register,

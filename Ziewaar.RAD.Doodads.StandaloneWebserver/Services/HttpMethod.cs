@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
-[Category("Http")]
+[Category("Http & Routing")]
 [Title("Match HTTP Method")]
 [Description("""
              Does a hard check against a certain HTTP method.

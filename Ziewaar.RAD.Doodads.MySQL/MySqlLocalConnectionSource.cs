@@ -5,7 +5,7 @@ using Ziewaar.RAD.Doodads.Data.Implementable;
 using Ziewaar.RAD.Doodads.Data.Implementable.Support;
 
 namespace Ziewaar.RAD.Doodads.MySQL;
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Connect to MySQL")]
 [Description("""
     Connects to mysql at localhost, with the username, password and database parameters having the same name

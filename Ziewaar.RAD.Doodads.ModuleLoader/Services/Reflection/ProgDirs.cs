@@ -1,7 +1,7 @@
 ﻿namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #pragma warning disable 67
 #nullable enable
-[Category("Reflection")]
+[Category("Reflection & Documentation")]
 [Title("List all directories that contain running programs")]
 [Description("""
              For the currently running doodads instance, this service enumerates 

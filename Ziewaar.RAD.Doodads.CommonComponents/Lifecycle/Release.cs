@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Release the Hold above")]
 [Description("""
              Should be used in conjunction with a Hold having the same name, and tells it there's no need

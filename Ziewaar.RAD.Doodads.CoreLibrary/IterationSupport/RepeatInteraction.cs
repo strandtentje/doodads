@@ -1,7 +1,7 @@
 ﻿#nullable enable
 
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
+namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 public class RepeatInteraction(string repeatName, IInteraction parent) : IInteraction
 {
@@ -11,7 +11,7 @@ public class RepeatInteraction(string repeatName, IInteraction parent) : IIntera
     public object Register => Stack.Register;
     public IReadOnlyDictionary<string, object> Memory => parent.Memory;
     public bool IsRunning = true;
-    internal IInteraction? ContinueFrom;
+    public IInteraction? ContinueFrom;
 
     public void Cancel()
     {

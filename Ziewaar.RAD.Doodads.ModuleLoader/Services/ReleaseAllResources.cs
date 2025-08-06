@@ -1,14 +1,14 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 #pragma warning disable 67
-[Category("Application Lifecycle")]
+[Category("Diagnostics & Debug")]
 [Title("Dispose of every resource")]
 [Description("""
              For all services that consume tangible resources, stop them and release the resources.
              This doesn't kill the app per say but this is hard to recover from; typically 
              used in conjunction with EnvironmentExit
              """)]
-public class ShutdownAll : IService
+public class ReleaseAllResources : IService
 {
     [EventOccasion("After disposal happened")]
     public event CallForInteraction? OnThen;

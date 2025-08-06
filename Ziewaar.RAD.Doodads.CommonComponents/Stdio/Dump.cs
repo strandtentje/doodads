@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 #pragma warning disable 67
-[Category("Console")]
+[Category("Diagnostics & Debug")]
 [Title("Dump the full context to console")]
 [Description("Dont do this in prod.")]
 public class Dump : IService

@@ -1,6 +1,6 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
-[Category("Http Status")]
+[Category("Http & Routing")]
 [Title("Set HTTP Status code")]
 [Description("""
              Force the HTTP status code.

@@ -3,7 +3,7 @@ using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 #nullable enable
-[Category("Output to Sink")]
+[Category("Printing & Formatting")]
 [Title("Templating service")]
 [Description("""
              This service will use the OnThen-branch to buffer some text, and passes it 
@@ -73,6 +73,7 @@ public class Template : IService
             OnThen?.Invoke(this, updateChecker);
             if (updateChecker.IsRequired)
             {
+                OnException?.Invoke(this, new CommonInteraction(interaction, "Template Cache Miss"));
                 templatefile.SinkBuffer.Dispose();
                 templatefile = null;
             }

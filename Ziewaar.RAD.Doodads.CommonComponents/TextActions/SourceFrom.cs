@@ -1,7 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
-[Category("Text")]
+[Category("Input & Validation")]
 [Title("Memory to Stream")]
 [Description("Make text in memory readable as a stream")]
 public class SourceFrom : IService

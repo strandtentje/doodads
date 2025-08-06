@@ -7,7 +7,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Iterate the first column of the query result")]
 [Description("""
     For each result row in the query, it'll take the value of the first column, and stick

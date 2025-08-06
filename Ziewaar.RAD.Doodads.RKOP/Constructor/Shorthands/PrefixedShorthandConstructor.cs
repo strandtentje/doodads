@@ -34,6 +34,7 @@ public class PrefixedShorthandConstructor : ISerializableConstructor
     private ServiceConstantExpression PrimaryExpression = new();
     public bool UpdateFrom(ref CursorText text)
     {
+        
         var temporaryCursorPosition = text
             .SkipWhile(char.IsWhiteSpace)
             .TakeToken(TokenDescription.StoreShorthand, out var exclamation)

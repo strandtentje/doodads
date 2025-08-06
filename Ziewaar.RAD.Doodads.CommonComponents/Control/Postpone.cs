@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
-[Category("Flow Control")]
+[Category("Scheduling & Flow")]
 [Title("Postpone continuing of execution")]
 [Description("""
     pass a fixed value to the primary parameter. execution of onthen will delay by that time in ms; repeated invocations will postpone further instead of causing repeated delays.

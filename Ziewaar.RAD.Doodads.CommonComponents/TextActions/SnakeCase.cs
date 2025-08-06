@@ -2,7 +2,7 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 
-[Category("Text in Register")]
+[Category("Parsing & Composing")]
 [Title("Make text snakecase safe")]
 [Description("""
     Turns a string of text with lEttERs and numb3rs into snakecase,  such that it becomes:

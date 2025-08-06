@@ -1,7 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-[Category("Memory and Register")]
+[Category("Memory & Register")]
 [Title("Put register value back into memory")]
 [Description("""
              In effect, the opposite of Load; read its documentation.

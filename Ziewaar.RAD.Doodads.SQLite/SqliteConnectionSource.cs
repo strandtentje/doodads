@@ -12,7 +12,7 @@ using Ziewaar.RAD.Doodads.Data.Implementable.Support;
 
 namespace Ziewaar.RAD.Doodads.SQLite;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Connect to a Sqlite File")]
 [Description("""
     Open an SQLite file for querying and modifying using the data commands.

@@ -11,7 +11,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
-[Category("Data")]
+[Category("Databases & Querying")]
 [Title("Optionally read a row")]
 [Description("Gets a data row when it's present and there's a connection. Otherwise, OnElse happens.")]
 public class OptionalDataRow : DataService<object>

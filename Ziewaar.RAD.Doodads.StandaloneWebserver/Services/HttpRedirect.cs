@@ -2,7 +2,7 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #nullable enable
 
-[Category("Http Status")]
+[Category("Http & Routing")]
 [Title("Http redirect to")]
 [Description("""
              Does a 307 Temporary Redirect to the path sunk into OnThen

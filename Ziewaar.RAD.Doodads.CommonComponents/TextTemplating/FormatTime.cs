@@ -2,7 +2,7 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
-[Category("Dates and Times")]
+[Category("Parsing & Composing")]
 [Title("Print Register as Timespan")]
 [Description("""
              Use Template {% syntax %} in the primary settings to format timespan.

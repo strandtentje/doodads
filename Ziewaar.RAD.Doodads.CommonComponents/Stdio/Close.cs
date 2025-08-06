@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
-[Category("Input from source")]
+[Category("Sourcing & Sinking")]
 [Title("Close the line reader")]
 [Description("""
              Use in conjunction with Open, for example when you've seen enough lines, or when you've run out.
