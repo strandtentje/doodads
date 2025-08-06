@@ -1,20 +1,10 @@
-Doodads
-=======
-
-A bag of tricks with some hyroglyphs.
-
-RKOP syntax docs will come along later. 
-
-Service definitions:
-
-
 # Service Docs!
 
-Call Definition Return
+## Call Definition Return
 
--   Call
+-   ### Call
 
-    ## Head
+    #### Head
 
     Title
     :   Call to Definition in File
@@ -28,14 +18,14 @@ Call Definition Return
             like `Call(f"Oven.rkop @ Bake Cookies")` - the `f` before the quotes will make it look from the directory 
             of the current definition file. the @ means a definition name is coming. 
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       Technical Name       Usage Name   Description
       ModuleNameConstant                Name and Definition name separated by an @ At least one of those is required. If only a file is given, the first and only Definition without a name in its primary setting will be invoked. If only a Definition name after an @ is given, the current file will be looked at.
       -------------------- ------------ --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -49,9 +39,9 @@ Call Definition Return
 
         When the called configuration returns control using ReturnThen
 
--   Definition
+-   ### Definition
 
-    ## Head
+    #### Head
 
     Title
     :   Call to Definition in File
@@ -64,13 +54,13 @@ Call Definition Return
             `Definition("Bake Cookies at 100 degrees")` - rkop has no comments in its syntax. It is 
             encouraged to instead title Definitions consistently and clearly.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -80,9 +70,9 @@ Call Definition Return
 
         When the Definition was Called for
 
--   ReturnElse
+-   ### ReturnElse
 
-    ## Head
+    #### Head
 
     Title
     :   Return to the OnElse of the invoking Call
@@ -91,23 +81,23 @@ Call Definition Return
 
     :   Returns control to the caller, on either the OnThen, or the OnElse branch. 
 
-    ## Settings
+    #### Settings
 
       ------------------------------- ------------ -----------------------------------------
       Technical Name                  Usage Name   Description
       OverrideRegisterValueConstant                If set, will put this value in register
       ------------------------------- ------------ -----------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
         When some sort of infinite return loop was created. This means you're trying to do big brained stuff.
         Don't do big brained stuff.
 
--   ReturnThen
+-   ### ReturnThen
 
-    ## Head
+    #### Head
 
     Title
     :   Return to the OnThen of the invoking Call
@@ -116,25 +106,25 @@ Call Definition Return
 
     :   Returns control to the caller, on either the OnThen, or the OnElse branch. 
 
-    ## Settings
+    #### Settings
 
       ------------------------------- ------------ -----------------------------------------
       Technical Name                  Usage Name   Description
       OverrideRegisterValueConstant                If set, will put this value in register
       ------------------------------- ------------ -----------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
         When some sort of infinite return loop was created. This means you're trying to do big brained stuff.
         Don't do big brained stuff.
 
-Databases & Querying
+## Databases & Querying
 
--   BufferedDataQuery
+-   ### BufferedDataQuery
 
-    ## Head
+    #### Head
 
     Title
     :   Cursor through query results after the query completes
@@ -143,13 +133,13 @@ Databases & Querying
 
     :   Retrieve all result rows then iterate through them.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -163,9 +153,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataCommand
+-   ### DataCommand
 
-    ## Head
+    #### Head
 
     Title
     :   Execute DB Command that affects rows
@@ -176,13 +166,13 @@ Databases & Querying
             Depending on the affected rows, it may propagate differently; OnElse happens if nothing
             was affected. OnThen happens is something was affected.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -196,9 +186,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataCommit
+-   ### DataCommit
 
-    ## Head
+    #### Head
 
     Title
     :   Commit a transaction
@@ -207,14 +197,14 @@ Databases & Querying
 
     :   Commits a transaction provided a fixed name. 
 
-    ## Settings
+    #### Settings
 
       ------------------------- ------------ ------------------------------------------
       Technical Name            Usage Name   Description
       TransactionNameConstant                Set a name for this transaction to match
       ------------------------- ------------ ------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -224,9 +214,9 @@ Databases & Querying
 
         When the transaction was committed; commands here after will not be in a transaction.
 
--   DataNonQuery
+-   ### DataNonQuery
 
-    ## Head
+    #### Head
 
     Title
     :   Execute a non-query; ignore result.
@@ -236,13 +226,13 @@ Databases & Querying
     :   Regardless of what the query returns, or if it produces any data at all, OnThen
             will happen after the query ran.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -256,9 +246,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataQuery
+-   ### DataQuery
 
-    ## Head
+    #### Head
 
     Title
     :   Cursor through query results
@@ -267,13 +257,13 @@ Databases & Querying
 
     :   Execute a query, and after each result row was retrieved, invoke OnThen.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -287,9 +277,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataRow
+-   ### DataRow
 
-    ## Head
+    #### Head
 
     Title
     :   Read a row
@@ -298,13 +288,13 @@ Databases & Querying
 
     :   Gets a data row when it's present. Otherwise, OnElse happens.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -318,9 +308,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataScalar
+-   ### DataScalar
 
-    ## Head
+    #### Head
 
     Title
     :   Get the first row/first column decimal
@@ -329,13 +319,13 @@ Databases & Querying
 
     :   Executes a full query, but returns the result out of the first row and column as a decimal in register.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -349,9 +339,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataSingleColumn
+-   ### DataSingleColumn
 
-    ## Head
+    #### Head
 
     Title
     :   Iterate the first column of the query result
@@ -361,13 +351,13 @@ Databases & Querying
     :   For each result row in the query, it'll take the value of the first column, and stick
             it into Register and hit OnThen for each row.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -381,9 +371,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataSingleFile
+-   ### DataSingleFile
 
-    ## Head
+    #### Head
 
     Title
     :   First column into list
@@ -393,13 +383,13 @@ Databases & Querying
     :   Works like DataSingleColumn, but instead of iterating while the query runs, it accumulates the entire
             column into a list and sticks that into Register.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -413,9 +403,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   DataTransaction
+-   ### DataTransaction
 
-    ## Head
+    #### Head
 
     Title
     :   Start a transaction
@@ -424,14 +414,14 @@ Databases & Querying
 
     :   Opens a transaction and commits it with DataCommit. If not committed, a rollback will happen.
 
-    ## Settings
+    #### Settings
 
       ------------------------- ------------ ----------------------------------------------------------------
       Technical Name            Usage Name   Description
       TransactionNameConstant                Set a name for this transaction to match the one in the commit
       ------------------------- ------------ ----------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -445,9 +435,9 @@ Databases & Querying
 
         When the transaction has opened, it is available for querying against here.
 
--   MySqlConnectionSource
+-   ### MySqlConnectionSource
 
-    ## Head
+    #### Head
 
     Title
     :   Connect to MySQL
@@ -457,14 +447,14 @@ Databases & Querying
     :   Provided a MySQL connection string, connect to a server for querying. Dont forget 
             `Allow User Variables`
 
-    ## Settings
+    #### Settings
 
       ----------------------- ------------ -------------------
       Technical Name          Usage Name   Description
       ConnectionStringConst                Connection string
       ----------------------- ------------ -------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -474,9 +464,9 @@ Databases & Querying
 
         When the connection has become available
 
--   MySqlLocalConnectionSource
+-   ### MySqlLocalConnectionSource
 
-    ## Head
+    #### Head
 
     Title
     :   Connect to MySQL
@@ -486,14 +476,14 @@ Databases & Querying
     :   Connects to mysql at localhost, with the username, password and database parameters having the same name
             in the connection string. Usually "good enough" for local use but be aware of the implications.
 
-    ## Settings
+    #### Settings
 
       ---------------------- ------------ -------------------------------------
       Technical Name         Usage Name   Description
       LocalCredentialConst                Databasename, username and password
       ---------------------- ------------ -------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -503,9 +493,9 @@ Databases & Querying
 
         When the connection has become available
 
--   OptionalDataRow
+-   ### OptionalDataRow
 
-    ## Head
+    #### Head
 
     Title
     :   Optionally read a row
@@ -514,13 +504,13 @@ Databases & Querying
 
     :   Gets a data row when it's present and there's a connection. Otherwise, OnElse happens.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -534,9 +524,9 @@ Databases & Querying
 
         When the query ran successfully or has a result
 
--   SqliteConnectionSource
+-   ### SqliteConnectionSource
 
-    ## Head
+    #### Head
 
     Title
     :   Connect to a Sqlite File
@@ -545,14 +535,14 @@ Databases & Querying
 
     :   Open an SQLite file for querying and modifying using the data commands.
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ ----------------------
       Technical Name           Usage Name   Description
       DataSourceFileConstant                Data source filename
       ------------------------ ------------ ----------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -562,11 +552,11 @@ Databases & Querying
 
         When the connection has become available
 
-Deprecated
+## Deprecated
 
--   CircularPop
+-   ### CircularPop
 
-    ## Head
+    #### Head
 
     Title
     :   Consume from an infinite stack
@@ -576,13 +566,13 @@ Deprecated
     :   Take an item from an infinite stack;
             when the last item was reached, it wraps back around.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -596,9 +586,9 @@ Deprecated
 
         Has stack item in register here
 
--   CircularPush
+-   ### CircularPush
 
-    ## Head
+    #### Head
 
     Title
     :   Add to infinite stack
@@ -608,13 +598,13 @@ Deprecated
     :   Access a stack globally available under a name.
             Adds the current register to it.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -624,9 +614,9 @@ Deprecated
 
         When no name was provided.
 
--   For
+-   ### For
 
-    ## Head
+    #### Head
 
     Title
     :   Loops over enumeration
@@ -636,13 +626,13 @@ Deprecated
     :   This loops over an enumeration in Register, and fires OnThen for each item, putting the Item
             in the Register. This is similar to Pop, except it'll keep on going on its own without needing to recurse.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -656,9 +646,9 @@ Deprecated
 
         When an item was pulled from the enumeration
 
--   Peek
+-   ### Peek
 
-    ## Head
+    #### Head
 
     Title
     :   Peek an item from an enumeration and continue
@@ -669,14 +659,14 @@ Deprecated
             the primary setting, it will look at the first item from the enumeration without taking it out.
             So it's like Pop, but non-destructive.
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ --------------------------------------------------------------------------------------
       Technical Name           Usage Name   Description
       ListSourceNameConstant                Optionally provide a memory name for getting the list from and putting it back into.
       ------------------------ ------------ --------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -690,9 +680,9 @@ Deprecated
 
         When an item was popped and the list was advanced; contains the item in register
 
--   Pop
+-   ### Pop
 
-    ## Head
+    #### Head
 
     Title
     :   Pop an item from an enumeration and continue
@@ -707,14 +697,14 @@ Deprecated
             the list cursor and put that back in memory again in the same name. The item will go into
             register. 
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ --------------------------------------------------------------------------------------
       Technical Name           Usage Name   Description
       ListSourceNameConstant                Optionally provide a memory name for getting the list from and putting it back into.
       ------------------------ ------------ --------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -728,9 +718,9 @@ Deprecated
 
         When an item was popped and the list was advanced; contains the item in register
 
--   Single
+-   ### Single
 
-    ## Head
+    #### Head
 
     Title
     :   Ensure the list contains one item, and take it.
@@ -741,13 +731,13 @@ Deprecated
             If that was the case, OnThen will continue. For any different amount of items, OnElse will be 
             triggered.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -761,11 +751,11 @@ Deprecated
 
         When the list contained exactly one item
 
-Diagnostics & Debug
+## Diagnostics & Debug
 
--   Dump
+-   ### Dump
 
-    ## Head
+    #### Head
 
     Title
     :   Dump the full context to console
@@ -774,7 +764,7 @@ Diagnostics & Debug
 
     :   Dont do this in prod.
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ ---------------------------------------------
       Technical Name     Usage Name   Description
@@ -782,15 +772,15 @@ Diagnostics & Debug
       LimitConstant      limit        Maximum depth to dump before stopping
       ------------------ ------------ ---------------------------------------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         After dump has happened. Logs before and after OnThen
 
--   ReleaseAllResources
+-   ### ReleaseAllResources
 
-    ## Head
+    #### Head
 
     Title
     :   Dispose of every resource
@@ -801,21 +791,21 @@ Diagnostics & Debug
             This doesn't kill the app per say but this is hard to recover from; typically 
             used in conjunction with EnvironmentExit
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         After disposal happened
 
--   VoidService
+-   ### VoidService
 
-    ## Head
+    #### Head
 
     Title
     :   It does absolutely nothing
@@ -830,13 +820,13 @@ Diagnostics & Debug
 
             And you don't want that.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -846,11 +836,11 @@ Diagnostics & Debug
 
         Can't do it wrong if you ain't doing it.
 
-Http & Routing
+## Http & Routing
 
--   CookieRealm
+-   ### CookieRealm
 
-    ## Head
+    #### Head
 
     Title
     :   Define Realm of Cookie
@@ -859,14 +849,14 @@ Http & Routing
 
     :   Scopes the cookie lookup, this is not the cookie name itself - required to use RevokeCookie and SessionCookie.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ --------------------
       Technical Name   Usage Name   Description
       RealmName                     Name of the cookie
       ---------------- ------------ --------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -876,9 +866,9 @@ Http & Routing
 
         Continues with cookie name
 
--   CsrfEnable
+-   ### CsrfEnable
 
-    ## Head
+    #### Head
 
     Title
     :   Enable CSRF Field Obfuscation
@@ -888,13 +878,13 @@ Http & Routing
     :   For the services that support it, initializes a system that turns plaintext
             field names into obfuscated field names that may only be used once.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -904,9 +894,9 @@ Http & Routing
 
         Forms from here on out will be CSRF hardened
 
--   ExactRoute
+-   ### ExactRoute
 
-    ## Head
+    #### Head
 
     Title
     :   Match route exactly
@@ -915,13 +905,13 @@ Http & Routing
 
     :   Behaves like Route, but will only match if the route matches exactly, without subdirectories.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -935,9 +925,9 @@ Http & Routing
 
         When the route matched
 
--   Fileserver
+-   ### Fileserver
 
-    ## Head
+    #### Head
 
     Title
     :   Routing to files based on filesystem
@@ -953,7 +943,7 @@ Http & Routing
             .rkop files will not be served statically or otherwise by default, but running them 
             may be enabled by setting "run" to true.
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ ----------------------------------------------------------------------------------------------------------------------
       Technical Name           Usage Name   Description
@@ -962,7 +952,7 @@ Http & Routing
       RunProgramsConst         run          Enable this to execute rkop files, otherwise, rkop files will not be served; statically or otherwise.
       ------------------------ ------------ ----------------------------------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     NotFound
 
@@ -980,9 +970,9 @@ Http & Routing
 
         Only when `run` is enabled; will pass through Returns from rkop files
 
--   HttpMethod
+-   ### HttpMethod
 
-    ## Head
+    #### Head
 
     Title
     :   Match HTTP Method
@@ -991,14 +981,14 @@ Http & Routing
 
     :   Does a hard check against a certain HTTP method.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ ----------------------------------------------------------
       Technical Name       Usage Name   Description
       MethodNameConstant                Method name to filter for ie. POST, GET, PUT, HEAD, etc.
       -------------------- ------------ ----------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1012,9 +1002,9 @@ Http & Routing
 
         When the request method is matching
 
--   HttpRedirect
+-   ### HttpRedirect
 
-    ## Head
+    #### Head
 
     Title
     :   Http redirect to
@@ -1023,13 +1013,13 @@ Http & Routing
 
     :   Does a 307 Temporary Redirect to the path sunk into OnThen
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1039,9 +1029,9 @@ Http & Routing
 
         Sink redirect URL here.
 
--   HttpStatus
+-   ### HttpStatus
 
-    ## Head
+    #### Head
 
     Title
     :   Set HTTP Status code
@@ -1050,14 +1040,14 @@ Http & Routing
 
     :   Force the HTTP status code.
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ --------------------
       Technical Name           Usage Name   Description
       HttpStatusCodeConstant                Status code number
       ------------------------ ------------ --------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1067,9 +1057,9 @@ Http & Routing
 
         When the status code was set
 
--   RevokeCookie
+-   ### RevokeCookie
 
-    ## Head
+    #### Head
 
     Title
     :   Revoke the cookie in this realm
@@ -1078,13 +1068,13 @@ Http & Routing
 
     :   If theres a cookie for this realm, revoke it.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1094,9 +1084,9 @@ Http & Routing
 
         When the cookie was revoked
 
--   Route
+-   ### Route
 
-    ## Head
+    #### Head
 
     Title
     :   Match (parent) route
@@ -1126,14 +1116,14 @@ Http & Routing
             ```ExactRoute("POST /purchase")```
             Will only match POST requests on `/purchase` and no subdirs.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ --------------------------------------------------------
       Technical Name       Usage Name   Description
       RouteTemplateConst                Routing template as specified in the description above
       -------------------- ------------ --------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1147,9 +1137,9 @@ Http & Routing
 
         When the route matched
 
--   SessionCookie
+-   ### SessionCookie
 
-    ## Head
+    #### Head
 
     Title
     :   Define Realm of Cookie
@@ -1159,7 +1149,7 @@ Http & Routing
     :   Within a CookieRealm, either find out if its a known cookie, or create one.
             Puts the cookie value in the body.
 
-    ## Settings
+    #### Settings
 
       --------------------- ------------ ----------------------------------------------------------
       Technical Name        Usage Name   Description
@@ -1169,7 +1159,7 @@ Http & Routing
       CookiePathConst       path         Path to which the cookie is restricted in the response
       --------------------- ------------ ----------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1179,9 +1169,9 @@ Http & Routing
 
         Continues here with a cookie
 
--   StartWebServer
+-   ### StartWebServer
 
-    ## Head
+    #### Head
 
     Title
     :   Start underlying webserver
@@ -1190,21 +1180,21 @@ Http & Routing
 
     :   When pointing this to a WebServer, it'll start it.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Hook up the webserver to start here.
 
--   StopWebServer
+-   ### StopWebServer
 
-    ## Head
+    #### Head
 
     Title
     :   Cease underlying webserver
@@ -1213,21 +1203,21 @@ Http & Routing
 
     :   When pointing this to a WebServer, it'll stop it.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Hook up the webserver to stop here.
 
--   WebServer
+-   ### WebServer
 
-    ## Head
+    #### Head
 
     Title
     :   Http Webserver
@@ -1236,14 +1226,14 @@ Http & Routing
 
     :   Starts listening for web requests when it receives a start command.
 
-    ## Settings
+    #### Settings
 
       ------------------------- ------------ -------------------------------------------------------------------
       Technical Name            Usage Name   Description
       PrimaryPrefixesConstant                Set a whitelist array of prefixes here ie \[\"http://\*:8008/\"\]
       ------------------------- ------------ -------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1265,11 +1255,11 @@ Http & Routing
 
         When a request came in ready for processing
 
-Input & Validation
+## Input & Validation
 
--   Clamp
+-   ### Clamp
 
-    ## Head
+    #### Head
 
     Title
     :   Clamp numeric value in registry to a range
@@ -1280,7 +1270,7 @@ Input & Validation
             and attempt to limit that numeric value between min and max. If the value
             cannot be retrieved, default is used.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -----------------------------------------------------------------------------------------------------------------------------------------------------------
       Technical Name   Usage Name   Description
@@ -1290,15 +1280,15 @@ Input & Validation
       MinValue         min          Minimum numeric value to clamp to
       ---------------- ------------ -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         After the clamped value was put into register
 
--   EndsWith
+-   ### EndsWith
 
-    ## Head
+    #### Head
 
     Title
     :   Check if register text ends with something
@@ -1308,14 +1298,14 @@ Input & Validation
     :   Sinks an expression at Expression, and then validates the text in register
             against it. OnThen if matches, otherwise OnElse.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ ------------------------
       Technical Name       Usage Name   Description
       IgnoreCaseConstant   ci           Ignore case true/false
       -------------------- ------------ ------------------------
 
-    ## Events
+    #### Events
 
     Expression
 
@@ -1329,9 +1319,9 @@ Input & Validation
 
         When the register string did indeed end with the expression
 
--   HtmlForm
+-   ### HtmlForm
 
-    ## Head
+    #### Head
 
     Title
     :   Parse and Validate HTML form
@@ -1347,13 +1337,13 @@ Input & Validation
              - There was no method or maybe a not a query in memory
              - OnValid or OnInvalid triggered a redirect right after validation but before printing
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1371,9 +1361,9 @@ Input & Validation
 
         When the form was valid, the form values are in memory here.
 
--   NumberBigger
+-   ### NumberBigger
 
-    ## Head
+    #### Head
 
     Title
     :   Check if number is bigger
@@ -1382,14 +1372,14 @@ Input & Validation
 
     :   Provided a number in memory, and a primary constant lower bound, will tell if its bigger or not.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ ----------------------------------------
       Technical Name   Usage Name   Description
       ValueConstant                 Minimum value for the number in memory
       ---------------- ------------ ----------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1403,9 +1393,9 @@ Input & Validation
 
         When the number in memory was bigger
 
--   ReadJsonEncodedBody
+-   ### ReadJsonEncodedBody
 
-    ## Head
+    #### Head
 
     Title
     :   JSON Body Reading
@@ -1414,13 +1404,13 @@ Input & Validation
 
     :   Reads the top level JSON values into the memory based on whitelist or csrf lookup.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1431,9 +1421,9 @@ Input & Validation
 
         Puts body values in memory either under whitelist names, or under CSRF obfuscated field names
 
--   ReadUrlEncodedBody
+-   ### ReadUrlEncodedBody
 
-    ## Head
+    #### Head
 
     Title
     :   URL Encoded Body Reading
@@ -1443,13 +1433,13 @@ Input & Validation
     :   Reads URL Encoded Form values into the memory based on whitelist or csrf lookup.
             May be used with URL Query string, or POST body.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1460,9 +1450,9 @@ Input & Validation
 
         Puts body values in memory either under whitelist names, or under CSRF obfuscated field names
 
--   RegexMatches
+-   ### RegexMatches
 
-    ## Head
+    #### Head
 
     Title
     :   Check if register text matches regex
@@ -1472,13 +1462,13 @@ Input & Validation
     :   Sinks an expression at Expression, and then validates the text in register
             against it. OnThen if matches, otherwise OnElse.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     Expression
 
@@ -1492,9 +1482,9 @@ Input & Validation
 
         For each match in register
 
--   SourceFrom
+-   ### SourceFrom
 
-    ## Head
+    #### Head
 
     Title
     :   Memory to Stream
@@ -1503,14 +1493,14 @@ Input & Validation
 
     :   Make text in memory readable as a stream
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ ------------------------------------
       Technical Name           Usage Name   Description
       SourceVariableConstant                Name in memory to source text from
       ------------------------ ------------ ------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1520,9 +1510,9 @@ Input & Validation
 
         When text is available to source
 
--   StartsWith
+-   ### StartsWith
 
-    ## Head
+    #### Head
 
     Title
     :   Check if register text starts with something
@@ -1532,13 +1522,13 @@ Input & Validation
     :   Sinks an expression at Expression, and then validates the text in register
             against it. OnThen if matches, otherwise OnElse.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     Expression
 
@@ -1552,9 +1542,9 @@ Input & Validation
 
         When the register string did indeed start with the expression
 
--   Trim
+-   ### Trim
 
-    ## Head
+    #### Head
 
     Title
     :   Remove spaces at both ends of text
@@ -1563,21 +1553,21 @@ Input & Validation
 
     :   Removes spaces at ends of text in register, then continues.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Register string trimmed of spaces on both ends
 
--   Truncate
+-   ### Truncate
 
-    ## Head
+    #### Head
 
     Title
     :   Makes sure text in register is not too long
@@ -1587,14 +1577,14 @@ Input & Validation
     :   Takes text in register and if its longer than the primary setting specifies,
             it'll be chopped on the right side.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ ----------------------
       Technical Name   Usage Name   Description
       LengthConstant                Max length of string
       ---------------- ------------ ----------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1604,11 +1594,11 @@ Input & Validation
 
         With the (potentially) shorter string in register
 
-Memory & Register
+## Memory & Register
 
--   Case
+-   ### Case
 
-    ## Head
+    #### Head
 
     Title
     :   Conditional branch on register value
@@ -1618,14 +1608,14 @@ Memory & Register
     :   Checks if the register's string-converted value is an exact match with the provided primary
             setting text. 
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ --------------------------------------------
       Technical Name     Usage Name   Description
       MatchStringConst                String value to match the Register against
       ------------------ ------------ --------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1635,9 +1625,9 @@ Memory & Register
 
         When the string representation of the register matches the setting
 
--   Default
+-   ### Default
 
-    ## Head
+    #### Head
 
     Title
     :   If a name doesn\'t exist in memory, set it to a default value
@@ -1648,7 +1638,7 @@ Memory & Register
     :   Provided a memory name, and a stream via OnThen, read either the memory value into
             register, or the stream data.
 
-    ## Settings
+    #### Settings
 
       ------------------- ------------ ---------------------------------------------
       Technical Name      Usage Name   Description
@@ -1656,7 +1646,7 @@ Memory & Register
       MemoryNameConst                  Name of memory place to default a value for
       ------------------- ------------ ---------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1670,9 +1660,9 @@ Memory & Register
 
         Guaranteed to have a value of the specified name in register
 
--   Load
+-   ### Load
 
-    ## Head
+    #### Head
 
     Title
     :   Load value from memory into register
@@ -1695,7 +1685,7 @@ Memory & Register
             order of operations instead. However, it does mean, sometimes you need to move something
             into or out of the Register, or Memory. This is what Load and Store are for.
 
-    ## Settings
+    #### Settings
 
       ---------------------- ------------ -------------------------------------------------------------
       Technical Name         Usage Name   Description
@@ -1703,7 +1693,7 @@ Memory & Register
       KeyConstant                         The memory key to look at for retrieving the Register value
       ---------------------- ------------ -------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1717,9 +1707,9 @@ Memory & Register
 
         When the value was found in memory, the memory value will be in register from here
 
--   Override
+-   ### Override
 
-    ## Head
+    #### Head
 
     Title
     :   Regardless of whether a name exists in memory, set it to a
@@ -1729,7 +1719,7 @@ Memory & Register
 
     :   Provided a memory name, and a stream via OnThen, read the stream data into the memory name.
 
-    ## Settings
+    #### Settings
 
       ------------------- ------------ ----------------------------------------------
       Technical Name      Usage Name   Description
@@ -1737,7 +1727,7 @@ Memory & Register
       MemoryName                       Name of memory place to override a value for
       ------------------- ------------ ----------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -1751,9 +1741,9 @@ Memory & Register
 
         Guaranteed to have a value of the specified name in register
 
--   Store
+-   ### Store
 
-    ## Head
+    #### Head
 
     Title
     :   Put register value back into memory
@@ -1765,7 +1755,7 @@ Memory & Register
             configured name. Unless the `constant`-setting is specified; 
             then the configuration value is put into memory at the specified location.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ --------------------------------------------------------
       Technical Name       Usage Name   Description
@@ -1773,7 +1763,7 @@ Memory & Register
       StoreValueConstant   constant     Optional override value to use instead of the Register
       -------------------- ------------ --------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1783,11 +1773,11 @@ Memory & Register
 
         Having the register value in memory from here
 
-Parsing & Composing
+## Parsing & Composing
 
--   FormatDate
+-   ### FormatDate
 
-    ## Head
+    #### Head
 
     Title
     :   Print Register as Date Time
@@ -1798,21 +1788,21 @@ Parsing & Composing
             The following tags become available for the datetime that was in register:
             {% year %} {% month %} {% day %} {% hour %} {% hour12 %} {% ampm %} {% minute %} {% second %} 
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the datetime was printed
 
--   FormatTime
+-   ### FormatTime
 
-    ## Head
+    #### Head
 
     Title
     :   Print Register as Timespan
@@ -1827,21 +1817,21 @@ Parsing & Composing
             If there was a number in register, it is assumed that it is in seconds.
             If this is not the case, use ReadTime and Format separately to get more control.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the timespan was printed
 
--   ReadDate
+-   ### ReadDate
 
-    ## Head
+    #### Head
 
     Title
     :   Read Register into its Date and Time components
@@ -1852,22 +1842,22 @@ Parsing & Composing
             such that in memory exist:
             year, month, day, hour, hour12, ampm, minute, second
 
-    ## Settings
+    #### Settings
 
       ----------------------- ------------ -----------------------------------------------------
       Technical Name          Usage Name   Description
       MemoryNameOfDateConst                Optionally name of memory location to get date from
       ----------------------- ------------ -----------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Date components
 
--   ReadTime
+-   ### ReadTime
 
-    ## Head
+    #### Head
 
     Title
     :   Read Register into its Date and Time components
@@ -1882,7 +1872,7 @@ Parsing & Composing
             In case a number is provided, use Significance to configure what unit the number is in. options are:
             day, hour, minute, second, milli, tick
 
-    ## Settings
+    #### Settings
 
       ----------------------- -------------- -------------------------------------------------------------------------------------------
       Technical Name          Usage Name     Description
@@ -1891,15 +1881,15 @@ Parsing & Composing
       SignificanceConst       significance   In case of numeric input, the unit of the number (day, hour, minute, second, milli, tick)
       ----------------------- -------------- -------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Date components
 
--   Same
+-   ### Same
 
-    ## Head
+    #### Head
 
     Title
     :   Compare two memroy values
@@ -1908,7 +1898,7 @@ Parsing & Composing
 
     :   Compares string representations of memory values.
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ --------------------------------------------------------------------------
       Technical Name     Usage Name   Description
@@ -1916,7 +1906,7 @@ Parsing & Composing
       OnEmptyConstant    onempty      what to do if there were no values (else or then)
       ------------------ ------------ --------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     GetNames
 
@@ -1930,9 +1920,9 @@ Parsing & Composing
 
         when all names were thesame
 
--   SnakeCase
+-   ### SnakeCase
 
-    ## Head
+    #### Head
 
     Title
     :   Make text snakecase safe
@@ -1946,14 +1936,14 @@ Parsing & Composing
             - Cleans up double underscores
             - Trims trailing and leading underscores
 
-    ## Settings
+    #### Settings
 
       ---------------------- ------------ --------------------------------------------------------------------------------
       Technical Name         Usage Name   Description
       VariableNameConstant                Set a variable name here to not snakify the register but a memory item instead
       ---------------------- ------------ --------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1963,9 +1953,9 @@ Parsing & Composing
 
         Snake comes out here in register
 
--   Split
+-   ### Split
 
-    ## Head
+    #### Head
 
     Title
     :   Turn text into a list
@@ -1977,14 +1967,14 @@ Parsing & Composing
             The default split character is '/', which makes this suitable for routing duties in 
             conjunction with Pop.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ ------------------------------------------------------
       Technical Name   Usage Name   Description
       SplitCharacter                Splitting character; defaults to forward slash \`/\`
       ---------------- ------------ ------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -1994,11 +1984,11 @@ Parsing & Composing
 
         When a string was indeed turned into a list, puts the list in Register
 
-Printing & Formatting
+## Printing & Formatting
 
--   DataUrl
+-   ### DataUrl
 
-    ## Head
+    #### Head
 
     Title
     :   Sink binary data and output it as a base64 data url
@@ -2008,14 +1998,14 @@ Printing & Formatting
     :   Hook up something that produces binary data with a mime type, typically some image or file reader, to the OnThen.
             OnElse will then have base64 encoded data url in its register.
 
-    ## Settings
+    #### Settings
 
       ----------------------- ------------ --------------------------------------------------------------------
       Technical Name          Usage Name   Description
       ForceContentTypeConst                Force the content type of the data url regardless of what was sunk
       ----------------------- ------------ --------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2025,9 +2015,9 @@ Printing & Formatting
 
         Happens after the conversion
 
--   FileTemplate
+-   ### FileTemplate
 
-    ## Head
+    #### Head
 
     Title
     :   Template from File service
@@ -2038,14 +2028,14 @@ Printing & Formatting
             will template using the contents of the file provided in the primary 
             constant. 
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -----------------------
       Technical Name   Usage Name   Description
       ContentFile                   File to template from
       ---------------- ------------ -----------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2059,9 +2049,9 @@ Printing & Formatting
 
         For further templating text, after the file has been read.
 
--   Format
+-   ### Format
 
-    ## Head
+    #### Head
 
     Title
     :   Template from Text service
@@ -2072,13 +2062,13 @@ Printing & Formatting
             will template using the contents of the text provided in the primary 
             constant. 
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2092,9 +2082,9 @@ Printing & Formatting
 
         After output was written.
 
--   Print
+-   ### Print
 
-    ## Head
+    #### Head
 
     Title
     :   Outputs text to the closest output stream
@@ -2104,7 +2094,7 @@ Printing & Formatting
     :   Almost behaves like you would expect. For example, when used in conjunction with a webserver,
             it will simply write the configured text to the Response body, attempting to bring along its content type.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------- -------------------------------------------------------------------------
       Technical Name   Usage Name    Description
@@ -2112,7 +2102,7 @@ Printing & Formatting
       PlainTextValue                 Text to print to output
       ---------------- ------------- -------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2122,9 +2112,9 @@ Printing & Formatting
 
         Happens when the print was successful; preserves the interaction for more printing.
 
--   PrintContent
+-   ### PrintContent
 
-    ## Head
+    #### Head
 
     Title
     :   Print a File as Content
@@ -2135,7 +2125,7 @@ Printing & Formatting
             on its extension, and pushed to the output, along with the file size in bytes.
             Then, the file contents are printed.
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------------
       Technical Name     Usage Name   Description
@@ -2143,7 +2133,7 @@ Printing & Formatting
       SetContentLength   setlength    Set this to true, to pass down the length of the file as well. Don\'t do this when there\'s multiple files, or they\'re not too big.
       ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2153,9 +2143,9 @@ Printing & Formatting
 
         Happens when the file was written to output
 
--   PrintContentByFilenames
+-   ### PrintContentByFilenames
 
-    ## Head
+    #### Head
 
     Title
     :   Select a file based on its name in the Register, and print its
@@ -2165,14 +2155,14 @@ Printing & Formatting
 
     :   Useful for hosting multiple whitelisted files, based on their name. 
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ ----------------------------------------------
       Technical Name     Usage Name   Description
       AllowedFileConst                Array of permissible file names (full paths)
       ------------------ ------------ ----------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2182,9 +2172,9 @@ Printing & Formatting
 
         Likely happens because there was no file in the whitelist.
 
--   PrintFile
+-   ### PrintFile
 
-    ## Head
+    #### Head
 
     Title
     :   Works like Print, but uses the contents of a file instead
@@ -2195,7 +2185,7 @@ Printing & Formatting
             this will also take notice of the File encoding, and Output encoding. It will then translate if necessary
             to prevent weird characters.
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------
       Technical Name     Usage Name   Description
@@ -2204,15 +2194,15 @@ Printing & Formatting
       SetContentLength   setlength    Set this to true to pass down the length of the file as well. Only do this if this file is big, and the only output component.
       ------------------ ------------ --------------------------------------------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
         Likely happens if the file was not found or accessible, or there was no output to write to.
 
--   StoreLocale
+-   ### StoreLocale
 
-    ## Head
+    #### Head
 
     Title
     :   Set current locale string
@@ -2221,21 +2211,21 @@ Printing & Formatting
 
     :   Takes a string from the register and marks it as the current locale string.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Continues with locale here.
 
--   Template
+-   ### Template
 
-    ## Head
+    #### Head
 
     Title
     :   Templating service
@@ -2273,14 +2263,14 @@ Printing & Formatting
             Exactly one filter modifier and one source modifier may be combined. When omitted, the engine
             defaults to sourcing from memory first, and never filtering.
 
-    ## Settings
+    #### Settings
 
       -------------------------- ------------- --------------------------------------------------------------------------------------
       Technical Name             Usage Name    Description
       ForceContentTypeConstant   contenttype   Force the content type to be the specified MIME instead of deriving it from the file
       -------------------------- ------------- --------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2295,11 +2285,11 @@ Printing & Formatting
 
         When the template needs to buffer an updated version of the template text
 
-Reflection & Documentation
+## Reflection & Documentation
 
--   CategoryServices
+-   ### CategoryServices
 
-    ## Head
+    #### Head
 
     Title
     :   Find services that belong to a category
@@ -2309,14 +2299,14 @@ Reflection & Documentation
     :   Provided a category name through the primary setting or the Register, it will list all 
             services that belong to it.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ --------------
       Technical Name       Usage Name   Description
       RepeatNameConstant                Name of Loop
       -------------------- ------------ --------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2326,9 +2316,9 @@ Reflection & Documentation
 
         A list with 0 or more service names provided a category
 
--   DefinitionsInFile
+-   ### DefinitionsInFile
 
-    ## Head
+    #### Head
 
     Title
     :   Get all the definitions that exist in the file.
@@ -2338,14 +2328,14 @@ Reflection & Documentation
     :   Provided with a full file path in Register, will enumerate the definitions that exist in it.
             Enumeration goes into memory at `names`, path to file will be kept in register, and memory, at `path`.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ --------------------------------
       Technical Name   Usage Name   Description
       ServicePath                   Optionally hardcoded rkop path
       ---------------- ------------ --------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2355,9 +2345,9 @@ Reflection & Documentation
 
         with a list of definition names in register, and the path to the file in memory at `path`
 
--   EventDescription
+-   ### EventDescription
 
-    ## Head
+    #### Head
 
     Title
     :   Get detailed event description by service name and event name
@@ -2368,7 +2358,7 @@ Reflection & Documentation
             or with the service name as the primary setting, and the event name as the 'event' settings,
             puts the description of the event in the register.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -----------------------------------
       Technical Name   Usage Name   Description
@@ -2376,7 +2366,7 @@ Reflection & Documentation
       ServiceName                   Optionally hardcoded service name
       ---------------- ------------ -----------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2386,9 +2376,9 @@ Reflection & Documentation
 
         When the event was found, has description in register
 
--   GetServiceChild
+-   ### GetServiceChild
 
-    ## Head
+    #### Head
 
     Title
     :   Get child service information from service branches
@@ -2399,13 +2389,13 @@ Reflection & Documentation
             expression into the register. this either works with a key string in register, and expression
             in memory, or expression in register, and key string in memory.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2419,9 +2409,9 @@ Reflection & Documentation
 
         When child service information was found and put into register
 
--   GetServiceConst
+-   ### GetServiceConst
 
-    ## Head
+    #### Head
 
     Title
     :   Get value of a service constant
@@ -2432,13 +2422,13 @@ Reflection & Documentation
             settings value into the register. this either works with a key string in register, and expression
             in memory, or expression in register, and key string in memory.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2452,9 +2442,9 @@ Reflection & Documentation
 
         When a value was found and put into register
 
--   ProgDirs
+-   ### ProgDirs
 
-    ## Head
+    #### Head
 
     Title
     :   List all directories that contain running programs
@@ -2464,21 +2454,21 @@ Reflection & Documentation
     :   For the currently running doodads instance, this service enumerates 
             all open working directories / common ancestors.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         A list with 0 or more directory info's
 
--   ServiceCategories
+-   ### ServiceCategories
 
-    ## Head
+    #### Head
 
     Title
     :   Find service category names
@@ -2488,22 +2478,22 @@ Reflection & Documentation
     :   For the currently running doodads instance, explores all loaded assemblies for 
             IService implementations and finds the distinct categories these exist in.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ --------------
       Technical Name       Usage Name   Description
       RepeatNameConstant                Name of Loop
       -------------------- ------------ --------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Iterates for each service category while Continue is provided.
 
--   ServiceDiscriminator
+-   ### ServiceDiscriminator
 
-    ## Head
+    #### Head
 
     Title
     :   Determine service expression type
@@ -2529,13 +2519,13 @@ Reflection & Documentation
              - constnames : list of settings that have values assigned
              - childnames : list of children hooked up to named event branches. does not include series. 
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2553,9 +2543,9 @@ Reflection & Documentation
 
         When a discrete service definition was found
 
--   ServiceHeader
+-   ### ServiceHeader
 
-    ## Head
+    #### Head
 
     Title
     :   Get information of a service by its name
@@ -2572,14 +2562,14 @@ Reflection & Documentation
              - named: List of names of the named settings on this service 
             Also puts the service name in register.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ ------------------------------------
       Technical Name   Usage Name   Description
       ServiceName                   Optionally hardcoded category name
       ---------------- ------------ ------------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2589,9 +2579,9 @@ Reflection & Documentation
 
         Contains the payload as described for the requested service
 
--   ServiceInDefinition
+-   ### ServiceInDefinition
 
-    ## Head
+    #### Head
 
     Title
     :   Get the service at the root of a definition
@@ -2601,13 +2591,13 @@ Reflection & Documentation
     :   Provided with a definition name in register, and a path in memory, will produce special service information
             and put it in Register. This information can only be used by other reflection services.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2617,9 +2607,9 @@ Reflection & Documentation
 
         When the definition with name has been found, and has a service
 
--   SettingInformation
+-   ### SettingInformation
 
-    ## Head
+    #### Head
 
     Title
     :   Get detailed settings information by service name and setting
@@ -2634,7 +2624,7 @@ Reflection & Documentation
              - key: the actual key of the setting as its used in the rkop file, unless its a primary setting, then empty.
              - description: the documentative description of the setting
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -----------------------------------
       Technical Name   Usage Name   Description
@@ -2642,7 +2632,7 @@ Reflection & Documentation
       SettingName      event        Optionally hardcoded setting name
       ---------------- ------------ -----------------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2652,11 +2642,11 @@ Reflection & Documentation
 
         When the setting was found, has description in memory
 
-Scheduling & Flow
+## Scheduling & Flow
 
--   Continue
+-   ### Continue
 
-    ## Head
+    #### Head
 
     Title
     :   Find the originating Repeat call, and invoke its children again.
@@ -2665,14 +2655,14 @@ Scheduling & Flow
 
     :   Read the docs on Repeat, for Continue will behave according to its definition. 
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ -------------------------------------------
       Technical Name       Usage Name   Description
       RepeatNameConstant                Name of the Repeat block to fall back to.
       -------------------- ------------ -------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2686,9 +2676,9 @@ Scheduling & Flow
 
         Is never invoked; Continue is terminating for a block.
 
--   Delay
+-   ### Delay
 
-    ## Head
+    #### Head
 
     Title
     :   Delay continuing of execution
@@ -2697,22 +2687,22 @@ Scheduling & Flow
 
     :   pass a fixed value to the primary parameter. execution of onthen will delay by that time in ms.
 
-    ## Settings
+    #### Settings
 
       ----------------- ------------ --------------------
       Technical Name    Usage Name   Description
       DelayInMsConest                Time to delay with
       ----------------- ------------ --------------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the delay expires
 
--   Hold
+-   ### Hold
 
-    ## Head
+    #### Head
 
     Title
     :   Blocks from here on out to prevent premature finishing of the
@@ -2725,14 +2715,14 @@ Scheduling & Flow
             keeping the application alive, or preventing requests from terminating prematurely,
             but should be using sparingly because it can cause application deadlocks.
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ ----------------------------------------
       Technical Name     Usage Name   Description
       LockNameConstant                Name that the Release should also use.
       ------------------ ------------ ----------------------------------------
 
-    ## Events
+    #### Events
 
     GetName
 
@@ -2750,9 +2740,9 @@ Scheduling & Flow
 
         Happens before blocking
 
--   Interval
+-   ### Interval
 
-    ## Head
+    #### Head
 
     Title
     :   Interval repetition
@@ -2761,7 +2751,7 @@ Scheduling & Flow
 
     :   Repeat an action while continue
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ -------------------
       Technical Name       Usage Name   Description
@@ -2769,7 +2759,7 @@ Scheduling & Flow
       RepeatNameConstant                Name for continue
       -------------------- ------------ -------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2779,9 +2769,9 @@ Scheduling & Flow
 
         When the delay expires
 
--   Latch
+-   ### Latch
 
-    ## Head
+    #### Head
 
     Title
     :   At Most One At A Time
@@ -2791,13 +2781,13 @@ Scheduling & Flow
     :   Passes through control transparently, but makes sure of whatever is running 
             on the OnThen branch, it's only one; the rest of the interactions will be dropped.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2807,9 +2797,9 @@ Scheduling & Flow
 
         Runs one at a time using the provided interaction
 
--   Maintain
+-   ### Maintain
 
-    ## Head
+    #### Head
 
     Title
     :   Tend to a long running task with an interval
@@ -2821,14 +2811,14 @@ Scheduling & Flow
             specified time, and do it again so long as the Continue.
             Works like a combination of Postpone and Repeat
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ ------------------------------------------------------------------------------------------------------------------
       Technical Name       Usage Name   Description
       RepeatNameConstant                Use this name to explain what is being repeated. Use in conjunction with Continue to make sure Repeating happens
       -------------------- ------------ ------------------------------------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2842,9 +2832,9 @@ Scheduling & Flow
 
         The job to maintain
 
--   Postpone
+-   ### Postpone
 
-    ## Head
+    #### Head
 
     Title
     :   Postpone continuing of execution
@@ -2856,22 +2846,22 @@ Scheduling & Flow
             by that time in ms; repeated invocations will postpone further instead 
             of causing repeated delays.
 
-    ## Settings
+    #### Settings
 
       ----------------- ------------ --------------------
       Technical Name    Usage Name   Description
       DelayInMsConest                Time to delay with
       ----------------- ------------ --------------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the delay expires
 
--   Release
+-   ### Release
 
-    ## Head
+    #### Head
 
     Title
     :   Release the Hold above
@@ -2881,14 +2871,14 @@ Scheduling & Flow
     :   Should be used in conjunction with a Hold having the same name, and tells it there's no need
             to hold up anymore.  
 
-    ## Settings
+    #### Settings
 
       ------------------ ------------ ------------------------
       Technical Name     Usage Name   Description
       LockNameConstant                Name also used on Hold
       ------------------ ------------ ------------------------
 
-    ## Events
+    #### Events
 
     GetName
 
@@ -2902,9 +2892,9 @@ Scheduling & Flow
 
         Happens after the Hold was release
 
--   Repeat
+-   ### Repeat
 
-    ## Head
+    #### Head
 
     Title
     :   Repeat instructions while Continue is being encountered
@@ -2915,7 +2905,7 @@ Scheduling & Flow
             Repeat won't loop unless it encounters a "Continue". Repeat will play nice with
             Calls to other Definitions, but it is hard to understand if it works. Only use locally.
 
-    ## Settings
+    #### Settings
 
       -------------------- ------------ ---------------------------------------------------------------------------------------
       Technical Name       Usage Name   Description
@@ -2923,7 +2913,7 @@ Scheduling & Flow
       RepeatNameConstant                Description of this repeat block, must be the same for Repeat and related Continue
       -------------------- ------------ ---------------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -2937,11 +2927,11 @@ Scheduling & Flow
 
         Logic to repeat hooks up to this
 
-Sourcing & Sinking
+## Sourcing & Sinking
 
--   Close
+-   ### Close
 
-    ## Head
+    #### Head
 
     Title
     :   Close the line reader
@@ -2950,14 +2940,14 @@ Sourcing & Sinking
 
     :   Use in conjunction with Open, for example when you've seen enough lines, or when you've run out.
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ -------------------------
       Technical Name           Usage Name   Description
       LineReaderNameConstant                Name also given to Open
       ------------------------ ------------ -------------------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -2967,9 +2957,9 @@ Sourcing & Sinking
 
         When the close was successful
 
--   Open
+-   ### Open
 
-    ## Head
+    #### Head
 
     Title
     :   Open input text stream for reading its lines
@@ -2979,14 +2969,14 @@ Sourcing & Sinking
     :   Useful for example with console or CSV; takes the lines of the file
             and exposes them as a list, without loading them into memory directly.
 
-    ## Settings
+    #### Settings
 
       ------------------------ ------------ ------------------------------------------------------------------
       Technical Name           Usage Name   Description
       LineReaderNameConstant                Name to use for this line reader; must be the same for the Close
       ------------------------ ------------ ------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3000,9 +2990,9 @@ Sourcing & Sinking
 
         List of lines comes out here. Useful in conjunction with ie. Pop.
 
--   SinkPlug
+-   ### SinkPlug
 
-    ## Head
+    #### Head
 
     Title
     :   Buffer Sink
@@ -3019,14 +3009,14 @@ Sourcing & Sinking
 
             Use Continue to Flush.
 
-    ## Settings
+    #### Settings
 
       ---------------------- ------------ --------------
       Technical Name         Usage Name   Description
       ContinueNameConstant                Undocumented
       ---------------------- ------------ --------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -3036,9 +3026,9 @@ Sourcing & Sinking
 
         New sink shows up here and buffers until control is returned to BufferSink
 
--   SourceToSink
+-   ### SourceToSink
 
-    ## Head
+    #### Head
 
     Title
     :   Copy incoming data to outgoing data
@@ -3047,13 +3037,13 @@ Sourcing & Sinking
 
     :   Provided a sourcing and sinking interaction, copies one to the other.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3067,11 +3057,11 @@ Sourcing & Sinking
 
         After the copy was done
 
-System & IO
+## System & IO
 
--   ConsoleInput
+-   ### ConsoleInput
 
-    ## Head
+    #### Head
 
     Title
     :   Open input stream
@@ -3080,21 +3070,21 @@ System & IO
 
     :   Provides a source for reading lines from the console
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Console stream is ready to source
 
--   ConsoleOutput
+-   ### ConsoleOutput
 
-    ## Head
+    #### Head
 
     Title
     :   Sink to Console
@@ -3103,21 +3093,21 @@ System & IO
 
     :   Scopes a sink to write text to the console.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         Sink console text here
 
--   Dir
+-   ### Dir
 
-    ## Head
+    #### Head
 
     Title
     :   Produces a list of directories, given the path currently in the
@@ -3129,7 +3119,7 @@ System & IO
             The events are intended for finding out if the Directory exists, what its 
             subdirectories are, and what its files are.
 
-    ## Settings
+    #### Settings
 
       --------------------------- ------------ ----------------------------------------------------------------------------------
       Technical Name              Usage Name   Description
@@ -3137,7 +3127,7 @@ System & IO
       FileSearchPatternConstant                Wildcard-enabled pattern to filter the files to be shown, ie \*.txt or cheese.\*
       --------------------------- ------------ ----------------------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3151,9 +3141,9 @@ System & IO
 
         This puts a list of subdirectory paths in the register
 
--   EnvironmentExit
+-   ### EnvironmentExit
 
-    ## Head
+    #### Head
 
     Title
     :   Stop Application
@@ -3162,17 +3152,17 @@ System & IO
 
     :   Stop the entire application with exit code 0. There's no coming back from this one.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
--   Info
+-   ### Info
 
-    ## Head
+    #### Head
 
     Title
     :   Extra file and directory information reader
@@ -3183,14 +3173,14 @@ System & IO
             Info reads the full path, just the name and some dates.
             It will also query the hidden-attribute and reject files and folders starting with a period '.'
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -----------------------------------------------------------------------
       Technical Name   Usage Name   Description
       Hidden           hidden       Set this to True, if it is not desired Info filters out hidden files.
       ---------------- ------------ -----------------------------------------------------------------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3209,9 +3199,9 @@ System & IO
          - `write` contains the last time the file was written to
          - `read` contains the last time the file was read from
 
--   ParentDirectory
+-   ### ParentDirectory
 
-    ## Head
+    #### Head
 
     Title
     :   Parent Directory
@@ -3220,13 +3210,13 @@ System & IO
 
     :   Get Parent Directory
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3236,9 +3226,9 @@ System & IO
 
         When the parent directory exists and is in register
 
--   ShellExecute
+-   ### ShellExecute
 
-    ## Head
+    #### Head
 
     Title
     :   Open File or Folder in System Shell
@@ -3247,13 +3237,13 @@ System & IO
 
     :   Open a file or folder using the OS appropriate app.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3263,9 +3253,9 @@ System & IO
 
         When file was opened.
 
--   SinkToFile
+-   ### SinkToFile
 
-    ## Head
+    #### Head
 
     Title
     :   Save to File
@@ -3274,13 +3264,13 @@ System & IO
 
     :   Sink data into file
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
@@ -3290,9 +3280,9 @@ System & IO
 
         Sink filename here
 
--   StdioExecute
+-   ### StdioExecute
 
-    ## Head
+    #### Head
 
     Title
     :   Run program and access stdio via source and sink
@@ -3301,14 +3291,14 @@ System & IO
 
     :   Runs a command and exposes stdio via the source and sink streams via OnThen
 
-    ## Settings
+    #### Settings
 
       ---------------------- ------------ -------------------------
       Technical Name         Usage Name   Description
       ContinueNameConstant                Name for continue block
       ---------------------- ------------ -------------------------
 
-    ## Events
+    #### Events
 
     Arguments
 
@@ -3334,9 +3324,9 @@ System & IO
 
         When the process was started an stdio is available; use Continue keep on looping stdio
 
--   UserProfileDirectory
+-   ### UserProfileDirectory
 
-    ## Head
+    #### Head
 
     Title
     :   User Directory
@@ -3345,23 +3335,23 @@ System & IO
 
     :   Put path to /home/user or C:\\Users\\User into register
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the user profile dir was found and put into register
 
-Tokens & Cryptography
+## Tokens & Cryptography
 
--   GenerateToken
+-   ### GenerateToken
 
-    ## Head
+    #### Head
 
     Title
     :   Random+Unique Token
@@ -3370,21 +3360,21 @@ Tokens & Cryptography
 
     :   Generates a token that hopes to be both unique and hard to guess.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the token is ready, it's in register here.
 
--   LoadSensitive
+-   ### LoadSensitive
 
-    ## Head
+    #### Head
 
     Title
     :   Load string as sensitive
@@ -3394,14 +3384,14 @@ Tokens & Cryptography
     :   Find a string by name in memory, make it unreadable and save it for
             single use as a sensitive interaction.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ ----------------
       Technical Name   Usage Name   Description
       NameConstant                  Name in memory
       ---------------- ------------ ----------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -3411,9 +3401,9 @@ Tokens & Cryptography
 
         When the string was found and protected from repeated reading
 
--   NewGuid
+-   ### NewGuid
 
-    ## Head
+    #### Head
 
     Title
     :   New GUID
@@ -3422,21 +3412,21 @@ Tokens & Cryptography
 
     :   Generate a GUID and stick it into the register.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the guid is available in register
 
--   NewSecret
+-   ### NewSecret
 
-    ## Head
+    #### Head
 
     Title
     :   New Secret
@@ -3445,21 +3435,21 @@ Tokens & Cryptography
 
     :   Generate a Secret and stick it into the register.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnThen
 
         When the secret is available in register
 
--   PasswordHash
+-   ### PasswordHash
 
-    ## Head
+    #### Head
 
     Title
     :   Hash Password with Argon2
@@ -3470,13 +3460,13 @@ Tokens & Cryptography
             It will hash the string in the sensitive interaction for use as a password hash.
             Argon2 is used.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnException
 
@@ -3486,9 +3476,9 @@ Tokens & Cryptography
 
         When the password was hashed
 
--   ValidateHash
+-   ### ValidateHash
 
-    ## Head
+    #### Head
 
     Title
     :   Validate Password with Argon2
@@ -3500,13 +3490,13 @@ Tokens & Cryptography
             It will validate the sensitive string against the password hash.
             Argon2 is used.
 
-    ## Settings
+    #### Settings
 
       ---------------- ------------ -------------
       Technical Name   Usage Name   Description
       ---------------- ------------ -------------
 
-    ## Events
+    #### Events
 
     OnElse
 
