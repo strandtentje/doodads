@@ -1,6 +1,7 @@
 #pragma warning disable 67
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+
 public class TextSinkingInteraction(
     IInteraction parent,
     string[]? pattern = null,
@@ -19,10 +20,12 @@ public class TextSinkingInteraction(
     public string? SinkTrueContentType { get; set; }
     public long LastSinkChangeTimestamp { get; set; }
     public string Delimiter { get; } = delimiter;
+
     public static TextSinkingInteraction CreateIntermediateFor(ISinkingInteraction original, IInteraction offset,
         object? register = null, IReadOnlyDictionary<string, object>? memory = null) =>
         new(offset, original.SinkContentTypePattern, original.Delimiter,
             original.TextEncoding, register, memory);
+
     public void SetContentLength64(long contentLength)
     {
     }

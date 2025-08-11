@@ -25,6 +25,7 @@ public static class ContentTypeMatcher
         return OneWayMatch(ctB, ctA);
     }
 
+    public static bool IsSubset(string dom, string sub) => OneWayMatch(Parse(dom), Parse(sub));
     private static bool OneWayMatch(ContentType pattern, ContentType value)
     {
         if (!WildcardMatch(pattern.Type, value.Type)) return false;

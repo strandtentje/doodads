@@ -11,7 +11,6 @@ public class SingletonResourceRepository<TIdent, TInstance> : IDisposable where 
     {
         lock (_instanceLock)
         {
-            if (_disposed) throw new ObjectDisposedException(nameof(SingletonResourceRepository<TIdent, TInstance>));
             var guid = Guid.NewGuid();
             if (!instanceUsers.TryGetValue(ident, out var candidateInstanceUsers))
                 candidateInstanceUsers = instanceUsers[ident] = (factory(ident), new());
