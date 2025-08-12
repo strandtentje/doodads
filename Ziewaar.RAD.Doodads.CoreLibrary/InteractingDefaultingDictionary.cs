@@ -1,11 +1,9 @@
 ﻿#pragma warning disable 67
 #nullable enable
 
-using System.Collections;
+namespace Ziewaar.RAD.Doodads.CoreLibrary;
 
-namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
-
-internal class InteractingDefaultingDictionary(IInteraction real, SortedList<string, object> fallback) : IReadOnlyDictionary<string, object>
+public class InteractingDefaultingDictionary(IInteraction real, IReadOnlyDictionary<string, object> fallback) : IReadOnlyDictionary<string, object>
 {
     public object this[string key]
     {
