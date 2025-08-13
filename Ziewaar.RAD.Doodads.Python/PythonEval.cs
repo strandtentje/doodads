@@ -19,13 +19,20 @@ public class PythonEval : IService
 
         var idd = new Dictionary<string, PyObject>(
             new InteractingDefaultingDictionary(interaction, EmptyReadOnlyDictionary.Instance).ToDictionary(x => x.Key,
-                x => PyObject.From(x.Value)));
+                ConvertToPyObject));
 
         using var output = pei.Environment.ExecuteExpression(scriptText, idd);
         var result = output.ToString();
         
         OnThen?.Invoke(this, new CommonInteraction(interaction, result));
     }
+
+    private PyObject ConvertToPyObject(KeyValuePair<string, object> x) =>
+        PyObject.From(x.Value switch
+        {
+            decimal numval => (double)numval,
+            { } otherVal => otherVal.ToString(),
+        });
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

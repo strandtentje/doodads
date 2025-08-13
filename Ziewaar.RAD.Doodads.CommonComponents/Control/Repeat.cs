@@ -2,6 +2,7 @@
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
+
 [Category("Scheduling & Flow")]
 [Title("Repeat instructions while Continue is being encountered")]
 [Description("""
@@ -13,12 +14,17 @@ public class Repeat : IService
 {
     [PrimarySetting("Description of this repeat block, must be the same for Repeat and related Continue")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
+
     [NamedSetting("deep", "When Continue is encountered, bring its Buffer, Memory and Stack into the repetition.")]
     private readonly UpdatingKeyValue IsDeepConstant = new("deep");
+
     [EventOccasion("Logic to repeat hooks up to this")]
     public event CallForInteraction? OnThen;
-    [EventOccasion("If logic is hooked up here, it is called first. The repeat block will only repeat if this logic invokes a Continue")]
+
+    [EventOccasion(
+        "If logic is hooked up here, it is called first. The repeat block will only repeat if this logic invokes a Continue")]
     public event CallForInteraction? OnElse;
+
     [EventOccasion("Likely happens when the repeat name is missing.")]
     public event CallForInteraction? OnException;
 
@@ -31,10 +37,8 @@ public class Repeat : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "repeat name required"));
             return;
         }
-        var ri = new RepeatInteraction(repeatName, interaction)
-        {
-            IsDeep = mustGoDeep == true
-        };
+
+        var ri = new RepeatInteraction(repeatName, interaction) { IsDeep = mustGoDeep == true };
         OnElse?.Invoke(this, ri);
         while (ri.IsRunning)
         {
@@ -42,5 +46,6 @@ public class Repeat : IService
             OnThen?.Invoke(this, ri.ContinueFrom ?? ri);
         }
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
