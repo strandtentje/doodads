@@ -11,11 +11,21 @@ public class ResilientCursorTextEmitter(FileInfo file)
     public DirectoryInfo? DirectoryInfo => file.Directory;
     public FileInfo FileInfo => file;
     public long LastReadTime { get; private set; }
+    public static List<string> ReloadLocked = new();
     private void LockCatchRetry(Action readCallback, int attemptNumber = 0, int maxAttempts = 6)
     {
         file.Refresh();
         if (!WorkingState.TryDoWorkOrWait() || LastReadTime == file.LastWriteTime.Ticks)
+        {
+            GlobalLog.Instance?.Information("No reloading {file} again because its reloading or hasn't changed", file);
             return;
+        }
+
+        if (LastReadTime > 0 && ReloadLocked.Contains(file.FullName))
+        {
+            GlobalLog.Instance?.Information("No reloading {file} again because it was already loaded and in the reload lock", file);
+            return;
+        }
         try
         {
             if (!file.Exists)

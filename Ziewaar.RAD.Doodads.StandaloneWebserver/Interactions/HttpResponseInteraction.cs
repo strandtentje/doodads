@@ -6,7 +6,7 @@ public class HttpResponseInteraction(
     public string[] SinkContentTypePattern => context.Request.AcceptTypes ?? ["*/*"];
     public Encoding TextEncoding => context.Request.ContentEncoding ?? Encoding.UTF8;
     public CookieCollection OutgoingCookies => context.Response.Cookies;
-    public Stream SinkBuffer => context.Response.OutputStream;
+    public Stream SinkBuffer => new ProtectedStream(context.Response.OutputStream, context);
     public string? SinkTrueContentType
     {
         get => context.Response.ContentType;
