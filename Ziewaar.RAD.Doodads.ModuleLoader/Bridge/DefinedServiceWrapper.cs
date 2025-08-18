@@ -1,20 +1,14 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
+using Ziewaar.RAD.Doodads.ModuleLoader.Profiler;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
-
-public struct ServiceIdentity
-{
-    public string Typename, Filename;
-    public int Line, Position;
-    public override string ToString() => $"{Typename} in {Filename}@{Line}:{Position}";
-}
 
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private static readonly object NullBuster = new();
-
+    
     private ServiceIdentity ServiceIdentity = new()
     {
         Typename = "Undefined", Filename = "Undeclared", Line = -1, Position = -1,
@@ -176,7 +170,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 #if !DEBUG || true
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Error("Fatal on {0}", Type?.Name ?? "Unknown Type");
+                GlobalLog.Instance?.Error(ex, "Fatal on {0}", Type?.Name ?? "Unknown Type");
                 Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
             }
 #endif
