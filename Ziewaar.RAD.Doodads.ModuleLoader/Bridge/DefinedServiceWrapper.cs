@@ -3,9 +3,23 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
+
+public struct ServiceIdentity
+{
+    public string Typename, Filename;
+    public int Line, Position;
+    public override string ToString() => $"{Typename} in {Filename}@{Line}:{Position}";
+}
+
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private static readonly object NullBuster = new();
+
+    private ServiceIdentity ServiceIdentity = new()
+    {
+        Typename = "Undefined", Filename = "Undeclared", Line = -1, Position = -1,
+    };
+
     private Type? Type;
     private EventInfo? OnThenEventInfo, OnElseEventInfo;
     private CallForInteraction? DoneDelegate;
@@ -16,6 +30,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     public IService? Instance { get; private set; }
     public StampedMap? Constants { get; private set; }
     public event CallForInteraction? DiagnosticOnThen, DiagnosticOnElse, DiagnosticOnException;
+
     public void Update(
         CursorText atPosition,
         string typename,
@@ -25,6 +40,12 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     {
         if (this.Type != null || this.Position != null || this.Instance != null || this.Constants != null)
             throw new InvalidOperationException("cannot update dirty service");
+
+        this.ServiceIdentity.Filename = atPosition.BareFile;
+        this.ServiceIdentity.Position = atPosition.GetCurrentCol();
+        this.ServiceIdentity.Line = atPosition.GetCurrentLine();
+        this.ServiceIdentity.Typename = typename;
+
         this.Position = atPosition;
         this.TypeName = typename;
         this.CleanupPropagation = [.. branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup)];
@@ -65,6 +86,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                 CleanupPropagation.Add(() => item.RemoveEventHandler(this.Instance, newEvent));
             }
         }
+
         var strangeBranches = branches.Keys.ToList();
         var serviceBranches = allEvents.Select(x => x.Name).ToList();
         foreach (var item in serviceBranches)
@@ -73,33 +95,41 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             throw new ExceptionAtPositionInFile(atPosition,
                 $"Branch {strangeName} does not exist on service {Type.Name}");
     }
+
     private void Instance_OnException(object sender, IInteraction interaction)
     {
         GlobalLog.Instance?.Error($"Service indicates exceptional situation; {JsonConvert.SerializeObject(
             new ExceptionPayload(Constants, Type, Position, interaction), Formatting.Indented)}");
     }
+
     public void OnThen(CallForInteraction dlg)
     {
         if (dlg.Target is IAmbiguousServiceWrapper asw)
         {
             CleanupPropagation!.Add(asw.Cleanup);
         }
+
         OnThenEventInfo!.AddEventHandler(Instance!, dlg);
         CleanupPropagation!.Add(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
     }
+
     public void OnElse(CallForInteraction dlg)
     {
         if (dlg.Target is IAmbiguousServiceWrapper asw)
         {
             CleanupPropagation!.Add(asw.Cleanup);
         }
+
         OnElseEventInfo!.AddEventHandler(Instance!, dlg);
         CleanupPropagation!.Add(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
     }
+
     public void OnDone(CallForInteraction dlg) => this.DoneDelegate =
         dlg == null ? dlg : throw new InvalidOperationException("Cant have two dones");
+
     bool isInCleanLoop = false;
     private readonly object cleanLock = new();
+
     public void Cleanup()
     {
         if (isInCleanLoop) return;
@@ -112,6 +142,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                 {
                     item();
                 }
+
                 CleanupPropagation.Clear();
                 isInCleanLoop = false;
             }
@@ -133,24 +164,29 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             GlobalLog.Instance?.Error($"While disposing: {e}");
         }
     }
+
     public void Run(object sender, IInteraction interaction)
     {
-        try
+        ServiceProfiler.Instance.Watch(ServiceIdentity, () =>
         {
-            Instance!.Enter(Constants, interaction);
-        }
-        #if !DEBUG || true
-        catch (Exception ex)
-        {
-            GlobalLog.Instance?.Error("Fatal on {0}", Type?.Name ?? "Unknown Type");
-            Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
-        }
-        #endif
-        finally
-        {
-            DoneDelegate?.DynamicInvoke(this, interaction);
-        }
+            try
+            {
+                Instance!.Enter(Constants, interaction);
+            }
+#if !DEBUG || true
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Error("Fatal on {0}", Type?.Name ?? "Unknown Type");
+                Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
+            }
+#endif
+            finally
+            {
+                DoneDelegate?.DynamicInvoke(this, interaction);
+            }
+        });
     }
+
     public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices()
     {
         if (Instance != null)
