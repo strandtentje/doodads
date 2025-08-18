@@ -1,15 +1,36 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Printing & Formattin")]
+[Title("Capture number in memory")]
+[Description("""
+             Turns an in-memory number into a counter, or makes a new number in memory to count
+             with. Useful for numbering rows, pages, limiting output rows.
+             
+             When an underlying 'Delta' is triggered with a matching name, the captured number
+             will be increased as specified by that Delta, in the entire underlying scope of
+             this service.
+             
+             Also neat in conjunction with NumberBigger
+             """)]
 public class Number : IService
 {
+    [PrimarySetting("Memory name of number")]
     private readonly UpdatingPrimaryValue CounterNameConstant = new();
+    [NamedSetting("initial", """
+                             Initial value of number. Will override existing memory value in 
+                             the underlying scope, if specified.
+                             """)]
     private readonly UpdatingKeyValue InitialValueConstant = new("initial");
 
     private string? CurrentCounterName;
     private decimal CurrentInitialValue;
+    
+    [EventOccasion("Services under here may expect the number at the memory name to change according to Delta")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when no name was provided")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

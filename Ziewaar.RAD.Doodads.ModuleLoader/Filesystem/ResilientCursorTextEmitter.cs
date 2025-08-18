@@ -17,13 +17,13 @@ public class ResilientCursorTextEmitter(FileInfo file)
         file.Refresh();
         if (!WorkingState.TryDoWorkOrWait() || LastReadTime == file.LastWriteTime.Ticks)
         {
-            GlobalLog.Instance?.Information("No reloading {file} again because its reloading or hasn't changed", file);
+            GlobalLog.Instance?.Verbose("No reloading {file} again because its reloading or hasn't changed", file);
             return;
         }
 
         if (LastReadTime > 0 && ReloadLocked.Contains(file.FullName))
         {
-            GlobalLog.Instance?.Information("No reloading {file} again because it was already loaded and in the reload lock", file);
+            GlobalLog.Instance?.Verbose("No reloading {file} again because it was already loaded and in the reload lock", file);
             return;
         }
         try

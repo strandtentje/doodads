@@ -31,7 +31,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                     logfilePath
                 ).WriteTo.Console().
 #if DEBUG
-                MinimumLevel.Verbose().
+                MinimumLevel.Debug().
 #endif
                 CreateLogger();
             GlobalLog.Instance.Information("Logfile in: {file}", logfilePath);

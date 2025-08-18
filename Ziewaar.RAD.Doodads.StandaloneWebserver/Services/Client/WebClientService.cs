@@ -4,12 +4,17 @@ using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Client;
 #pragma warning disable 67
 
+[Category("Http & Routing")]
+[Title("Send HTTP Request")]
+[Description("""
+             For doing API calls, web requests, AJAX (but not really)
+             """)]
 public class HttpSend : IService, IDisposable
 {
     private readonly HttpClientPoolAccessor PooledClient = new();
     private HttpClient Client => PooledClient.Instance;
 
-    [PrimarySetting("HTTP Method to Use")]
+    [PrimarySetting("HTTP Method to Use; will default to GET")]
     private readonly UpdatingPrimaryValue MethodNameConst = new UpdatingPrimaryValue();
 
     [NamedSetting("body", "Content type of request body; defaults to application/json")]
@@ -31,7 +36,9 @@ public class HttpSend : IService, IDisposable
 
     [EventOccasion("When 2xx status")] 
     public event CallForInteraction? OnThen;
+    [EventOccasion("When non-2xx status")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the HTTP request failed on the network layer")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

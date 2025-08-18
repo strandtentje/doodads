@@ -1,6 +1,4 @@
 #nullable enable
-using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
-
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Documentation;
 [Category("Reflection & Documentation")]
@@ -46,74 +44,3 @@ public class ServiceHeader : IService
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
-
-public class ServiceEvents : IService
-{
-    [PrimarySetting("Name of Loop")]
-    private readonly UpdatingPrimaryValue RepeatNameConstant = new();
-    private string? RepeatName;
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        if ((constants, RepeatNameConstant).IsRereadRequired(out string? candidateRepeatName))
-            this.RepeatName = candidateRepeatName;
-        if (string.IsNullOrWhiteSpace(this.RepeatName) || this.RepeatName == null)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Repeat name required"));
-            return;
-        }
-        if (interaction.Register is not string serviceName)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Service name required in register"));
-            return;
-        }
-        var typeEventNames = DocumentationRepository.Instance.GetTypeEvents(serviceName);
-        var ri = new RepeatInteraction(this.RepeatName, interaction);
-        foreach (var eventName in typeEventNames)
-        {
-            if (!ri.IsRunning) break;
-            ri.IsRunning = false;
-            OnThen?.Invoke(this, new CommonInteraction(ri, eventName));
-        }
-        
-    }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-}
-
-public class ServiceSettings : IService
-{
-    [PrimarySetting("Name of Loop")]
-    private readonly UpdatingPrimaryValue RepeatNameConstant = new();
-    private string? RepeatName;
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        if ((constants, RepeatNameConstant).IsRereadRequired(out string? candidateRepeatName))
-            this.RepeatName = candidateRepeatName;
-        if (string.IsNullOrWhiteSpace(this.RepeatName) || this.RepeatName == null)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Repeat name required"));
-            return;
-        }
-        if (interaction.Register is not string serviceName)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Service name required in register"));
-            return;
-        }
-        var typeSettingNames = DocumentationRepository.Instance.GetTypeNamedSettings(serviceName);
-        var ri = new RepeatInteraction(this.RepeatName, interaction);
-        foreach (var settingName in typeSettingNames)
-        {
-            if (!ri.IsRunning) break;
-            ri.IsRunning = false;
-            OnThen?.Invoke(this, new CommonInteraction(ri, settingName));
-        }
-        
-    }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-}
-
