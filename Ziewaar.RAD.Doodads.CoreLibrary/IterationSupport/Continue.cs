@@ -4,6 +4,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 [Category("Scheduling & Flow")]
 [Title("Find the originating Repeat call, and invoke its children again.")]
+[Shorthand("[CONSTANTS]")]
 [Description("""Read the docs on Repeat, for Continue will behave according to its definition. """)]
 public class Continue : IService
 {

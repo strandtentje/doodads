@@ -3,6 +3,7 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
 [Category("Memory & Register")]
 [Title("Conditional branch on register value")]
+[Shorthand("~PRIMARY")]
 [Description("""
              Checks if the register's string-converted value is an exact match with the provided primary
              setting text. 

@@ -9,9 +9,8 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Documentation;
               - service: The full name of the service as it was used to query this service.
               - title : Documentation title of service 
               - description : Documentation description of service in markdown
-              - events: List of event names that may occur on this service
               - primary: Name of the primary setting on this service, or empty string if none.
-              - named: List of names of the named settings on this service 
+              - shorthand: In case this service has syntactic sugar 
              Also puts the service name in register.
              """)]
 public class ServiceHeader : IService
@@ -39,6 +38,7 @@ public class ServiceHeader : IService
             { "title", DocumentationRepository.Instance.GetTypeTitle(serviceName) },
             { "description", DocumentationRepository.Instance.GetTypeDescription(serviceName) },
             { "primary", DocumentationRepository.Instance.GetTypePrimarySetting(serviceName) ?? "" },
+            { "shorthand", DocumentationRepository.Instance.GetTypeShorthand(serviceName) ?? "" },
         };
         OnThen?.Invoke(this, new CommonInteraction(interaction, memory: payload));
     }

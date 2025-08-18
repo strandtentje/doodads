@@ -5,6 +5,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
 [Category("Printing & Formatting")]
 [Title("Template from Text service")]
+[Shorthand("$PRIMARY")]
 [Description("""
              This is a shorthand for Template():Print(), and as such 
              will template using the contents of the text provided in the primary 

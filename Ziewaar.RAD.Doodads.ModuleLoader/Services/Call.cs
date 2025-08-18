@@ -3,13 +3,14 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 
 [Category("Call Definition Return")]
 [Title("Call to Definition in File")]
+[Shorthand("<CONSTANTS>")]
 [Description("""
              Configured Programs can be put into separate rkop files with separate Definition blocks.
              These Definition blocks can be given a name as their primary constant between the coconut operators 
              like `Definition("Bake Cookies")` - it is encouraged to make these definition names human readable 
              titles with spaces and such. Same for the filenames. Call can then recall them in a way that is understandable 
              like `Call(f"Oven.rkop @ Bake Cookies")` - the `f` before the quotes will make it look from the directory 
-             of the current definition file. the @ means a definition name is coming. 
+             of the current definition file. the @ means a definition name is coming.
              """)]
 public class Call : IService
 {

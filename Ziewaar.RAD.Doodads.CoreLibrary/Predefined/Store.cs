@@ -3,6 +3,7 @@
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 [Category("Memory & Register")]
 [Title("Put register value back into memory")]
+[Shorthand("!PRIMARY")]
 [Description("""
              In effect, the opposite of Load; read its documentation.
              This takes the register value and puts it back into memory at the 

@@ -3,6 +3,7 @@
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 [Category("Memory & Register")]
 [Title("Load value from memory into register")]
+[Shorthand("?PRIMARY")]
 [Description("""
              Services communicate via interactions. Interactions always have 
               - Memory 
