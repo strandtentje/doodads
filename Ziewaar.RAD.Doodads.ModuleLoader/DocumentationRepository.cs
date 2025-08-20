@@ -8,7 +8,7 @@ public class DocumentationRepository
     private Dictionary<string, string> typeTitles = new(), typeDescriptions = new();
     private Dictionary<(string, string), string> eventDescriptions = new(), settingDescriptions = new();
     private Dictionary<(string, string), string?> namedSettingKeys = new();
-    private Dictionary<string, string?> typePrimarySettings = new();
+    private Dictionary<string, string?> typePrimarySettings = new(),typeShorthands = new();
     public static readonly DocumentationRepository Instance = new();
     private IReadOnlyDictionary<string, Type> NamedServiceTypes => TypeRepository.Instance.NamedServiceTypes;
     public string[] GetCategories() =>
@@ -31,6 +31,12 @@ public class DocumentationRepository
             ? description
             : typeDescriptions[typeName] =
                 NamedServiceTypes[typeName].GetCustomAttribute<DescriptionAttribute>().Description;
+    public string? GetTypeShorthand(string typeName) =>
+        typeShorthands.TryGetValue(typeName, out var format)
+            ? format
+            : typeShorthands[typeName] =
+                NamedServiceTypes[typeName].GetCustomAttributes().OfType<ShorthandAttribute>()
+                    .FirstOrDefault()?.Format;
     public string[] GetTypeEvents(string typeName) =>
         typeEvents.TryGetValue(typeName, out var events)
             ? events

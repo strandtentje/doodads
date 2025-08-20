@@ -1,14 +1,26 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Printing & Formatting")]
+[Title("Increase number in Memory")]
+[Description("""
+             For a number in memory that has been captured by the Number service,
+             increase it by a fixed amount. The increased number is then available 
+             under the Number service with the matching name.
+             """)]
 public class Delta : IService
 {
+    [PrimarySetting("Name of the number as captured by Number, to increment")]
     private readonly UpdatingPrimaryValue CounterNameConstant = new();
+    [NamedSetting("by", "Amount to increase with (or decrease, use negative). Decimals allowed.")]
     private readonly UpdatingKeyValue IncrementValueConstant = new("by");
     private string? CurrentCounterName;
     private decimal CurrentIncrementValue;
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no counter name was provided, or when no counter with the specified name was found")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

@@ -4,6 +4,7 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]
 [Title("Return to the OnElse of the invoking Call")]
+[Shorthand("[|CONSTANTS]")]
 [Description("""
     Returns control to the caller, on either the OnThen, or the OnElse branch. 
     """)]

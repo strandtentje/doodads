@@ -4,6 +4,7 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]
 [Title("Call to Definition in File")]
+[Shorthand("<<CONSTANTS>>")]
 [Description("""
     One of multiple root services in an rkop file; make sure each Definition name in a file 
     is unique and descriptive. No programming casing is needed, so where you would normally do 
@@ -13,6 +14,8 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
     """)]
 public class Definition : IService
 {
+    [PrimarySetting("Name of definition Call can reach out to.")]
+    private readonly UpdatingPrimaryValue DefinitionNameConst = new();
     [EventOccasion("When the Definition was Called for")]
     public event CallForInteraction? OnThen;
     [NeverHappens]
@@ -23,7 +26,6 @@ public class Definition : IService
     {
         if (interaction is CallingInteraction ci)
         {
-
             OnThen?.Invoke(this, new DefaultValueInteraction(interaction, memory: constants.ToSortedList()));
         }
         else if (interaction is ISelfStartingInteraction ss)

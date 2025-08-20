@@ -14,10 +14,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
              are still being set, for example, when Redirecting or doing stuff with
              cookies.
              
-             Use Continue to Flush.
+             Use Continue to Flush; if no Continue is used, accumulated data will be rejected.
              """)]
 public class SinkPlug : IService
 {
+    [PrimarySetting("Continue-name for this service")]
     private readonly UpdatingPrimaryValue ContinueNameConstant = new();
     private string? ContinueName;
     [EventOccasion("New sink shows up here and buffers until control is returned to BufferSink")]
