@@ -18,7 +18,7 @@ public class HttpResponseInteraction(
 
     internal void RedirectTo(string url)
     {
-        context.Response.StatusCode = (int)HttpStatusCode.TemporaryRedirect;
+        context.Response.StatusCode = (int)HttpStatusCode.SeeOther;
         context.Response.RedirectLocation = url;
     }
     public int StatusCode
