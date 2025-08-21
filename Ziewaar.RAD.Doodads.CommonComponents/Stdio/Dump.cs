@@ -10,14 +10,19 @@ public class Dump : IService
 {
     [PrimarySetting("Name of the dump for finding it in the log.")]
     private readonly UpdatingPrimaryValue DumpNameConstant = new();
+
     [NamedSetting("limit", "Maximum depth to dump before stopping")]
     private readonly UpdatingKeyValue LimitConstant = new("limit");
+
     private string? CurrentDumpName;
-    private int CurrentDumpLimit;
+    private int CurrentDumpLimit = -1;
+
     [EventOccasion("After dump has happened. Logs before and after OnThen")]
     public event CallForInteraction? OnThen;
+
     [NeverHappens] public event CallForInteraction? OnElse;
     [NeverHappens] public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, DumpNameConstant).IsRereadRequired(out string? dumpName) && dumpName != null)
@@ -34,6 +39,7 @@ public class Dump : IService
                 this.CurrentDumpLimit = -1;
             }
         }
+
         var dumpHeader = "Untitled";
         if (CurrentDumpName != null)
             dumpHeader = CurrentDumpName;
@@ -43,29 +49,32 @@ public class Dump : IService
 
         for (var working = interaction; working is not StopperInteraction; working = working.Stack)
         {
+            if (depth > CurrentDumpLimit)
+                break;
             var dumpBlob = JsonConvert.SerializeObject(new
             {
                 Type = working.GetType().Name,
-                Memory = working.Memory.Select<KeyValuePair<string, object>, (string, object)>(x => (x.Key, x.Value switch
-                {
-                    IEnumerable<string> strEnumerable => strEnumerable,
-                    string text => text,
-                    IEnumerable<object> objEnumerable => objEnumerable.Select(x => x.ToString()),
-                    object anything => anything.ToString(),
-                    _ => "Don't know"
-                })).ToArray(),
+                Memory = working.Memory.Select<KeyValuePair<string, object>, (string, object)>(x => (x.Key,
+                    x.Value switch
+                    {
+                        IEnumerable<string> strEnumerable => strEnumerable,
+                        string text => text,
+                        IEnumerable<object> objEnumerable => objEnumerable.Select(x => x.ToString()),
+                        object anything => anything.ToString(),
+                        _ => "Don't know"
+                    })).ToArray(),
                 Register = working.Register.ToString()
             }, Formatting.Indented);
             GlobalLog.Instance?.Debug("[{dumpHeader}|{depth}] : {blob}", dumpHeader,
                 $"{depth++:0000}", dumpBlob);
-            if (CurrentDumpLimit != -1 && depth > CurrentDumpLimit)
-                break;
         }
+
         GlobalLog.Instance?.Debug("[{dumpHeader}|OnThen Counting]", dumpHeader);
         var offset = GlobalStopwatch.Instance.ElapsedMilliseconds;
         OnThen?.Invoke(this, interaction);
         var duration = GlobalStopwatch.Instance.ElapsedMilliseconds - offset;
         GlobalLog.Instance?.Debug("[{dumpHeader}|OnThen Finished] {duration}ms", dumpHeader, duration);
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
