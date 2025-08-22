@@ -98,7 +98,9 @@ public class Fileserver : IService
         NotFound?.Invoke(this, interaction);
     }
 
-    ConcurrentDictionary<string, byte[]> fileCache = new();
+    public record DatedData(DateTime LastWrite, byte[] Data);
+
+    ConcurrentDictionary<string, DatedData> fileCache = new();
     long cacheBytes = 0;
 
     private void HandleFileFound(IInteraction interaction, FileInfo fileInfo)
@@ -122,20 +124,32 @@ public class Fileserver : IService
             if (interaction.TryGetClosest<HttpResponseInteraction>(out var resp) && resp != null)
             {
                 resp.SinkTrueContentType = MimeMapping.GetMimeType(fileInfo.FullName);
-
-                if (!fileCache.TryGetValue(fileInfo.FullName, out byte[]? data) &&
+                
+                if (!fileCache.TryGetValue(fileInfo.FullName, out var data) &&
                     cacheBytes < 1024 * 1024 * 256)
                 {
-                    data = fileCache[fileInfo.FullName] = File.ReadAllBytes(fileInfo.FullName);
-                    cacheBytes += data.Length;
-                }                
+                    var datedData = new DatedData(
+                        fileInfo.LastWriteTime, File.ReadAllBytes(fileInfo.FullName));
+                    fileCache[fileInfo.FullName] = datedData;
+                    cacheBytes += datedData.Data.Length;
+                }
+
+                bool wasSent = false;
 
                 if (data != null)
                 {
-                    resp.SetContentLength64(data.Length);
-                    resp.SinkBuffer.Write(data, 0, data.Length);
+                    if (data.LastWrite == fileInfo.LastWriteTime)
+                    {
+                        resp.SetContentLength64(data.Data.Length);
+                        resp.SinkBuffer.Write(data.Data, 0, data.Data.Length);
+                        wasSent = true;
+                    } else if (fileCache.Remove(fileInfo.FullName, out var removedData))
+                    {
+                        cacheBytes -= removedData.Data.Length;                        
+                    }
                 }
-                else
+                
+                if (!wasSent)
                 {
                     resp.SetContentLength64(fileInfo.Length);
                     using (var x = fileInfo.OpenRead())
