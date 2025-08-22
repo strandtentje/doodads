@@ -73,7 +73,7 @@ public class Fileserver : IService
             return;
         }
 
-        var components = routeEval.Remaining.ToArray();
+        var components = routeEval.Remaining.Select(HttpUtility.UrlDecode).ToArray();
         var filePath = Path.Combine(this.DirectoryToServe, string.Join(System.IO.Path.DirectorySeparatorChar, components));
         // var directoryPath = Path.GetDirectoryName(filePath);
         if (File.Exists(filePath))

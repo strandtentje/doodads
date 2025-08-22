@@ -32,7 +32,8 @@ public class Info : IService
         if (interaction.Register is FileSystemInfo registerInfo)
         {
             infoToWorkWith = registerInfo;
-        } else if (interaction.Register is string path)
+        } else if (interaction.Register is object pathObject && 
+            pathObject.ToString() is string path)
         {
             if (File.Exists(path))
                 infoToWorkWith = new FileInfo(path);

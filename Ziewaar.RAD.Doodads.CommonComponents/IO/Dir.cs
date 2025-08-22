@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 [Category("System & IO")]
@@ -16,10 +17,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
              """)]
 public class Dir : IService
 {
-    [PrimarySetting("Wildcard-enabled pattern to filter the files to be shown, ie *.txt or cheese.*")]
-    private readonly UpdatingPrimaryValue FileSearchPatternConstant = new();
+    [PrimarySetting("Repeat name constant")]
+    private readonly UpdatingPrimaryValue RepeatNameConstant = new();
+    [NamedSetting("pattern", "Wildcard-enabled pattern to filter the files to be shown, ie *.txt or cheese.*")]
+    private readonly UpdatingKeyValue FileSearchPatternConstant = new("pattern");
     [NamedSetting("filterdirs", "Wildcard-enabled pattern specifically to filter the directories")]
     private readonly UpdatingKeyValue DirSearchPattern = new("filterdirs");
+    private string? CurrentRepeatName;
+
     [EventOccasion("This puts a list of subdirectory paths in the register")]
     public event CallForInteraction? OnThen;
     [EventOccasion("This will happen after OnThen, and puts a list of file paths in the register")]
@@ -28,6 +33,15 @@ public class Dir : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if ((constants, RepeatNameConstant).IsRereadRequired(out string? repeatName))
+            this.CurrentRepeatName = repeatName;
+
+        if (string.IsNullOrWhiteSpace(this.CurrentRepeatName) || this.CurrentRepeatName == null)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "Repeat name required"));
+            return;
+        }
+
         (constants, FileSearchPatternConstant).IsRereadRequired(() => "*", out var fileSearchPattern);
         (constants, DirSearchPattern).IsRereadRequired(() => "*", out var dirSearchPattern);
         fileSearchPattern ??= "*";
@@ -41,61 +55,26 @@ public class Dir : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "directory not found"));
             return;
         }
+        
+        DirectoryInfo[] subDirectories = info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly);
+        FileInfo[] subFiles = info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly);
 
-        if (OnThen != null)
-            OnThen.Invoke(this,
-                new CommonInteraction(interaction,
-                    info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly)));
-        if (OnElse != null)
-            OnElse?.Invoke(this,
-                new CommonInteraction(interaction,
-                    info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly)));
+        var repeater = new RepeatInteraction(CurrentRepeatName, interaction);        
+        foreach (var item in subDirectories)
+        {
+            repeater.IsRunning = false;
+            var infoInteraction = new CommonInteraction(repeater, item);
+            OnThen?.Invoke(this, infoInteraction);
+            if (!repeater.IsRunning) break;
+        }
+
+        foreach (var item in subFiles)
+        {
+            repeater.IsRunning = false;
+            var infoInteraction = new CommonInteraction(repeater, item);
+            OnElse?.Invoke(this, infoInteraction);
+            if (!repeater.IsRunning) break;
+        }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
-
-[Category("System & IO")]
-[Title("Deletes files by pattern")]
-[Description("""
-             Provided a dir in the primary const, and a pattern, deletes the files that conform to it.
-             """)]
- public class Delete : IService
- {
-     private readonly UpdatingPrimaryValue DirectoryPathConst = new();
-     private readonly UpdatingKeyValue PatternConst = new("pattern");
-     private string? DirPath;
-     private string? Pattern;
-     public event CallForInteraction? OnThen;
-     public event CallForInteraction? OnElse;
-     public event CallForInteraction? OnException;
-     public void Enter(StampedMap constants, IInteraction interaction)
-     {
-         if ((constants, DirectoryPathConst).IsRereadRequired(out object? dpc))
-             this.DirPath = dpc?.ToString();
-         if ((constants, PatternConst).IsRereadRequired(out string? pat))
-             this.Pattern = pat;
-         if (string.IsNullOrWhiteSpace(DirPath) || string.IsNullOrWhiteSpace(Pattern) || DirPath == null || Pattern == null)
-         {
-             OnException?.Invoke(this, new CommonInteraction(interaction, "pattern required"));
-             return;
-         }
-         var dir =  new DirectoryInfo(DirPath);
-         var files = dir.GetFiles(Pattern, SearchOption.TopDirectoryOnly);
-         foreach (var file in files)
-         {
-             try
-             {
-                 file.Delete();
-             }
-             catch (Exception ex)
-             {
-                 GlobalLog.Instance?.Warning(ex, "While deleting file");
-             }
-         }
-     }
-
-     public void HandleFatal(IInteraction source, Exception ex)
-     {
-         throw new NotImplementedException();
-     }
- }
