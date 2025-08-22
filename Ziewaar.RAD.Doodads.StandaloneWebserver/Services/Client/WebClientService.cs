@@ -28,19 +28,20 @@ public class HttpSend : IService, IDisposable
     private string CurrentRequestBodyType = "application/json";
     private Encoding CurrentRequestEncoding = Encoding.UTF8;
 
-    [EventOccasion("When URL is needed")] 
+    [EventOccasion("When URL is needed")]
     public event CallForInteraction? SinkUrl;
 
     [EventOccasion("When request body is needed")]
     public event CallForInteraction? SinkBody;
 
-    [EventOccasion("When 2xx status")] 
+    [EventOccasion("When 2xx status")]
     public event CallForInteraction? OnThen;
     [EventOccasion("When non-2xx status")]
     public event CallForInteraction? OnElse;
-    [EventOccasion("When the HTTP request failed on the network layer")]
+    [EventOccasion("When something else still went wrong")]
     public event CallForInteraction? OnException;
-
+    [EventOccasion("When the HTTP request failed on the network layer")]
+    public event CallForInteraction? OnNetworkError;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, MethodNameConst).IsRereadRequired(out string? methodName))
@@ -63,7 +64,15 @@ public class HttpSend : IService, IDisposable
         });
         content.Headers.ContentType = MediaTypeHeaderValue.Parse(this.CurrentRequestBodyType);
         var message = new HttpRequestMessage(this.CurrentMethod, urlText) { Content = content, };
-        var response = Client.Send(message);
+        HttpResponseMessage response;
+        try
+        {
+            response = Client.Send(message);
+        } catch(HttpRequestException reqex)
+        {
+            OnNetworkError?.Invoke(this, new CommonInteraction(interaction, reqex.Message));
+            return;
+        }
         if (response.IsSuccessStatusCode)
             OnThen?.Invoke(this, new HttpResponseSourcingInteraction(interaction, response));
         else
