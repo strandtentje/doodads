@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
-#pragma warning disable 67
+
 [Category("Diagnostics & Debug")]
 [Title("Dump the full context to console")]
 [Description("Dont do this in prod.")]
@@ -25,6 +25,7 @@ public class Dump : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if (!DumpSwitch.IsEnabled || interaction.TryGetClosest<DumpStopper>(out var _)) return;
         if ((constants, DumpNameConstant).IsRereadRequired(out string? dumpName) && dumpName != null)
             this.CurrentDumpName = dumpName;
         if ((constants, LimitConstant).IsRereadRequired(out object? limit))

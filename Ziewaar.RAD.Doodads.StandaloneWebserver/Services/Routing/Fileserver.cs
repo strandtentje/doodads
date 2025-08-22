@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+﻿using System.Collections.Concurrent;
+using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.RKOP.Constructor;
 
@@ -97,6 +98,9 @@ public class Fileserver : IService
         NotFound?.Invoke(this, interaction);
     }
 
+    ConcurrentDictionary<string, byte[]> fileCache = new();
+    long cacheBytes = 0;
+
     private void HandleFileFound(IInteraction interaction, FileInfo fileInfo)
     {
         if (fileInfo.Extension.ToLower().EndsWith("rkop"))
@@ -118,11 +122,28 @@ public class Fileserver : IService
             if (interaction.TryGetClosest<HttpResponseInteraction>(out var resp) && resp != null)
             {
                 resp.SinkTrueContentType = MimeMapping.GetMimeType(fileInfo.FullName);
-                resp.SetContentLength64(fileInfo.Length);
-                using (var x = fileInfo.OpenRead())
+
+                if (!fileCache.TryGetValue(fileInfo.FullName, out byte[]? data) &&
+                    cacheBytes < 1024 * 1024 * 256)
                 {
-                    x.CopyTo(resp.SinkBuffer);
+                    data = fileCache[fileInfo.FullName] = File.ReadAllBytes(fileInfo.FullName);
+                    cacheBytes += data.Length;
+                }                
+
+                if (data != null)
+                {
+                    resp.SetContentLength64(data.Length);
+                    resp.SinkBuffer.Write(data, 0, data.Length);
                 }
+                else
+                {
+                    resp.SetContentLength64(fileInfo.Length);
+                    using (var x = fileInfo.OpenRead())
+                    {
+                        x.CopyTo(resp.SinkBuffer);
+                    }
+                }
+
                 if (interaction.TryGetClosest<HttpHeadInteraction>(out var head) && head != null)
                 {
                     head.Context.Response.Close();
