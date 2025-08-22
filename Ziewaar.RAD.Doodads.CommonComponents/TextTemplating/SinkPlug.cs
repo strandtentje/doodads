@@ -30,19 +30,14 @@ public class SinkPlug : IService
     {
         if ((constants, ContinueNameConstant).IsRereadRequired(out string? continueNameCandidate))
             this.ContinueName = continueNameCandidate;
-        if (string.IsNullOrWhiteSpace(ContinueName) || ContinueName == null)
-        {
-            OnException?.Invoke(this,
-                new CommonInteraction(interaction, "Continue name must be specified or sink will never flush"));
-            return;
-        }
+        
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var trueSink) || trueSink == null)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "Sink is required for this"));
             return;
         }
         var bsi = new BufferSinkInteraction(interaction, trueSink);
-        var ri = new RepeatInteraction(ContinueName, bsi)
+        var ri = new RepeatInteraction(ContinueName ?? "", bsi)
         {
             IsRunning = false
         };
@@ -52,7 +47,7 @@ public class SinkPlug : IService
         }
         finally
         {
-            if (ri.IsRunning) bsi.Flush();
+            if (ri.IsRunning || ri.RepeatName == "") bsi.Flush();
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

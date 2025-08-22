@@ -57,8 +57,11 @@ public sealed class SymlinkRepository
     }
     public void Update(string linkPath, string newTargetPath, bool isDirectory)
     {
-        EnsureSymlink(linkPath);
-        Delete(linkPath);
+        if (File.Exists(linkPath) || Directory.Exists(linkPath))
+        {
+            EnsureSymlink(linkPath);
+            Delete(linkPath);
+        }
         Create(linkPath, newTargetPath, isDirectory);
     }
 

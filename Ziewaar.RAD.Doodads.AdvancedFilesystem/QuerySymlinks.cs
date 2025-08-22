@@ -23,7 +23,8 @@ public class QuerySymlinks : IService
         var tsi = new TextSinkingInteraction(interaction);
         LinkParentDir?.Invoke(this, tsi);
         var candidateDirPath = tsi.ReadAllText();
-        if (candidateDirPath is not string dirPath || !Directory.Exists(dirPath)
+        var dirInfo = new DirectoryInfo(candidateDirPath);
+        if (!dirInfo.Exists
             || string.IsNullOrWhiteSpace(CurrentRepeatName))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction,
@@ -31,7 +32,7 @@ public class QuerySymlinks : IService
             return;
         }
 
-        var links = SymlinkRepository.Instance.ListSymlinks(dirPath);
+        var links = SymlinkRepository.Instance.ListSymlinks(dirInfo.FullName);
         var repeater = new RepeatInteraction(this.CurrentRepeatName, interaction);
         foreach (var item in links)
         {

@@ -1,6 +1,8 @@
 ﻿#nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+
+
 [Category("System & IO")]
 [Title("Extra file and directory information reader")]
 [Description("""
@@ -55,6 +57,13 @@ public class Info : IService
                 { "write", info.LastWriteTimeUtc },
                 { "read", info.LastAccessTimeUtc },
             };
+            payload["safepath"] = string.Concat(info.FullName.Select(x =>
+            {
+                if (char.IsLetterOrDigit(x))
+                    return x.ToString();
+                else
+                    return Uri.HexEscape(x);
+            }));
             if (info is FileInfo fileInfo)
             {
                 payload["extension"] = fileInfo.Extension;
