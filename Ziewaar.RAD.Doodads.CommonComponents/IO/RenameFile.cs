@@ -40,7 +40,11 @@ public class RenameFile : IService
             var tsi = new TextSinkingInteraction(interaction);
             SinkNewName?.Invoke(this, tsi);
             var requestedName = tsi.ReadAllText();
-            var fullNewPath = ChangeFileNameOnly(infoToWorkWith.FullName, requestedName);
+            var delChars = Path.GetInvalidPathChars();
+
+            var cleanedName = string.Concat(requestedName.Where(x => !delChars.Contains(x)));
+
+            var fullNewPath = ChangeFileNameOnly(infoToWorkWith.FullName, cleanedName);
             File.Move(info.FullName, fullNewPath);
 
             OnThen?.Invoke(this, new CommonInteraction(interaction, fullNewPath));

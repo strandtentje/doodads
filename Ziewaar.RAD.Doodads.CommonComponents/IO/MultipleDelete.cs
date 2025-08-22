@@ -7,7 +7,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 [Description("""
              Provided a dir in the primary const, and a pattern, deletes the files that conform to it.
              """)]
- public class Delete : IService
+ public class MultipleDelete : IService
  {
      private readonly UpdatingPrimaryValue DirectoryPathConst = new();
      private readonly UpdatingKeyValue PatternConst = new("pattern");
@@ -42,8 +42,5 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
          }
      }
 
-     public void HandleFatal(IInteraction source, Exception ex)
-     {
-         throw new NotImplementedException();
-     }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
  }

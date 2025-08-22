@@ -2,7 +2,6 @@
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
 
-
 [Category("System & IO")]
 [Title("Extra file and directory information reader")]
 [Description("""
@@ -34,7 +33,8 @@ public class Info : IService
         if (interaction.Register is FileSystemInfo registerInfo)
         {
             infoToWorkWith = registerInfo;
-        } else if (interaction.Register is object pathObject && 
+        }
+        else if (interaction.Register is object pathObject &&
             pathObject.ToString() is string path)
         {
             if (File.Exists(path))
@@ -53,7 +53,7 @@ public class Info : IService
             {
                 { "visibility", info.IsHidden() ? "visible" : "hidden" },
                 { "path", info.FullName },
-                { "name", info.Name },                
+                { "name", info.Name },
                 { "write", info.LastWriteTimeUtc },
                 { "read", info.LastAccessTimeUtc },
             };
@@ -71,7 +71,8 @@ public class Info : IService
                 payload["cleanname"] = Path.GetFileNameWithoutExtension(fileInfo.FullName);
                 payload["size"] = fileInfo.Length;
                 payload["cleansize"] = ByteSizeFormatter.ToHumanReadable(fileInfo.Length);
-            } else if (info is DirectoryInfo directoryInfo)
+            }
+            else if (info is DirectoryInfo directoryInfo)
             {
                 payload["count"] = directoryInfo.GetFiles().Length;
             }
