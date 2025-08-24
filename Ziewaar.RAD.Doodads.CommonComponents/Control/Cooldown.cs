@@ -37,6 +37,7 @@ public class Cooldown : IService
 
         if (elapsedTime.TotalMilliseconds > CurrentDelay)
         {
+            LastInvocation = currentTime;
             OnThen?.Invoke(this, interaction);
         } else
         {

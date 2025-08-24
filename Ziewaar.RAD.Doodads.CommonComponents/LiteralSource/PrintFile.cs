@@ -34,28 +34,17 @@ public class PrintFile : IService
         // we may be printing multiple files for concatenation, then we wouldnt wanna set content length
         (constants, SetContentLength).IsRereadRequired<bool>(out var setContentLength);
 
-        var preferredFilename = constantFilename?.ToString() ?? interaction.Register as string;
-        if (preferredFilename == null)
+        FileInfo? selectedInfo = null;
+        FileInfo constantInfo = new FileInfo(constantFilename?.ToString());
+        FileInfo registerInfo = new FileInfo(interaction.Register.ToString());
+
+        if (constantInfo.Exists)
+            selectedInfo = constantInfo;
+        else if (registerInfo.Exists)
+            selectedInfo = registerInfo;
+        else
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "either set a constant filename, or provide one thru the primary value"));
-            return;
-        }
-        FileInfo fileInfo;
-        try
-        {
-            fileInfo = new FileInfo(preferredFilename);
-            if (!fileInfo.Exists)
-            {
-                using (var x = fileInfo.CreateText())
-                {
-                    x.Write("");
-                    x.Flush();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, ex.ToString()));
             return;
         }
 
@@ -63,25 +52,25 @@ public class PrintFile : IService
             checkUpdateRequiredInteraction != null)
         {
             checkUpdateRequiredInteraction.IsRequired =
-                checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != fileInfo.LastWriteTime.Ticks;
+                checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != selectedInfo.LastWriteTime.Ticks;
         }
         else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkingInteraction) &&
                    sinkingInteraction != null)
         {
             if (setContentLength == true)
-                sinkingInteraction.SetContentLength64(fileInfo.Length);
+                sinkingInteraction.SetContentLength64(selectedInfo.Length);
 
-            sinkingInteraction.LastSinkChangeTimestamp = fileInfo.LastWriteTime.Ticks;
+            sinkingInteraction.LastSinkChangeTimestamp = selectedInfo.LastWriteTime.Ticks;
             if (sinkingInteraction.TextEncoding is NoEncoding || forceBinaryWriting == true)
             {
-                using (var fileStream = fileInfo.OpenRead())
+                using (var fileStream = selectedInfo.OpenRead())
                 {
                     fileStream.CopyTo(sinkingInteraction.SinkBuffer);
                 }
             }
             else
             {
-                using (var textStream = new StreamReader(preferredFilename, detectEncodingFromByteOrderMarks: true))
+                using (var textStream = new StreamReader(selectedInfo.FullName, detectEncodingFromByteOrderMarks: true))
                 {
                     try
                     {
