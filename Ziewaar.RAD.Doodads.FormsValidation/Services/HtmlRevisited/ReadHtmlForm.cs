@@ -1,10 +1,10 @@
 using HtmlAgilityPack;
 using System.Reflection.Metadata;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 using Ziewaar.RAD.Doodads.FormsValidation.HTML;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.HtmlRevisited;
-
 public class ReadHtmlForm : IService
 {
     public event CallForInteraction? OnThen;
@@ -14,7 +14,6 @@ public class ReadHtmlForm : IService
     private TextSinkingInteraction? CurrentHtmlSink = null;
     private static readonly string[] InputElementNames = ["input", "select", "textarea", "button"];
     private static string InputElementFilter => string.Join('|', InputElementNames.Select(x => $".//{x}"));
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var output) || output == null)
@@ -75,7 +74,8 @@ public class ReadHtmlForm : IService
                 }
 
                 var fieldtypeValidator = new AndValidator(
-                        inputTypes.Select(field => new FieldTypeValidator(field.tag, field.type)).ToArray<IPrioritizedValidator>());
+                    inputTypes.Select(field => new FieldTypeValidator(field.tag, field.type))
+                        .ToArray<IValidatingCollectionBuilder>());
 
                 var validTopLevelOptions = inputGroup
                     .Select(groupedInputNode => groupedInputNode.GetAttributeOrDefault("value")).OfType<string>()
@@ -85,6 +85,7 @@ public class ReadHtmlForm : IService
                     .Select(x => x.GetAttributeOrDefault("value")).OfType<string>().Distinct();
 
                 var validOptions = validTopLevelOptions.Concat(validSelectOptions).ToArray();
+                
                 var optionsValidator = new OptionsValidator(validOptions);
 
                 var minLength = inputGroup.Select(groupedInputNode =>
@@ -93,16 +94,23 @@ public class ReadHtmlForm : IService
                     groupedInputNode.GetUnsignedAttributeOrDefault("maxlength", uint.MaxValue)).Min() ?? uint.MaxValue;
 
                 var lengthValidator = new LengthValidator(minLength, maxLength);
-                
+
                 var minConstraints = inputGroup
                     .Select(groupedInputNode => groupedInputNode.GetAttributeOrDefault("min")).OfType<string>()
                     .Distinct().ToArray();
                 var maxConstraints = inputGroup
                     .Select(groupedInputNode => groupedInputNode.GetAttributeOrDefault("max")).OfType<string>()
                     .Distinct().ToArray();
+
+                var boundsValidator = new AndValidator(inputTypes
+                    .Select(field => new BoundsValidator(field.type, minConstraints, maxConstraints))
+                    .ToArray<IValidatingCollectionBuilder>());
+
                 var patternConstraints = inputGroup
                     .Select(groupedInputNode => groupedInputNode.GetAttributeOrDefault("pattern")).OfType<string>()
                     .Distinct().ToArray();
+                
+                var patternValidator = new PatternValidator(patternConstraints);
 
                 var lowerValueCountLimit = inputGroup.Select(groupedInputNode =>
                     groupedInputNode.GetNumericAttributeOrDefault("minlength", Decimal.MinValue) > 0 ||
@@ -118,6 +126,9 @@ public class ReadHtmlForm : IService
                         multiSelectMembers.ChildNodes.Count(candidateOption => candidateOption.Name == "option")).Sum();
 
                 var upperValueCountLimit = nonSelectCount + singleSelectCount + multiSelectCount;
+
+                var valueCountValidator = new ValueCountValidator(lowerValueCountLimit, upperValueCountLimit);
+                
                 var allDisabledOrReadonly = inputGroup.All(inputField =>
                     inputField.Attributes.Any(disabledReadonlyCandidate =>
                         disabledReadonlyCandidate.Name is "disabled" or "readonly"));
@@ -126,29 +137,146 @@ public class ReadHtmlForm : IService
 
         OnThen?.Invoke(this, CurrentForm);
     }
-
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
-
-public class LengthValidator(uint minLength, uint maxLength) : IPrioritizedValidator
+public class ValueCountValidator(int lowerValueCountLimit, int upperValueCountLimit) : IValidatingCollectionBuilder
+{
+    public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
+    {
+        var count = 0;
+        foreach (var o in value)
+        {
+            count++;
+            if (count > upperValueCountLimit)
+            {
+                validOutput = null;
+                return false;
+            }
+        }
+        if (count < lowerValueCountLimit)
+        {
+            validOutput = null;
+            return false;
+        }
+        validOutput = value;
+        return true;
+    }
+}
+public class PatternValidator(string[] patternConstraints) : IValidatingCollectionBuilder
+{
+    public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
+    {
+        var regexes = patternConstraints.Select(x => new Regex($"^{x}$")).ToArray();
+        if (value.OfType<object>().All(inputValue => regexes.All(regex => regex.IsMatch(inputValue?.ToString() ?? ""))))
+        {
+            validOutput = value;
+            return true;
+        }
+        else
+        {
+            validOutput = null;
+            return false;
+        }
+    }
+}
+public class BoundsValidator(string fieldType, string[] minConstraints, string[] maxConstraints)
+    : IValidatingCollectionBuilder
+{
+    public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
+    {
+        validOutput = null;
+        switch (fieldType)
+        {
+            case "date":
+                var latestDate = minConstraints.Select(DateOnly.Parse).Concat([DateOnly.MinValue]).Max();
+                var earliestDate = maxConstraints.Select(DateOnly.Parse).Concat([DateOnly.MaxValue]).Min();
+                var validatableDates = value.OfType<object>().Select(incoming => (
+                    isvalid: DateOnly.TryParse(incoming.ToString(), out var candidateValue),
+                    value: candidateValue)).ToArray();
+                if (!validatableDates.All(x => x.isvalid && x.value >= latestDate && x.value <= earliestDate))
+                    return false;
+                validOutput = validatableDates.Select(x => x.value).ToArray();
+                return true;
+            case "datetime-local":
+                var latestDateTime = minConstraints.Select(DateTime.Parse).Concat([DateTime.MinValue]).Max();
+                var earliestDateTime = maxConstraints.Select(DateTime.Parse).Concat([DateTime.MaxValue]).Min();
+                var validatableDateTimes = value.OfType<object>().Select(incoming => (
+                    isvalid: DateTime.TryParse(incoming.ToString(), out var candidateValue),
+                    value: candidateValue)).ToArray();
+                if (!validatableDateTimes.All(x =>
+                        x.isvalid && x.value >= latestDateTime && x.value <= earliestDateTime))
+                    return false;
+                validOutput = validatableDateTimes.Select(x => x.value).ToArray();
+                return true;
+            case "month":
+                var latestMonth = minConstraints.Select(x => $"{x}-01").Select(DateOnly.Parse)
+                    .Concat([DateOnly.MinValue]).Max();
+                var earliestMonth = maxConstraints.Select(x => $"{x}-01").Select(DateOnly.Parse)
+                    .Concat([DateOnly.MaxValue]).Min();
+                var validatableMonths = value.OfType<object>().Select(incoming => (
+                    isvalid: DateOnly.TryParse($"{incoming}-01", out var candidateValue),
+                    value: candidateValue)).ToArray();
+                if (!validatableMonths.All(x => x.isvalid && x.value >= latestMonth && x.value <= earliestMonth))
+                    return false;
+                validOutput = validatableMonths.Select(x => x.value).ToArray();
+                return true;
+            case "number":
+            case "range":
+                var biggestNumber = minConstraints.Select(decimal.Parse).Concat([decimal.MinValue]).Max();
+                var smallestNumber = maxConstraints.Select(decimal.Parse).Concat([decimal.MaxValue]).Min();
+                var validatableNumbers = value.OfType<object>().Select(incoming => (
+                    isvalid: decimal.TryParse(incoming.ToString(), out var candidateValue),
+                    value: candidateValue)).ToArray();
+                if (!validatableNumbers.All(x => x.isvalid && x.value >= biggestNumber && x.value <= smallestNumber))
+                    return false;
+                validOutput = validatableNumbers.Select(x => x.value).ToArray();
+                return true;
+            case "time":
+                var latestTime = minConstraints.Select(TimeOnly.Parse).Concat([TimeOnly.MinValue]).Max();
+                var earliestTime = maxConstraints.Select(TimeOnly.Parse).Concat([TimeOnly.MaxValue]).Min();
+                var validatableTimes = value.OfType<object>().Select(incoming => (
+                    isvalid: TimeOnly.TryParse(incoming.ToString(), out var candidateValue),
+                    value: candidateValue)).ToArray();
+                if (!validatableTimes.All(x => x.isvalid && x.value >= latestTime && x.value <= earliestTime))
+                    return false;
+                validOutput = validatableTimes.Select(x => x.value).ToArray();
+                return true;
+            case "week":
+                var latestWeek = minConstraints.Select(WeekOnly.Parse).Select(x => x.ToDateOnly())
+                    .Concat([DateOnly.MinValue]).Max();
+                var earliestWeek = maxConstraints.Select(WeekOnly.Parse).Select(x => x.ToDateOnly())
+                    .Concat([DateOnly.MaxValue]).Min();
+                var validatableWeeks = value.OfType<object>().Select(incoming => (
+                    isvalid: WeekOnly.TryParse(incoming.ToString() ?? "", out var candidateValue),
+                    value: candidateValue?.ToDateOnly())).ToArray();
+                if (!validatableWeeks.All(x => x.isvalid && x.value >= latestWeek && x.value <= earliestWeek))
+                    return false;
+                validOutput = validatableWeeks.Select(x => x.value).ToArray();
+                return true;
+            default:
+                validOutput = value;
+                return true;
+        }
+    }
+}
+public class LengthValidator(uint minLength, uint maxLength) : IValidatingCollectionBuilder
 {
     public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
     {
         var allStrings = value.OfType<object>().Select(x => x.ToString()).ToArray();
         bool satisfied = allStrings.All(x => x != null);
         validOutput = value;
-        
+
         if (minLength > 0)
             satisfied &= allStrings.OfType<string>().All(serializedValue => serializedValue.Length >= minLength);
-        
-        if (maxLength < uint.MaxValue) 
+
+        if (maxLength < uint.MaxValue)
             satisfied &= allStrings.OfType<string>().All(serializedValue => serializedValue.Length <= maxLength);
 
         return satisfied;
     }
 }
-
-public class FieldTypeValidator(string fieldTag, string fieldType) : IPrioritizedValidator
+public class FieldTypeValidator(string fieldTag, string fieldType) : IValidatingCollectionBuilder
 {
     public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
     {
@@ -207,9 +335,15 @@ public class FieldTypeValidator(string fieldTag, string fieldType) : IPrioritize
         return true;
     }
 }
-
 public class WeekOnly(int year, int week)
 {
+    public static WeekOnly Parse(string value)
+    {
+        if (WeekOnly.TryParse(value, out var result))
+            return result;
+        throw new FormatException(
+            "Invalid week format; must be ####-W## such that #### is the year and ## is the week number");
+    }
     public static bool TryParse(string fieldValue, [NotNullWhen(true)] out WeekOnly? result)
     {
         result = null;
@@ -220,7 +354,7 @@ public class WeekOnly(int year, int week)
             return false;
         var year = fieldValue.Substring(0, 4);
         var week = fieldValue.Substring(6);
-        if (year.All(char.IsAsciiDigit) && week.All(char.IsAsciiDigit) && week.Length is < 3 and > 0 && 
+        if (year.All(char.IsAsciiDigit) && week.All(char.IsAsciiDigit) && week.Length is < 3 and > 0 &&
             int.TryParse(year, out var yearValue) && int.TryParse(week, out var weekValue))
         {
             result = new(year: yearValue, week: weekValue);
@@ -231,7 +365,6 @@ public class WeekOnly(int year, int week)
             return false;
         }
     }
-
     public DateOnly ToDateOnly()
     {
         var jan4 = new DateTime(year, 1, 4); // always in week 1
@@ -240,37 +373,39 @@ public class WeekOnly(int year, int week)
         return DateOnly.FromDateTime(weekStart);
     }
 }
-
-public interface IPrioritizedValidator
+public interface IValidatingCollectionBuilder
 {
     bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput);
 }
 
-public class OrValidator(params IPrioritizedValidator[] validators) : IPrioritizedValidator
+public interface IValidatingCollection
+{
+    git s
+}
+
+public class OrValidator(params IValidatingCollectionBuilder[] validators) : IValidatingCollectionBuilder
 {
     public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
     {
-        foreach (IPrioritizedValidator validator in validators)
+        foreach (IValidatingCollectionBuilder validator in validators)
             if (validator.TryValidate(value, out validOutput))
                 return true;
         validOutput = null;
         return false;
     }
 }
-
-public class AndValidator(params IPrioritizedValidator[] precedents) : IPrioritizedValidator
+public class AndValidator(params IValidatingCollectionBuilder[] precedents) : IValidatingCollectionBuilder
 {
     public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
     {
         validOutput = null;
-        foreach (IPrioritizedValidator validator in precedents)
+        foreach (IValidatingCollectionBuilder validator in precedents)
             if (!validator.TryValidate(value, out validOutput))
                 return false;
         return true;
     }
 }
-
-public class OptionsValidator(string[] validOptions) : IPrioritizedValidator
+public class OptionsValidator(string[] validOptions) : IValidatingCollectionBuilder
 {
     public bool TryValidate(IEnumerable value, [NotNullWhen(true)] out object? validOutput)
     {
@@ -295,52 +430,43 @@ public class OptionsValidator(string[] validOptions) : IPrioritizedValidator
         }
     }
 }
-
 public static class NodeExtensions
 {
     public static string? GetAttributeOrDefault(this HtmlNode node, string name) =>
         node.GetAttributes().SingleOrDefault(x => x.Name == name)?.Value;
-
     public static decimal? GetNumericAttributeOrDefault(this HtmlNode node, string name, decimal defaultValue) =>
         decimal.TryParse(node.GetAttributeOrDefault(name), out decimal result) ? result : defaultValue;
     public static uint? GetUnsignedAttributeOrDefault(this HtmlNode node, string name, uint defaultValue) =>
         uint.TryParse(node.GetAttributeOrDefault(name), out uint result) ? result : defaultValue;
 }
-
 public class FormStructureInteractionBuilder
 {
     private string ContentType = "application/x-www-form-urlencoded";
     private HttpMethod HttpMethod = HttpMethod.Get;
     private string ActionUrl = "";
-
     public FormStructureInteractionBuilder WithContentType(string contentType)
     {
         this.ContentType = contentType;
         return this;
     }
-
     public FormStructureInteractionBuilder WithMethod(string method)
     {
         this.HttpMethod = HttpMethod.Parse(method);
         return this;
     }
-
     public FormStructureInteractionBuilder WithAction(string actionUrl)
     {
         this.ActionUrl = actionUrl;
         return this;
     }
 }
-
 public class FormStructureMemberBuilder
 {
 }
-
 public class FormStructureMember
 {
     public static FormStructureMemberBuilder Builder => new();
 }
-
 public class FormStructureInteraction : IInteraction
 {
     public IInteraction Stack { get; }
