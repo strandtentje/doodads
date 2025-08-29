@@ -1,6 +1,86 @@
+using HttpMultipartParser;
+using System.Collections.Concurrent;
 using System.Net;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
+
+public class StreamingMultipartFieldMap : IReadOnlyDictionary<string, IEnumerable>
+{
+    private readonly Dictionary<string, FieldStreamBuffer> _fieldBuffers = new();
+    private readonly object _lock = new();
+
+    public StreamingMultipartFieldMap(StreamingMultipartFormDataParser parser)
+    {
+        parser.ParameterHandler += ParameterHandler;
+
+        parser.FileHandler += FileHandler;
+    }
+
+    private void FileHandler(
+        string name, string fileName, string contentType, 
+        string contentDisposition, 
+        byte[] buffer, int bytes, int partNumber, 
+        IDictionary<string, string> additionalProperties)
+    {
+        
+        lock (_lock)
+        {
+            if (!_fieldBuffers.TryGetValue(name, out var buf))
+                _fieldBuffers[name] = buf = new FieldStreamBuffer();
+            buf.Add(new FileChunk(fileName, contentType, buffer[..bytes]));
+        }
+    }
+
+    private void ParameterHandler(ParameterPart part)
+    {
+        lock (_lock)
+        {
+            if (!_fieldBuffers.TryGetValue(part.Name, out var buf))
+                _fieldBuffers[part.Name] = buf = new FieldStreamBuffer();
+            buf.Add(part.Data);
+        }
+    }
+
+    public IEnumerable GetEnumeratorForKey(string key)
+    {
+        if (_fieldBuffers.TryGetValue(key, out var buf))
+            return buf;
+        return Enumerable.Empty<object>(); // or string/Stream/etc.
+    }
+
+    public IEnumerable<string> Keys => throw new NotSupportedException("Keys enumeration not supported");
+    public IEnumerable<IEnumerable> Values => throw new NotSupportedException("Values enumeration not supported");
+    public int Count => throw new NotSupportedException("Count not supported");
+    public bool ContainsKey(string key) => throw new NotSupportedException();
+    public bool TryGetValue(string key, out IEnumerable value) => throw new  NotSupportedException();
+    public IEnumerable GetEnumerator() =>
+        _fieldBuffers.Select(kvp => new KeyValuePair<string, IEnumerable>(kvp.Key, kvp.Value));
+    IEnumerator<KeyValuePair<string, IEnumerable>> IEnumerable<KeyValuePair<string, IEnumerable>>.GetEnumerator() =>
+        _fieldBuffers.Select(kvp => new KeyValuePair<string, IEnumerable>(kvp.Key, kvp.Value)).GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() =>
+        ((IEnumerable<KeyValuePair<string, IEnumerable>>)this).GetEnumerator();
+
+    // Internal class to buffer per-field values lazily
+    private class FieldStreamBuffer : IEnumerable<object>
+    {
+        private readonly BlockingCollection<object> _buffer = new();
+
+        public void Add(object val) => _buffer.Add(val);
+
+        public IEnumerator<object> GetEnumerator()
+        {
+            foreach (var item in _buffer.GetConsumingEnumerable())
+                yield return item;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    // For file chunks or metadata; you could replace with full Stream logic
+    public record FileChunk(string Filename, string ContentType, byte[] Data);
+}
+
 public class FormDataDictionary : IReadOnlyDictionary<string, IEnumerable>
 {
     private readonly Dictionary<string, IEnumerable> backingStore = new();
@@ -35,94 +115,4 @@ public class FormDataDictionary : IReadOnlyDictionary<string, IEnumerable>
     public bool TryGetValue(string key, out IEnumerable value) => backingStore.TryGetValue(key, out value);
     public IEnumerator<KeyValuePair<string, IEnumerable>> GetEnumerator() => backingStore.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => backingStore.GetEnumerator();
-}
-
-public class DeobfuscatedFormDictionary : IReadOnlyDictionary<string, IEnumerable>, IDisposable
-{
-    private readonly string FormName;
-    private ICsrfFields Fields;
-    private bool disposedValue;
-    private readonly IReadOnlyDictionary<string, IEnumerable> ObfuscatedStore;
-
-    public DeobfuscatedFormDictionary(IReadOnlyDictionary<string, IEnumerable> obfuscatedFields, ICsrfFields fields, string formName)
-    {
-        this.FormName = formName;
-        this.Fields = fields;
-        this.ObfuscatedStore = obfuscatedFields;
-        this.Keys = Fields.GetDeobfuscatedWhitelist(FormName);
-        this.Values = Fields.GetObfuscatedWhitelist(FormName).Select(x => obfuscatedFields.TryGetValue(x, out var val) ? val : Enumerable.Empty<object>());
-        this.Count = Keys.Count();
-    }
-
-    public IEnumerable this[string key]
-    {
-        get
-        {
-            if (Fields.TryObfuscating(FormName, key, out var obfuscatedName) &&
-                !string.IsNullOrWhiteSpace(obfuscatedName))
-            {
-                if (ObfuscatedStore.TryGetValue(obfuscatedName, out var item))
-                {
-                    return item;
-                }
-                else
-                {
-                    return Enumerable.Empty<object>();
-                }
-            }
-            else
-            {
-                throw new KeyNotFoundException();
-            }
-        }
-    }
-    public IEnumerable<string> Keys { get; }
-    public IEnumerable<IEnumerable> Values { get; }
-    public int Count { get; }
-    public bool ContainsKey(string key) => Keys.Any(x => x == key);
-    public IEnumerator<KeyValuePair<string, IEnumerable>> GetEnumerator() => Keys.ToDictionary(x => x, x => this[x]).GetEnumerator();
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out IEnumerable value)
-    {
-        if (Fields.TryObfuscating(FormName, key, out var obfuscatedName) &&
-            !string.IsNullOrWhiteSpace(obfuscatedName) &&
-            ObfuscatedStore.TryGetValue(obfuscatedName, out var item))
-        {
-            value = item;
-            return true;
-        }
-        value = null;
-        return false;
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // TODO: dispose managed state (managed objects)
-            }
-
-            foreach (var item in Fields.GetObfuscatedWhitelist(FormName))
-                Fields.UnregisterAlias(FormName, item);
-
-            disposedValue = true;
-        }
-    }
-
-    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    // ~DeobfuscatedFormDictionary()
-    // {
-    //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-    //     Dispose(disposing: false);
-    // }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
 }

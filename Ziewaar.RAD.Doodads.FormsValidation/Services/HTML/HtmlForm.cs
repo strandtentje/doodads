@@ -1,4 +1,5 @@
 using HtmlAgilityPack;
+using HttpMultipartParser;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.HTML;
 
@@ -49,10 +50,11 @@ public class HtmlForm : IService
             interaction.TryFindVariable<string>("url", out string? candiateUrl) && candiateUrl != null &&
             fieldset.IsValidationRequired(candidateMethod, candiateUrl))
         {
-            IReadOnlyDictionary<string, IEnumerable> parsedForm;
+            IReadOnlyDictionary<string, IEnumerable>? parsedForm = null;
             if (fieldset.Method == HttpMethod.Post
                 && interaction.TryGetClosest<ISourcingInteraction>(out var bodySource)
-                && bodySource != null)
+                && bodySource != null
+                && fieldset.IsUrlEncodedAndMatches(bodySource.SourceContentTypePattern))
             {
                 using (var reader = new StreamReader(bodySource.SourceBuffer, bodySource.TextEncoding))
                 {
@@ -60,8 +62,19 @@ public class HtmlForm : IService
                 }
             }
             else if (fieldset.Method == HttpMethod.Get
-                && interaction.TryFindVariable<string>("query", out string? queryString) && queryString != null)
+                     && interaction.TryFindVariable<string>("query", out string? queryString) && queryString != null
+                     && fieldset.IsUrlEncodedAndMatches(ValidatingInputFieldSet.URL_ENCODED_CONTENT_TYPE))
+            {
                 parsedForm = new FormDataDictionary(queryString);
+            }
+            else if (fieldset.Method == HttpMethod.Post
+                     && interaction.TryGetClosest<ISourcingInteraction>(out var multipartSource)
+                     && multipartSource != null
+                     && fieldset.IsMultipartAndMatches(multipartSource.SourceContentTypePattern))
+            {
+                StreamingMultipartFormDataParser x = new(multipartSource.SourceBuffer);
+                
+            }
             else
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "bad method or no data"));
