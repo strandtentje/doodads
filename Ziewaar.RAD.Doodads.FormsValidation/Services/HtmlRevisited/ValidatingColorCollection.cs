@@ -1,0 +1,20 @@
+namespace Ziewaar.RAD.Doodads.FormsValidation.Services.HtmlRevisited;
+public class ValidatingColorCollection : IValidatingCollection
+{
+    private readonly List<object> BackingValues = new();
+    public void Add(object value)
+    {
+        if (value is string stringValue && IsSatisfied)
+        {
+            IsSatisfied &= stringValue.Length is 4 or 7;
+            IsSatisfied &= stringValue.ElementAt(0) == '#';
+            IsSatisfied &= stringValue[1..].All(char.IsAsciiHexDigit);
+        }
+        else
+            IsSatisfied = false;
+        if (IsSatisfied)
+            BackingValues.Add(value);
+    }
+    public bool IsSatisfied { get; private set; } = true;
+    public IEnumerable ValidItems => BackingValues;
+}
