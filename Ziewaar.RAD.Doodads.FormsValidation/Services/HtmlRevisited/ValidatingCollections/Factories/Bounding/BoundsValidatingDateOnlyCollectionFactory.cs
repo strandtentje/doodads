@@ -1,0 +1,20 @@
+namespace Ziewaar.RAD.Doodads.FormsValidation.Services.HtmlRevisited;
+public class BoundsValidatingDateOnlyCollectionFactory(string[] lbounds, string[] ubounds) : IValidatingCollectionFactory
+{
+    private static readonly string[] DateFormats = new[]
+    {
+        "yyyy'-'MM'-'dd"
+    };
+
+    private readonly DateOnly
+        LBound = lbounds.Select(s => DateOnly.ParseExact(s, DateFormats,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None))
+            .Concat(new[] { DateOnly.MinValue }).Max(),
+        UBound = ubounds.Select(s => DateOnly.ParseExact(s, DateFormats,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None))
+            .Concat(new[] { DateOnly.MaxValue }).Min();
+
+    public IValidatingCollection Create() => new BoundsValidatingDateCollection(LBound, UBound);
+}
