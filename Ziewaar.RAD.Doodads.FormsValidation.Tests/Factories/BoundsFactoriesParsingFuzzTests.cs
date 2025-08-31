@@ -1,3 +1,5 @@
+using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories.Bounding;
+
 namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.Factories;
 [TestClass]
 public class BoundsFactoriesParsingFuzzTests

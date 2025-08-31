@@ -1,3 +1,5 @@
+using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Implementations.Bounding;
+
 namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.Implementations;
 [TestClass]
 public class BoundsValidatingWeekCollectionTests
