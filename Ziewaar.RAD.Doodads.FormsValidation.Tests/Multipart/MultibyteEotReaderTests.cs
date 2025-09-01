@@ -1,36 +1,7 @@
 using System.Text;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
-
-namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.Multipart;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-public static class EnumeratorExtensions
-{
-    public static IEnumerable<byte> Collapse(this IEnumerator<byte> enumerator)
-    {
-        while (enumerator.MoveNext())
-            yield return enumerator.Current;
-    }
-    public static string ToAscii(this IEnumerator<byte> enumerator) =>
-        new(Encoding.ASCII.GetString(enumerator.Collapse().ToArray()));
-}
-public static class StringExtensions
-{
-    public static string MakeCrlf(this string original)
-    {
-        StringReader reader = new StringReader(original);
-        StringBuilder sbl = new(original.Length * 2);
-        while (reader.ReadLine() is string newLine)
-        {
-            sbl.Append(newLine);
-            sbl.Append("\r\n");
-        }
-        return sbl.ToString();
-    }
-}
+namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.Multipart;
 [TestClass]
 public class MultibyteEotReaderTests
 {
@@ -72,7 +43,7 @@ public class MultibyteEotReaderTests
     public void TestBoundaryReader()
     {
         var terminator = "=====test";
-        var data = new ByteEnumerator(Encoding.ASCII.GetBytes($"Hello--{terminator}"));
+        var data = new ByteEnumerator(Encoding.ASCII.GetBytes($"Hello\r\n--{terminator}"));
         using var brd = new UntilBoundaryReader(
             MultibyteEotReader.CreateForCrLfDashDash(data),
             MultibyteEotReader.CreateForAscii(data, terminator));
@@ -83,7 +54,7 @@ public class MultibyteEotReaderTests
     public void TestResettingBoundaryReader()
     {
         var terminator = "=====test";
-        var data = new ByteEnumerator(Encoding.ASCII.GetBytes($"Hello--{terminator}Goodbyte--{terminator}"));
+        var data = new ByteEnumerator(Encoding.ASCII.GetBytes($"Hello\r\n--{terminator}Goodbyte\r\n--{terminator}"));
         using var brd = new UntilBoundaryReader(
             MultibyteEotReader.CreateForCrLfDashDash(data),
             MultibyteEotReader.CreateForAscii(data, terminator));
@@ -129,8 +100,9 @@ public class MultibyteEotReaderTests
         var data = new ByteEnumerator(Encoding.ASCII.GetBytes(body));
         var toBoundary = new UntilBoundaryReader(MultibyteEotReader.CreateForCrLfDashDash(data),
             MultibyteEotReader.CreateForAscii(data, terminator));
+        var toCrlf = MultibyteEotReader.CreateForCrlf(toBoundary);
         var mvg = new MultipartValueGroup(
-            MultibyteEotReader.CreateForCrlf(data),
+            toCrlf,
             toBoundary);
         int count = 0;
         foreach (var item in mvg)
@@ -165,7 +137,10 @@ public class MultibyteEotReaderTests
         }
         Assert.AreEqual(1, count);
         
-        Assert.AreEqual("--", toBoundary.ToAscii());
+        Assert.IsTrue(data.AtEnd);
+        Assert.IsTrue(toBoundary.AtEnd);
+        var crlfContent = toCrlf.ToAscii();
+        Assert.IsTrue(toCrlf.AtEnd);
     }
     [TestMethod]
     public void ShouldMoveNextUntilEotSequenceIsDetected()

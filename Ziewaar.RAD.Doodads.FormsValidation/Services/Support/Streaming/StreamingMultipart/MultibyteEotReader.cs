@@ -3,16 +3,18 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 public class MultibyteEotReader(
-    ICountingEnumerator<byte> byteSource, 
+    ICountingEnumerator<byte> byteSource,
     byte[] eotMarker,
     long limit)
     : ICountingEnumerator<byte>
 {
     public static MultibyteEotReader CreateForCrlf(ICountingEnumerator<byte> source, long limit = 1024) =>
         new(source, "\r\n"u8.ToArray(), limit);
-    public static MultibyteEotReader CreateForCrLfDashDash(ICountingEnumerator<byte> source, long limit = int.MaxValue) =>
+    public static MultibyteEotReader
+        CreateForCrLfDashDash(ICountingEnumerator<byte> source, long limit = int.MaxValue) =>
         new(source, "\r\n--"u8.ToArray(), limit);
-    public static MultibyteEotReader CreateForAscii(ICountingEnumerator<byte> source, string asciiText, long limit = int.MaxValue) =>
+    public static MultibyteEotReader CreateForAscii(ICountingEnumerator<byte> source, string asciiText,
+        long limit = int.MaxValue) =>
         new(source, Encoding.ASCII.GetBytes(asciiText), limit);
     public byte Current { get; private set; }
     public byte[] FittingBuffer { get; private set; } = new byte [eotMarker.Length + 1];
@@ -30,7 +32,8 @@ public class MultibyteEotReader(
         }
         while (Selection < Cursor + eotMarker.Length)
         {
-            if (!byteSource.MoveNext()) return false;
+            if (!byteSource.MoveNext())
+                break;
             FittingBuffer.SetCircular(Selection + 1, byte.MinValue).SetCircular(Selection++, byteSource.Current);
         }
         for (var i = Cursor; i < Selection; i++)
