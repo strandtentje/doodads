@@ -3,12 +3,12 @@ using System.Text;
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 public class UrlEncodedTokenReader(
     ICountingEnumerator<byte> byteSource,
-    int keyLengthLimit = 200) : ICountingEnumerator<KeyValuePair<string, UnicodeConvertingReader>>
+    long keyLengthLimit = 200) : ICountingEnumerator<KeyValuePair<string, UnicodeConvertingReader>>
 {
     private const byte EQUALS = 0x3d, AMPERSAND = 0x26;
     public KeyValuePair<string, UnicodeConvertingReader> Current { get; private set; }
     public bool AtEnd { get; }
-    public int Cursor { get; }
+    public long Cursor { get; }
     public string? ErrorState { get => byteSource.ErrorState; set =>  byteSource.ErrorState = value; }
     
     public bool MoveNext()

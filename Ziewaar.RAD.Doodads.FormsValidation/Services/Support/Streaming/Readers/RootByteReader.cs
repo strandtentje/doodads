@@ -1,5 +1,5 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
-public class RootByteReader(Stream stream, int limit = -1, params byte[] terminators) : ICountingEnumerator<byte>
+public class RootByteReader(Stream stream, long limit = -1, params byte[] terminators) : ICountingEnumerator<byte>
 {
     public bool AtEnd { get; private set; }
     private readonly long StartingPosition = stream.Position;
@@ -30,6 +30,6 @@ public class RootByteReader(Stream stream, int limit = -1, params byte[] termina
         if (!AtEnd && ErrorState == null)
             throw new InvalidOperationException("Leaving byte reader before it was fully read");
     }
-    public int Cursor { get; private set; }
+    public long Cursor { get; private set; }
     public string? ErrorState { get; set; }
 }

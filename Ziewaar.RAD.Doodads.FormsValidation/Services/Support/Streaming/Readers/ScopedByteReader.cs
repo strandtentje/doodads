@@ -2,7 +2,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers
 public class ScopedByteReader(
     string description,
     ICountingEnumerator<byte> reader,
-    int limit = -1,
+    long limit = -1,
     params byte[] terminators)
     : ICountingEnumerator<byte>
 {
@@ -30,6 +30,6 @@ public class ScopedByteReader(
         if (!AtEnd && ErrorState == null)
             throw new InvalidOperationException("Leaving byte reader before it was fully read");
     }
-    public int Cursor { get; private set; }
+    public long Cursor { get; private set; }
     public string? ErrorState { get => reader.ErrorState; set =>  reader.ErrorState = value; }
 }

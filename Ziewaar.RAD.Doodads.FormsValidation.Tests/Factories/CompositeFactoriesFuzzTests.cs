@@ -13,10 +13,10 @@ public class CompositeFactoriesFuzzTests
         // fieldType == "file" short-circuits regardless of tag; null tag should not be used
         var fFile = new TypeValidatingCollectionFactory(fieldTag: null, fieldType: "file");
         var cFile = fFile.Create();
-        using var ms = new MemoryStream();
-        cFile.Add(ms);
+        var fi = new FileInfo(Path.GetTempFileName());
+        cFile.Add(fi);
         Assert.IsTrue(cFile.IsSatisfied);
-        Assert.AreSame(ms, cFile.ValidItems.Cast<object>().Single());
+        Assert.AreSame(fi, cFile.ValidItems.Cast<object>().Single());
     }
 
     [TestMethod]

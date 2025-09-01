@@ -10,7 +10,7 @@ public class ScopedByteReaderTests
         private readonly byte[] _data;
         public Seq(params byte[] data) { _data = data; }
         public bool AtEnd { get; private set; }
-        public int Cursor { get; private set; }
+        public long Cursor { get; private set; }
         public string? ErrorState { get; set; }
         public byte Current { get; private set; }
         object IEnumerator.Current => Current;

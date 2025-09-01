@@ -44,7 +44,7 @@ public class FieldTypeFactoriesTests
     public void ValidatingFileCollectionFactory_CreatesFileValidator()
     {
         var coll = new ValidatingFileCollectionFactory().Create();
-        using var ms = new MemoryStream();
+        var ms = new FileInfo(Path.GetTempFileName());
         coll.Add(ms);
         Assert.IsTrue(coll.IsSatisfied);
         Assert.AreSame(ms, coll.ValidItems.Cast<object>().Single());

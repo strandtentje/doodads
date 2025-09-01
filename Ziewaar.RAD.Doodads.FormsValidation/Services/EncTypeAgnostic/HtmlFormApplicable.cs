@@ -1,10 +1,10 @@
+using System.Text;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.StreamingUrlEncoded;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
-
 public class HtmlFormApplicable : IService
 {
     private readonly UpdatingKeyValue MaxBytesConstant = new("maxlength");
@@ -15,7 +15,6 @@ public class HtmlFormApplicable : IService
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnOverflow;
     public event CallForInteraction? OnException;
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, MaxBytesConstant).IsRereadRequired(out object? maxCandidate))
@@ -118,11 +117,26 @@ public class HtmlFormApplicable : IService
             var urlEncodedReader = new UrlEncodedTokenReader(byteReader);
             formData = new StreamingFormDataEnumerable(urlEncodedReader);
             OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, formData));
-        } else if (incomingContentType == "multipart/form-data")
+        }
+        else if (incomingContentType == "multipart/form-data")
         {
-//            StreamingMultipartFieldMap
+            if (!interaction.TryGetClosest<IContentTypePropertiesInteraction>(out var contTypeProperties)
+                || contTypeProperties == null
+                || !contTypeProperties.ContentTypeProperties.TryGetValue("boundary", out string boundaryText))
+            {
+                OnException?.Invoke(this,
+                    new CommonInteraction(interaction, "Multipart form data must have properties in the content type"));
+                return;
+            }
+
+            var limitedByteReader = new RootByteReader(
+                formDataSource.SourceBuffer, CurrentByteLimit);
+            var terminatingByteReader = MultibyteEotReader.CreateForAscii(
+                limitedByteReader, $"--{boundaryText}--");
+            var multipartEncodedReader = new MultipartGroupList(
+                terminatingByteReader, boundaryText);
+            OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, multipartEncodedReader));
         }
     }
-
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

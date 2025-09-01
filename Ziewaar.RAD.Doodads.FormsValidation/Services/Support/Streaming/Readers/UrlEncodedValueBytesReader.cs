@@ -1,7 +1,7 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 public class UrlEncodedValueBytesReader(
     ICountingEnumerator<byte> binaryInput,
-    int limit = -1) : ICountingEnumerator<byte>
+    long limit = -1) : ICountingEnumerator<byte>
 {
     private const byte EQUALS = 0x3d,
         AMPERSAND = 0x26,
@@ -10,7 +10,7 @@ public class UrlEncodedValueBytesReader(
         PERC = 0x25;
     public byte Current { get; private set; }
     public bool AtEnd { get; private set; }
-    public int Cursor { get; private set; }
+    public long Cursor { get; private set; }
     public string? ErrorState { get => binaryInput.ErrorState; set =>  binaryInput.ErrorState = value; }
     public bool MoveNext()
     {

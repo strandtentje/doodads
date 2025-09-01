@@ -8,7 +8,7 @@ public class ValidatingFileCollectionTests
     public void Add_Stream_ShouldPass()
     {
         var c = new ValidatingFileCollection();
-        using var ms = new MemoryStream(new byte[] { 1, 2, 3 });
+        var ms = new FileInfo(Path.GetTempFileName());
 
         c.Add(ms);
 

@@ -29,7 +29,7 @@ public class TypeValidatingCollectionFactoryTests
     {
         var typeFactory = new TypeValidatingCollectionFactory(fieldTag: "input", fieldType: "file");
         var coll = typeFactory.Create();
-        using var ms = new MemoryStream();
+         var ms = new FileInfo(Path.GetTempFileName());
         coll.Add(ms);
         Assert.IsTrue(coll.IsSatisfied);
         Assert.AreSame(ms, coll.ValidItems.Cast<object>().Single());

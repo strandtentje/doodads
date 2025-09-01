@@ -3,12 +3,12 @@ using System.Text;
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 public class UnicodeConvertingReader(
     ICountingEnumerator<byte> binaryInput,
-    int limit = -1) : ICountingEnumerator<char>
+    long limit = -1) : ICountingEnumerator<char>
 {
     public static UnicodeConvertingReader Empty = new(RootByteReader.Empty);
     public char Current { get; private set; }
     public bool AtEnd { get; private set; }
-    public int Cursor { get; private set; }
+    public long Cursor { get; private set; }
     public string? ErrorState { get => binaryInput.ErrorState; set =>  binaryInput.ErrorState = value; }
     public bool MoveNext()
     {
