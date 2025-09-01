@@ -1,7 +1,7 @@
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.StreamingUrlEncoded;
-public class LazyValueGroup(UrlEncodedTokenReader reader) : IGrouping<string, object>
+public class StreamingFormDataValueGroup(UrlEncodedTokenReader reader) : IGrouping<string, object>
 {
     public string Key { get; } = reader.Current.Key;
     public IEnumerator<object> GetEnumerator()
@@ -19,6 +19,6 @@ public class LazyValueGroup(UrlEncodedTokenReader reader) : IGrouping<string, ob
         else
             NextGroup = null;
     }
-    public LazyValueGroup? NextGroup = null;
+    public StreamingFormDataValueGroup? NextGroup = null;
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

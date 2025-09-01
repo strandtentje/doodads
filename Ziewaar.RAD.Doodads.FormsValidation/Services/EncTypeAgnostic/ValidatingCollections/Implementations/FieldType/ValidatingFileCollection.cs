@@ -5,7 +5,7 @@ public class ValidatingFileCollection : IValidatingCollection
     public void Add(object value, out object transformed)
     {
         transformed = value;
-        IsSatisfied &= value is Stream;
+        IsSatisfied &= value is FileInfo;
         if (IsSatisfied)
             BackingValues.Add(value);
     }

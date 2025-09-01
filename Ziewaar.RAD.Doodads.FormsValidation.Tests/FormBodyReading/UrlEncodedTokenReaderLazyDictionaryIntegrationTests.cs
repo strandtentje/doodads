@@ -17,7 +17,7 @@ public class UrlEncodedTokenReaderLazyDictionaryIntegrationTests
     public void LazyFormDataDictionary_GroupsConsecutive_AndRejectsNonConsecutive()
     {
         // grouped
-        var dict = new LazyFormDataDictionary(new UrlEncodedTokenReader(FromAscii("a=1&a=2&b=3")));
+        var dict = new StreamingFormDataEnumerable(new UrlEncodedTokenReader(FromAscii("a=1&a=2&b=3")));
 
         var groups = Explode(dict);
 
@@ -28,10 +28,10 @@ public class UrlEncodedTokenReaderLazyDictionaryIntegrationTests
         CollectionAssert.AreEqual(new[] { "3" }, groups[1].Value);
 
         // non-consecutive duplicate key should throw
-        var bad = new LazyFormDataDictionary(new UrlEncodedTokenReader(FromAscii("a=1&b=2&a=3")));
+        var bad = new StreamingFormDataEnumerable(new UrlEncodedTokenReader(FromAscii("a=1&b=2&a=3")));
         Assert.ThrowsException<ConsecutiveKeyException>(() => Explode(bad));
     }
-    private static List<KeyValuePair<string, string[]>> Explode(LazyFormDataDictionary dict)
+    private static List<KeyValuePair<string, string[]>> Explode(StreamingFormDataEnumerable dict)
     {
         List<KeyValuePair<string, string[]>> groups = new();
 

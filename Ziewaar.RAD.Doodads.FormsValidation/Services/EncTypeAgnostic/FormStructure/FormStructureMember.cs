@@ -3,5 +3,5 @@ public class FormStructureMember(string name, IValidatingCollectionFactory valid
 {
     public static FormStructureMemberBuilder Builder => new();
     public string Name => name;
-    public IValidatingCollection GetValidatingCollection() => validatorFactory.Create();
+    public IValidatingCollection CreateValidatingCollection() => validatorFactory.Create();
 }

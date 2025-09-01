@@ -147,7 +147,7 @@ public static class MimeMapping
 
         string ext = Path.GetExtension(filePath)?.TrimStart('.') ?? "";
 
-        return ExtensionToMimeType.TryGetValue(ext, out var info)
+        return ExtensionToMimeType.TryGetValue(ext.ToLower(), out var info)
             ? info
             : new MimeTypeInfo("application/octet-stream", false);
     }
