@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
+        <PackageReference Include="MSTest.TestAdapter" Version="3.1.1"/>
+        <PackageReference Include="MSTest.TestFramework" Version="3.1.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.CommonComponents\Ziewaar.RAD.Doodads.CommonComponents.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.Cryptography\Ziewaar.RAD.Doodads.Cryptography.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.Data\Ziewaar.RAD.Doodads.Data.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.FormsValidation\Ziewaar.RAD.Doodads.FormsValidation.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.ModuleLoader\Ziewaar.RAD.Doodads.ModuleLoader.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.MySQL\Ziewaar.RAD.Doodads.MySQL.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.RKOP\Ziewaar.RAD.Doodads.RKOP.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.RuntimeForDotnetCore\Ziewaar.RAD.Doodads.RuntimeForDotnetCore.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.SQLite\Ziewaar.RAD.Doodads.SQLite.csproj" />
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.StandaloneWebserver\Ziewaar.RAD.Doodads.StandaloneWebserver.csproj" />
+    </ItemGroup>
+
+</Project>
