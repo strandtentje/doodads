@@ -2,4 +2,5 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.Validatin
 public class ValidatingDateOnlyCollectionFactory : IValidatingCollectionFactory
 {
     public IValidatingCollection Create() => new ValidatingDateCollection();
+    public bool CanConstrain => true;
 }

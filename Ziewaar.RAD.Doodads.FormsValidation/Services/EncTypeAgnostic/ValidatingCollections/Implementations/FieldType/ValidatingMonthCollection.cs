@@ -4,6 +4,7 @@ public class ValidatingMonthCollection : IValidatingCollection
 {
     private readonly System.Collections.Generic.List<object> BackingValues = new();
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public System.Collections.IEnumerable ValidItems => BackingValues;
 
     public void Add(object value, out object transformed)
@@ -17,6 +18,7 @@ public class ValidatingMonthCollection : IValidatingCollection
         }
         else
         {
+            Reason = "Incorrect month formats";
             IsSatisfied = false;
         }
     }

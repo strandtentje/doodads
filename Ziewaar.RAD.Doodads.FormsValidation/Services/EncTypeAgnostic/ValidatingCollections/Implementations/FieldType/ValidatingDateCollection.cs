@@ -30,6 +30,7 @@ public class ValidatingDateCollection : IValidatingCollection
                     System.Globalization.DateTimeStyles.None,
                     out parsed))
             {
+                Reason = "Bad format";
                 IsSatisfied = false;
                 return;
             }
@@ -38,5 +39,6 @@ public class ValidatingDateCollection : IValidatingCollection
         if (IsSatisfied) BackingValues.Add(transformed = parsed);
     }
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
 }

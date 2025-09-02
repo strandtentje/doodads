@@ -36,6 +36,13 @@ public static class NodeExtensions
             .OfType<string>().Distinct()
     ];
 
+    public static string[] GetAcceptAttributes(this IEnumerable<HtmlNode> nodes) =>
+    [
+        ..nodes.NotDisabled()
+            .Select(x => x.GetAttributeOrDefault("accept"))
+            .OfType<string>().Distinct()
+    ];
+
     public static IEnumerable<HtmlNode> NotDisabled(this IEnumerable<HtmlNode> nodes) =>
         nodes.Where(x => x.Attributes.All(attr => attr.Name != "disabled"));
 
@@ -49,6 +56,16 @@ public static class NodeExtensions
     {
         var htmlNodes = nodes as HtmlNode[] ?? nodes.ToArray();
         return [..htmlNodes.GetInputValues().Concat(htmlNodes.GetOptionValues())];
+    }
+
+    public static bool IsOptionType(this IEnumerable<HtmlNode> nodes)
+    {
+        var classes = nodes.GetInputClasses();
+        if (classes.All(x => x.Type == "radio" || x.Type == "checkbox" || x.Tag == "select"))
+            return true;
+        if (nodes.All(x => !string.IsNullOrWhiteSpace(x.GetAttributeOrDefault("readonly"))))
+            return true;
+        return false;
     }
 
     public static uint GetMinLength(this IEnumerable<HtmlNode> nodes) =>
@@ -76,10 +93,22 @@ public static class NodeExtensions
             .Select(groupedInputNode => groupedInputNode.GetAttributeOrDefault("pattern")).OfType<string>()
             .Distinct().ToArray();
 
-    public static int GetMinExpectedValueCount(this IEnumerable<HtmlNode> nodes) =>
-        nodes.Select(groupedInputNode =>
-            groupedInputNode.GetNumericAttributeOrDefault("minlength", Decimal.MinValue) > 0 ||
-            groupedInputNode.Attributes.Any(x => x.Name == "required")).Count();
+    public static int GetMinExpectedValueCount(this IEnumerable<HtmlNode> nodes)
+    {
+        int requirementScore = 0;
+        var requiredRadiosInGroupCount = nodes.Count(groupedInputNode =>
+            groupedInputNode.GetInputTypeName() == "radio" &&
+            groupedInputNode.Attributes.Any(x => x.Name == "required"));
+        if (requiredRadiosInGroupCount > 0) requirementScore = 1;
+        var requiredCheckboxesInGroup = nodes.Count(groupedInputNode =>
+            groupedInputNode.GetInputTypeName() == "checkbox" &&
+            groupedInputNode.Attributes.Any(x => x.Name == "required"));
+        if (requiredCheckboxesInGroup > 0) requirementScore += requiredCheckboxesInGroup;
+        var minLengthsInGroup = nodes.Count(groupedInputNode =>
+            groupedInputNode.GetNumericAttributeOrDefault("minlength", Decimal.MinValue) > 0);
+        requirementScore += minLengthsInGroup;
+        return requirementScore;
+    }
 
     public static int GetMaxExpectedValueCount(this IEnumerable<HtmlNode> nodes)
     {

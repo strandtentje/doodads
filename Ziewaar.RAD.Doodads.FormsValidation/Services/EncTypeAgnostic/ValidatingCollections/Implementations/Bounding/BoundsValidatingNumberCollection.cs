@@ -3,6 +3,7 @@ public class BoundsValidatingNumberCollection(decimal lBound, decimal uBound) : 
 {
     private readonly List<object> BackingValues = new();
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; }
     public IEnumerable ValidItems => BackingValues;
     public void Add(object value, out object transformed)
     {
@@ -13,5 +14,7 @@ public class BoundsValidatingNumberCollection(decimal lBound, decimal uBound) : 
         IsSatisfied &= dy >= lBound && dy <= uBound;
         if (IsSatisfied)
             BackingValues.Add(transformed = dy);
+        else
+            Reason = "Bad format or out of bounds";
     }
 }

@@ -5,16 +5,19 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 public class FormStructureMemberBuilder
 {
-    private IValidatingCollectionFactory
-        FieldTypeValidator = NonValidatingCollectionFactory.Instance,
-        OptionsValidator = NonValidatingCollectionFactory.Instance,
-        LengthBoundsValidator = NonValidatingCollectionFactory.Instance,
-        ValueBoundsValidator = NonValidatingCollectionFactory.Instance,
-        TextPatternValidator = NonValidatingCollectionFactory.Instance,
-        ValueCountValidator = NonValidatingCollectionFactory.Instance;
+    private IValidatingCollectionFactory?
+        FieldTypeValidator = null,
+        OptionsValidator = null,
+        LengthBoundsValidator = null,
+        ValueBoundsValidator = null,
+        TextPatternValidator = null,
+        ValueCountValidator = null;
     private InputClass[] InputClasses = [];
+    private string[]? intersectedAccepts = null; 
     private bool AllFixed;
     private string Name;
+    private bool OnlyOptions;
+
     public FormStructureMemberBuilder SetTypes(InputClass[] inputTypes)
     {
         if (inputTypes.Any(x => x.Type == "file") && inputTypes.Any(x => x.Type != "file"))
@@ -28,6 +31,23 @@ public class FormStructureMemberBuilder
     public FormStructureMemberBuilder SetOptions(string[] validOptions)
     {
         this.OptionsValidator = new OptionsValidatingCollectionFactory(validOptions);
+        return this;
+    }
+
+    public FormStructureMemberBuilder CanOnlyFitOptions(bool isOptionType)
+    {
+        this.OnlyOptions = isOptionType;
+        return this;
+    }
+    public FormStructureMemberBuilder AddAccepts(string[] accepts)
+    {
+        foreach (var accept in accepts)
+        {
+            intersectedAccepts = 
+                intersectedAccepts == null ? 
+                    accept.Split(",", (StringSplitOptions)3) : 
+                    intersectedAccepts.Intersect(accept.Split(",", (StringSplitOptions)3)).ToArray();
+        }
         return this;
     }
     public FormStructureMemberBuilder SetLengthBounds(uint minLength, uint maxLength)
@@ -61,19 +81,57 @@ public class FormStructureMemberBuilder
         this.Name = inputGroupKey;
         return this;
     }
-    public FormStructureMember Build()
+    public FormStructureMember Build(bool isMultipart, bool isFile)
     {
-        var validator = new AllValidCollectionsFactory(
-            this.LengthBoundsValidator,
-            this.FieldTypeValidator,
-            this.ValueCountValidator,
-            new AnyValidCollectionFactory(
-                this.OptionsValidator,
-                this.ValueBoundsValidator,
-                this.TextPatternValidator
-            )
-        );
-
-        return new FormStructureMember(this.Name, validator);
+        if (isMultipart && isFile)
+        {
+            var validator = new AllValidCollectionsFactory(
+                new MultipartFileValidationCollectionFactory(this.Name, string.Join(',', intersectedAccepts ?? [])),
+                this.LengthBoundsValidator,
+                this.FieldTypeValidator,
+                this.ValueCountValidator
+            );
+            return new FormStructureMember(this.Name, validator);
+        }
+        else if (isMultipart && !isFile)
+        {
+            var validator = new AllValidCollectionsFactory(
+                new MultipartParameterValidationCollectionFactory(this.Name),
+                this.LengthBoundsValidator,
+                this.FieldTypeValidator,
+                this.ValueCountValidator,
+                new AnyValidCollectionFactory(
+                    this.OptionsValidator,
+                    this.ValueBoundsValidator,
+                    this.TextPatternValidator
+                )
+            );
+            return new FormStructureMember(this.Name, validator);
+        } 
+        else if (!isMultipart && !isFile)
+        {
+            var validator = new AllValidCollectionsFactory(
+                this.LengthBoundsValidator,
+                this.FieldTypeValidator,
+                this.ValueCountValidator,
+                new AnyValidCollectionFactory(
+                    (OnlyOptions, this.OptionsValidator?.CanConstrain == true) switch
+                    {
+                        (false, false) => null, // free entry fields & no options to validate against
+                        (true, false) => null, // restricted entry fields, but no options to validate against
+                        (false, true) => null, // free entry fields, but also some options to validate against
+                        (true, true) => this.OptionsValidator
+                    },
+                    this.ValueBoundsValidator,
+                    this.TextPatternValidator
+                )
+            );
+            return new FormStructureMember(this.Name, validator);
+        }
+        else
+        {
+            throw new InvalidOperationException("Cannot use file field in non-multipart");
+        }
     }
+
 }

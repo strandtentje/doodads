@@ -1,7 +1,0 @@
-<<>> : WebServer(["http://+:8243/"]) {
-    : <f"site.rkop">;
-    OnStarted->Dump("Webserver Running", limit = 0) & [:];
-    OnHead->$"[{% requesttime %}|{% remoteip %}] {% <method %} {% <url %}";
-    OnStopping->$"Webserver Stopped";
-    OnException->!"message" : ConsoleOutput() : $"Server complains {% message %}";
-};

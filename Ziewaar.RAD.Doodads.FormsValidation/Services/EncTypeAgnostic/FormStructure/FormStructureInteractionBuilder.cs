@@ -43,6 +43,7 @@ public class FormStructureInteractionBuilder
     {
         if (IsSealed) throw new InvalidOperationException("Cannot change sealed formstructure builder");
         IsSealed = true;
+        return;
     }
     public FormStructureInteraction CreateFor(IInteraction stack)
     {

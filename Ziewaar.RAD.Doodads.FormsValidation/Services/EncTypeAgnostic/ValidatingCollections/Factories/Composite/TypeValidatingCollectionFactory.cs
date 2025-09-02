@@ -1,9 +1,11 @@
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories.FieldType;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories.Composite;
+
 public class TypeValidatingCollectionFactory : IValidatingCollectionFactory
 {
-    private readonly IValidatingCollectionFactory TrueFactory;
+    private readonly IValidatingCollectionFactory? TrueFactory;
+
     public TypeValidatingCollectionFactory(string fieldTag, string fieldType)
     {
         if (fieldType == "file")
@@ -22,13 +24,15 @@ public class TypeValidatingCollectionFactory : IValidatingCollectionFactory
                 "number" or "range" => new ValidatingNumberCollectionFactory(),
                 "time" => new ValidatingTimeCollectionFactory(),
                 "week" => new ValidatingWeekCollectionFactory(),
-                _ => new NonValidatingCollectionFactory(),
+                _ => null,
             };
         }
         else
         {
-            TrueFactory = new NonValidatingCollectionFactory();
+            TrueFactory = null;
         }
     }
-    public IValidatingCollection Create() => TrueFactory.Create();
+
+    public IValidatingCollection? Create() => TrueFactory?.Create();
+    public bool CanConstrain => TrueFactory?.CanConstrain == true;
 }

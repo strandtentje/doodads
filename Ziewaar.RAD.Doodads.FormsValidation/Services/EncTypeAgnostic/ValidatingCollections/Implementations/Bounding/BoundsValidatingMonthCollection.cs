@@ -3,6 +3,7 @@ public class BoundsValidatingMonthCollection(DateOnly lBound, DateOnly uBound) :
 {
     private readonly List<object> BackingValues = new();
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
     public void Add(object value, out object transformed)
     {
@@ -13,6 +14,8 @@ public class BoundsValidatingMonthCollection(DateOnly lBound, DateOnly uBound) :
         IsSatisfied &= value is DateOnly dy || DateOnly.TryParse($"{value}-01", out dy);
         IsSatisfied &= dy >= lBound &&  dy <= uBound;
         if (IsSatisfied)
-            BackingValues.Add(transformed =  dy);
+            BackingValues.Add(transformed = dy);
+        else
+            Reason = "Bad format or out of bounds";
     }
 }

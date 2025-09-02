@@ -16,7 +16,23 @@ public static class MimeMapping
         }
     }
 
-    private static readonly Dictionary<string, MimeTypeInfo> ExtensionToMimeType =
+    private static Dictionary<string, string>? reverseMapping;
+    public static Dictionary<string, string> MimeTypeToExtension
+    {
+        get
+        {
+            if (reverseMapping != null) return reverseMapping;
+            reverseMapping = new();
+            foreach (KeyValuePair<string,MimeTypeInfo> keyValuePair in ExtensionToMimeType)
+            {
+                if (!reverseMapping.ContainsKey(keyValuePair.Value.MimeType))
+                    reverseMapping[keyValuePair.Value.MimeType] = keyValuePair.Key;
+            }
+            return reverseMapping;
+        }
+    }
+    
+    public static readonly Dictionary<string, MimeTypeInfo> ExtensionToMimeType =
         new(StringComparer.OrdinalIgnoreCase)
         {
             // Text

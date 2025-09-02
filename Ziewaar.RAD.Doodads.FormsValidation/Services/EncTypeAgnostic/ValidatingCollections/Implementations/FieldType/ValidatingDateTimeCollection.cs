@@ -25,6 +25,7 @@ public class ValidatingDateTimeCollection : IValidatingCollection
                     System.Globalization.DateTimeStyles.None, out parsed))
             {
                 IsSatisfied = false;
+                Reason = "Bad format";
                 return;
             }
         }
@@ -33,5 +34,6 @@ public class ValidatingDateTimeCollection : IValidatingCollection
             BackingValues.Add(transformed = parsed);
     }
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
 }

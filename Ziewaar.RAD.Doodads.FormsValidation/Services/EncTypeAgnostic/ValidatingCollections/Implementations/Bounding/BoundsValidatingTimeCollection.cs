@@ -26,6 +26,7 @@ public class BoundsValidatingTimeCollection(TimeOnly lbound, TimeOnly ubound) : 
                     System.Globalization.DateTimeStyles.None, out parsedTime))
             {
                 IsSatisfied = false;
+                Reason = "Bad format";
                 return;
             }
             else
@@ -35,7 +36,9 @@ public class BoundsValidatingTimeCollection(TimeOnly lbound, TimeOnly ubound) : 
         }
         IsSatisfied &= parsedTime >= lbound && parsedTime <= ubound;
         if (IsSatisfied) BackingValues.Add(transformed = parsedTime);
+        else Reason = "Out of bounds";
     }
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
 }

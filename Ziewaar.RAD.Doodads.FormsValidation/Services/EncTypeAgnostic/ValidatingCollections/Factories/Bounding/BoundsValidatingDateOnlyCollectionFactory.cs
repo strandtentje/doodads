@@ -16,5 +16,6 @@ public class BoundsValidatingDateOnlyCollectionFactory(string[] lbounds, string[
                 System.Globalization.DateTimeStyles.None))
             .Concat(new[] { DateOnly.MaxValue }).Min();
 
+    public bool CanConstrain => lbounds.Any() || ubounds.Any();
     public IValidatingCollection Create() => new BoundsValidatingDateCollection(LBound, UBound);
 }

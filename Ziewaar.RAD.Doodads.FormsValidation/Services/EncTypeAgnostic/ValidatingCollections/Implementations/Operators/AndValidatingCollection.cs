@@ -8,5 +8,6 @@ public class AndValidatingCollection(IValidatingCollection[] precedents) : IVali
         transformed = value;
     }
     public bool IsSatisfied => precedents.All(x => x.IsSatisfied);
+    public string Reason => string.Join(", ",  precedents.Where(x => !x.IsSatisfied).Select(x => x.Reason));
     public IEnumerable ValidItems => precedents.LastOrDefault()?.ValidItems ?? Enumerable.Empty<object>();
 }

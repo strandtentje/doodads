@@ -6,7 +6,7 @@ public class ValidatingTimeCollection : IValidatingCollection
     {
         "HH':'mm",
         "HH':'mm':'ss",
-        "HH':'mm':'ss'.'FFFFFFF", // up to 7 fractional seconds
+        "HH':'mm':'ss'.'FFFFFFF",
     };
     public void Add(object value, out object transformed)
     {
@@ -26,6 +26,7 @@ public class ValidatingTimeCollection : IValidatingCollection
                     System.Globalization.DateTimeStyles.None, out parsedTime))
             {
                 IsSatisfied = false;
+                Reason = "Bad format";
                 return;
             }
             else
@@ -38,5 +39,6 @@ public class ValidatingTimeCollection : IValidatingCollection
     }
 
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
 }

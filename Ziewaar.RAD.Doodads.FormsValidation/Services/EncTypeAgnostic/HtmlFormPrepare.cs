@@ -49,9 +49,11 @@ public class HtmlFormPrepare : IService
                 return;
             }
 
+            var encType = formNode.GetAttributeValue("enctype", "application/x-www-form-urlencoded");
+            var isMultipart = encType.Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase);
             CurrentFormBuilder = FormStructureInteraction.Builder
                 .WithHtmlForm(formNode)
-                .WithRequestBodyType(formNode.GetAttributeValue("enctype", "application/x-www-form-urlencoded"))
+                .WithRequestBodyType(encType)
                 .WithMethod(formNode.GetAttributeValue("method", "GET"))
                 .WithAction(formNode.GetAttributeValue("action", ""));
 
@@ -62,18 +64,32 @@ public class HtmlFormPrepare : IService
                 .GroupBy(x => x.inputName, x => x.node);
 
             foreach (IGrouping<string, HtmlNode> inputGroup in inputGroups)
+            {
+                var classes = inputGroup.GetInputClasses();
+                var isFileTag = classes.Any(x => x.Type.Equals("file", StringComparison.OrdinalIgnoreCase));
+                if (isFileTag && !isMultipart)
+                {
+                    OnException?.Invoke(this,
+                        new CommonInteraction(interaction, "may only put file fields in enctype multipart/form-data"));
+                    return;
+                }
+
                 CurrentFormBuilder.Add(
                     FormStructureMember.Builder
                         .SetName(inputGroup.Key)
-                        .SetTypes(inputGroup.GetInputClasses())
+                        .SetTypes(classes)
+                        .AddAccepts(inputGroup.GetAcceptAttributes())
                         .SetOptions(inputGroup.GetValidLiteralValues())
+                        .CanOnlyFitOptions(inputGroup.IsOptionType())
                         .SetLengthBounds(inputGroup.GetMinLength(), inputGroup.GetMaxLength())
                         .SetValueBounds(inputGroup.GetMinValues(), inputGroup.GetMaxValues())
                         .SetPatternConstraints(inputGroup.GetPatterns())
                         .SetValueCountLimits(
                             inputGroup.GetMinExpectedValueCount(),
                             inputGroup.GetMaxExpectedValueCount())
-                        .Build());
+                        .Build(isMultipart, isFileTag));
+            }
+
             CurrentFormBuilder.Seal();
         }
 

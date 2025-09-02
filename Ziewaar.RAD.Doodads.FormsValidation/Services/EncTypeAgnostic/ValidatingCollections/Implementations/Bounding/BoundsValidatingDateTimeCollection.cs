@@ -3,6 +3,7 @@ public class BoundsValidatingDateTimeCollection(DateTime lBound, DateTime uBound
 {
     public List<object> BackingValues = new();
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;    private static readonly string[] Formats = new[]
     {
         "yyyy'-'MM'-'dd'T'HH':'mm",
@@ -29,11 +30,14 @@ public class BoundsValidatingDateTimeCollection(DateTime lBound, DateTime uBound
                     System.Globalization.DateTimeStyles.None, out parsed))
             {
                 IsSatisfied = false;
+                Reason = "Bad format";
                 return;
             }
         }
         IsSatisfied &= parsed >= lBound && parsed <= uBound;
         if (IsSatisfied)
             BackingValues.Add(transformed = parsed);
+        else
+            Reason = "Out of bounds";
     }
 }

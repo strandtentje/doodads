@@ -1,5 +1,7 @@
+using System.Runtime.Serialization;
 using System.Text;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
+using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Implementations;
 
@@ -12,10 +14,25 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
         transformed = value;
         if (!IsSatisfied) return;
 
-        if (value is IEnumerator<byte> binaryEnumerator)
+        if (value is ICountingEnumerator<byte> binaryEnumerator)
         {
-            var tempFilename = Path.GetTempFileName();
-            var tempFileWriter = File.Create(tempFilename);
+            string tempFileWithProposedName;
+            string? pathTemp = null;
+            if (binaryEnumerator is ITaggedCountingEnumerator<byte> tagged && tagged.Tag is string proposedFilename &&
+                !string.IsNullOrWhiteSpace(proposedFilename))
+            {
+                var mainTemp = Path.GetTempPath();
+                var subTemp = Path.GetRandomFileName();
+                pathTemp = Path.Combine(mainTemp, subTemp);
+                Directory.CreateDirectory(pathTemp);
+                tempFileWithProposedName = Path.Combine(pathTemp, proposedFilename);
+            }
+            else
+            {
+                tempFileWithProposedName = Path.GetTempFileName();
+            }
+            
+            var tempFileWriter = File.Create(tempFileWithProposedName);
             var pool = ByteArrayPoolFactory.Instance.GetOrCreate(512, 4096, TimeSpan.FromSeconds(30));
             var writeBuffer = pool.Rent();
             int writeBufferCursor = 0;
@@ -28,6 +45,7 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
                     totalBufferThrougput++;
                     if (totalBufferThrougput >= maxLength)
                     {
+                        Reason = "file too long";
                         IsSatisfied = false;
                         return;
                     }
@@ -41,6 +59,7 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
 
                 if (totalBufferThrougput < minLength)
                 {
+                    Reason = "file too short";
                     IsSatisfied = false;
                     return;
                 }
@@ -54,9 +73,13 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
             {
                 pool.Return(writeBuffer);
                 tempFileWriter.Close();
-                if (!IsSatisfied) File.Delete(tempFilename);
+                if (!IsSatisfied)
+                {
+                    File.Delete(tempFileWithProposedName);
+                    if (pathTemp != null) Directory.Delete(pathTemp, true);
+                }
             }
-            transformed = new FileInfo(tempFilename);
+            transformed = new FileInfo(tempFileWithProposedName);
         }
         else if (value is IEnumerator<char> enumerator)
         {
@@ -66,6 +89,7 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
                 sbl.Append(enumerator.Current);
                 if (sbl.Length > maxLength)
                 {
+                    Reason = "too many chars";
                     IsSatisfied = false;
                     return;
                 }
@@ -73,6 +97,7 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
 
             if (sbl.Length < minLength)
             {
+                Reason = "too few chars";
                 IsSatisfied = false;
                 return;
             }
@@ -83,9 +108,16 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
         {
             string asString = value.ToString() ?? "";
             if (asString.Length < minLength)
+            {
+                Reason = "string short";
                 IsSatisfied = false;
+            }
+
             if (asString.Length > maxLength)
+            {
+                Reason = "string long";
                 IsSatisfied = false;
+            }
             transformed = asString;
         }
 
@@ -94,5 +126,6 @@ public class LengthValidatorCollection(uint minLength, uint maxLength) : IValida
     }
 
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
 }

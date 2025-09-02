@@ -5,6 +5,7 @@ public class BoundsValidatingWeekCollection(DateOnly lbound, DateOnly ubound) : 
 {
     private readonly List<object> BackingValues = new();
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
     public void Add(object value, out object transformed)
     {
@@ -16,6 +17,9 @@ public class BoundsValidatingWeekCollection(DateOnly lbound, DateOnly ubound) : 
                  parsedWeek.ToDateOnly() >= lbound && parsedWeek.ToDateOnly() <= ubound)
             BackingValues.Add(transformed =parsedWeek.ToDateOnly());
         else
+        {
+            Reason = "Bad format or out of bounds";
             IsSatisfied = false;
+        }
     }
 }

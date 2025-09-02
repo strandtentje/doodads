@@ -30,13 +30,18 @@ public class BoundsValidatingDateCollection(DateOnly lbound, DateOnly ubound) : 
                     System.Globalization.DateTimeStyles.None,
                     out parsed))
             {
+                Reason = "Format incorrect";
                 IsSatisfied = false;
                 return;
             }
         }
         IsSatisfied &= parsed >= lbound && parsed <= ubound;
-        if (IsSatisfied) BackingValues.Add(transformed = parsed);
+        if (IsSatisfied)
+            BackingValues.Add(transformed = parsed);
+        else
+            Reason = "Out of bounds";
     }
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => BackingValues;
 }

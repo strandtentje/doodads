@@ -1,8 +1,12 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
 public static class HtmlFormExtensions
 {
-    public static string GetInputTypeName(this HtmlNode node) =>
-        node.Attributes.FirstOrDefault(x => x.Name == "type")?.Value ?? "text";
+    public static string GetInputTypeName(this HtmlNode node)
+    {
+        var r = node.Attributes.FirstOrDefault(x => x.Name == "type")?.Value ?? "text";
+        return r;
+    }
+
     public static string? GetInputName(this HtmlNode node) =>
         node.Attributes.FirstOrDefault(x => x.Name == "name")?.Value;
     public static void SetInputName(this HtmlNode node, string inputName)

@@ -17,8 +17,12 @@ public class ValidatingWeekCollection : IValidatingCollection
             BackingValues.Add(transformed = parsedWeek.ToDateOnly());
         }
         else
+        {
+            Reason = "Bad format";
             IsSatisfied = false;
+        }
     }
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; }
     public IEnumerable ValidItems => BackingValues;
 }

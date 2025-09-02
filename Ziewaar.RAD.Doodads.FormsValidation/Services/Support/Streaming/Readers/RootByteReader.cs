@@ -1,8 +1,9 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
-public class RootByteReader(Stream stream, long limit = -1, params byte[] terminators) : ICountingEnumerator<byte>
+public class RootByteReader(Stream stream, long limit = -1, params byte[] terminators) : ICountingEnumerator<byte>, ILongPosition
 {
     public bool AtEnd { get; private set; }
     private readonly long StartingPosition = stream.Position;
+    public long Limit => limit;
     public static ICountingEnumerator<byte> Empty = new RootByteReader(new MemoryStream([]));
     public bool MoveNext()
     {

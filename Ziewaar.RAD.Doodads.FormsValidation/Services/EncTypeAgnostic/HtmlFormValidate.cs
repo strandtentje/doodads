@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
@@ -30,41 +31,65 @@ public class HtmlFormValidate : IService
         }
 
         var validationBuilder = FormValidationInteraction.Build().SetStack(interaction);
+        List<FormStructureMember> remainingFields = formStructure.Members.ToList();
         foreach (var field in formData.Data)
         {
             if (!nameMapping.TryGetRealNameOf(field.Key, out string? realName) || realName == null)
             {
                 validationBuilder.SetHeadFailure("Unknown field name in data");
-                return;
+                break;
             }
 
-            var validationMember = formStructure.Members.Single(x => x.Name == realName);
-            var validatingCollection = validationMember.CreateValidatingCollection();
+            if (realName == "choice" || realName == "color")
+            {
+                Debug.WriteLine("hi");
+            }
 
-            foreach (object incomingData in field)
-                validatingCollection.Add(incomingData, out var _);
-            if (validatingCollection.IsSatisfied)
-            {
-                var validatedValues = validatingCollection.ValidItems.OfType<object>().ToArray();
-                if (validatedValues.Length == 0)
-                    validationBuilder.NoValuesFor(validationMember.Name);
-                else if (validatedValues.Length == 1)
-                    validationBuilder.SingleValueFor(validationMember.Name, validatedValues.Single());
-                else
-                    validationBuilder.MultipleValuesFor(validationMember.Name, validatedValues);
-            }
-            else
-            {
-                validationBuilder.SetFieldFailure(field.Key);
-                return;
-            }
+            var memberIndex =
+                remainingFields.FindIndex(x => x.Name.Equals(realName, StringComparison.OrdinalIgnoreCase));
+            var validationMember = remainingFields[memberIndex];
+            remainingFields.RemoveAt(memberIndex);
+
+            if (!TryAmendValidationBuilder(validationBuilder, validationMember, field))
+                break;
         }
 
+        foreach (FormStructureMember leftover in remainingFields)
+            if (!TryAmendValidationBuilder(validationBuilder, leftover, []))
+                break;
+        
         var validation = validationBuilder.Build();
         if (validation.IsValid)
             OnThen?.Invoke(this, validation);
         else
             OnElse?.Invoke(this, validation);
+    }
+
+    private static bool TryAmendValidationBuilder(
+        FormValidationInteraction.FormValidationInteractionBuilder validationBuilder,
+        FormStructureMember validationMember, IEnumerable<object> fieldValues)
+    {
+        var validatingCollection = validationMember.CreateValidatingCollection();
+
+        foreach (object incomingData in fieldValues)
+            validatingCollection.Add(incomingData, out var _);
+        if (validatingCollection.IsSatisfied)
+        {
+            var validatedValues = validatingCollection.ValidItems.OfType<object>().ToArray();
+            if (validatedValues.Length == 0)
+                validationBuilder.NoValuesFor(validationMember.Name);
+            else if (validatedValues.Length == 1)
+                validationBuilder.SingleValueFor(validationMember.Name, validatedValues.Single());
+            else
+                validationBuilder.MultipleValuesFor(validationMember.Name, validatedValues);
+        }
+        else
+        {
+            validationBuilder.SetFieldFailure(validationMember.Name);
+            return false;
+        }
+
+        return true;
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

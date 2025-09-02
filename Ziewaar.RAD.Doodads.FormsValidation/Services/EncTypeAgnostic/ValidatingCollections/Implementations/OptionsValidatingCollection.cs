@@ -8,15 +8,12 @@ public class OptionsValidatingCollection(string[] validOptions) : IValidatingCol
         if (!IsSatisfied) return;
         if (validOptions.Any())
         {
-            if (value is Stream)
-                IsSatisfied = false;
+            transformed = value.ToString() ?? "";
+            IsSatisfied &= validOptions.Contains(transformed);
+            if (IsSatisfied)
+                ValueStore.Add(transformed);
             else
-            {
-                transformed = value.ToString() ?? "";
-                IsSatisfied &= validOptions.Contains(transformed);
-                if (IsSatisfied)
-                    ValueStore.Add(transformed);
-            } 
+                Reason = "Not among options";
         }
         else
         {
@@ -24,5 +21,6 @@ public class OptionsValidatingCollection(string[] validOptions) : IValidatingCol
         }
     }
     public bool IsSatisfied { get; private set; } = true;
+    public string Reason { get; private set; } = "";
     public IEnumerable ValidItems => ValueStore;
 }

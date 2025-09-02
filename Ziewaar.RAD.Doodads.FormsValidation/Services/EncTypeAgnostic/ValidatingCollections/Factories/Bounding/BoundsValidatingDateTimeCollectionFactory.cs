@@ -1,6 +1,7 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories.Bounding;
 public class BoundsValidatingDateTimeCollectionFactory(string[] lbounds, string[] ubounds) : IValidatingCollectionFactory
 {
+    public bool CanConstrain => lbounds.Any() || ubounds.Any();
     private static readonly string[] DateTimeLocalFormats = new[]
     {
         "yyyy'-'MM'-'dd'T'HH':'mm",

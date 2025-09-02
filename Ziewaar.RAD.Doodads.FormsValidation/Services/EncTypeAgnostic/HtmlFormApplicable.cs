@@ -5,6 +5,7 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.StreamingUrlEncoded;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
+
 public class HtmlFormApplicable : IService
 {
     private readonly UpdatingKeyValue MaxBytesConstant = new("maxlength");
@@ -13,8 +14,10 @@ public class HtmlFormApplicable : IService
     private bool RequireContentLength = true;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnOverflow;
+    public event CallForInteraction? OnProgress;
+    public event CallForInteraction? OnRejection;
     public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, MaxBytesConstant).IsRereadRequired(out object? maxCandidate))
@@ -59,7 +62,7 @@ public class HtmlFormApplicable : IService
             {
                 if (queryString.Length > CurrentByteLimit)
                 {
-                    OnOverflow?.Invoke(this, interaction);
+                    OnRejection?.Invoke(this, interaction);
                     GlobalLog.Instance?.Debug(
                         "URL Query formdata too long; configure maxlength if this shouldn't be happening");
                     return;
@@ -98,44 +101,67 @@ public class HtmlFormApplicable : IService
 
         if (RequireContentLength && incomingLength == -1)
         {
-            OnOverflow?.Invoke(this, interaction);
+            OnRejection?.Invoke(this, interaction);
             GlobalLog.Instance?.Debug(
                 "No content length provided, but required for this form. Switch off requirecontentlength to be more lenient.");
             return;
         }
 
-        if (incomingLength > -1 && incomingLength > CurrentByteLimit)
+        RootByteReader limitedByteReader;
+        if (incomingLength > -1)
         {
-            OnOverflow?.Invoke(this, interaction);
-            GlobalLog.Instance?.Debug("maxlength exceeded on Content Length header.");
-            return;
-        }
-
-        if (incomingContentType == "application/x-www-form-urlencoded")
-        {
-            var byteReader = new RootByteReader(formDataSource.SourceBuffer, CurrentByteLimit);
-            var urlEncodedReader = new UrlEncodedTokenReader(byteReader);
-            formData = new StreamingFormDataEnumerable(urlEncodedReader);
-            OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, formData));
-        }
-        else if (incomingContentType == "multipart/form-data")
-        {
-            if (!interaction.TryGetClosest<IContentTypePropertiesInteraction>(out var contTypeProperties)
-                || contTypeProperties == null
-                || !contTypeProperties.ContentTypeProperties.TryGetValue("boundary", out string boundaryText))
+            if (incomingLength > CurrentByteLimit)
             {
-                OnException?.Invoke(this,
-                    new CommonInteraction(interaction, "Multipart form data must have properties in the content type"));
+                OnRejection?.Invoke(this, interaction);
+                GlobalLog.Instance?.Debug("maxlength exceeded on Content Length header.");
                 return;
             }
+            else
+            {
+                limitedByteReader = new RootByteReader(formDataSource.SourceBuffer, incomingLength);
+            }
+        }
+        else
+        {
+            limitedByteReader = new RootByteReader(formDataSource.SourceBuffer, CurrentByteLimit);
+        }
 
-            var limitedByteReader = new RootByteReader(
-                formDataSource.SourceBuffer, CurrentByteLimit);
-            var terminatingByteReader = MultibyteEotReader.CreateForAscii(
-                limitedByteReader, $"--{boundaryText}--");
-            var multipartEncodedReader = new MultipartGroupList(
-                terminatingByteReader, boundaryText);
-            OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, multipartEncodedReader));
+        FormProgressInteraction progress = new(interaction, limitedByteReader, new());
+        OnProgress?.Invoke(this, progress);
+        try
+        {
+            if (incomingContentType == "application/x-www-form-urlencoded")
+            {
+                var urlEncodedReader = new UrlEncodedTokenReader(limitedByteReader);
+                formData = new StreamingFormDataEnumerable(urlEncodedReader);
+                OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, formData));
+            }
+            else if (incomingContentType == "multipart/form-data")
+            {
+                if (!interaction.TryGetClosest<IContentTypePropertiesInteraction>(out var contTypeProperties)
+                    || contTypeProperties == null
+                    || !contTypeProperties.ContentTypeProperties.TryGetValue("boundary", out string? boundaryText))
+                {
+                    OnException?.Invoke(this,
+                        new CommonInteraction(interaction,
+                            "Multipart form data must have properties in the content type"));
+                    return;
+                }
+
+                var terminatingByteReader = MultibyteEotReader.CreateForAscii(
+                    limitedByteReader, $"--{boundaryText}--");
+                var multipartEncodedReader = new MultipartGroupList(
+                    terminatingByteReader, boundaryText);
+                OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, multipartEncodedReader));
+            }
+            else
+            {
+                OnRejection?.Invoke(this, interaction);
+            }
+        }
+        finally
+        {
+            progress.Finish();
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

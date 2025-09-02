@@ -33,6 +33,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
                 }
                 else
                 {
+                    this.InfoOutputs["Validation State"] = "failed";
                     this.InfoOutputs[$"{fieldKey} State"] = "failed";
                 }
 

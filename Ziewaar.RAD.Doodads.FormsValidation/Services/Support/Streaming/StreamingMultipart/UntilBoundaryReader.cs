@@ -6,7 +6,7 @@ public class UntilBoundaryReader(MultibyteEotReader signalReader, MultibyteEotRe
 {
     public byte Current { get; private set; }
     private readonly Queue<byte> ByteQueue =
-        new(signalReader.FittingBuffer.Length + boundaryReader.FittingBuffer.Length);
+        new(signalReader.DetectionBuffer.Length + boundaryReader.DetectionBuffer.Length);
     object? IEnumerator.Current => Current;
     public bool AtEnd { get; private set; }
     public long Cursor { get; private set; }

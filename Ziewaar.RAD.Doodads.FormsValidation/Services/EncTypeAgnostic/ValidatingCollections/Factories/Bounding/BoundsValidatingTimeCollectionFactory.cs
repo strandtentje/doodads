@@ -1,6 +1,7 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories.Bounding;
 public class BoundsValidatingTimeCollectionFactory(string[] lbounds, string[] ubounds) : IValidatingCollectionFactory
-{// Drop-in: replace fields in BoundsValidatingTimeCollectionFactory
+{
+    public bool CanConstrain => lbounds.Any() || ubounds.Any();
     private static readonly string[] TimeFormats = new[]
     {
         "HH':'mm",
