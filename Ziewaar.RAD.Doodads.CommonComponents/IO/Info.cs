@@ -41,6 +41,11 @@ public class Info : IService
                 infoToWorkWith = new FileInfo(path);
             else if (Directory.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
+            else
+            {
+                OnElse?.Invoke(this, interaction);
+                return;
+            }
         }
         if (infoToWorkWith is FileSystemInfo info)
         {
