@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.ModuleLoader;
 using Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
@@ -20,13 +21,13 @@ public class BootstrappedStart(string workingDirectory, Assembly[] populateAssem
     public IReadOnlyList<string> LoadFiles => loadFiles;
     public string StartFile => startFile;
     public IReadOnlyDictionary<string, object> RootInteractionMemory => rootInteractionMemory;
-    public void Run()
+    public void Run(IInteraction? rootInteraction = null)
     {
         GlobalLog.Instance?.Information("Bootstrapped start information: {info}", JsonConvert.SerializeObject(this, Formatting.Indented));
         Environment.CurrentDirectory = WorkingDirectory;
         foreach (var item in populateAssemblies)
             TypeRepository.Instance.PopulateWith(item);
-        var rootInteraction = new RootInteraction("", rootInteractionMemory);
+        rootInteraction ??= new RootInteraction("", rootInteractionMemory);
         try
         {
             foreach (var item in loadFiles)
