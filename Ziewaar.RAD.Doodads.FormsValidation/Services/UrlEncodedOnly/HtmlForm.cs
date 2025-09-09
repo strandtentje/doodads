@@ -67,17 +67,9 @@ public class HtmlForm : IService
             {
                 parsedForm = new FormDataDictionary(queryString);
             }
-            else if (fieldset.Method == HttpMethod.Post
-                     && interaction.TryGetClosest<ISourcingInteraction>(out var multipartSource)
-                     && multipartSource != null
-                     && fieldset.IsMultipartAndMatches(multipartSource.SourceContentTypePattern))
-            {
-                StreamingMultipartFormDataParser x = new(multipartSource.SourceBuffer);
-                
-            }
             else
             {
-                OnException?.Invoke(this, new CommonInteraction(interaction, "bad method or no data"));
+                OnException?.Invoke(this, new CommonInteraction(interaction, "bad method or no data (note: HtmlForm does not support multipart; use HtmlFormPrepare and related services instead."));
                 return;
             }
             if (csrfFields != null)
