@@ -21,7 +21,7 @@ public static class MultipartHeaderValidation
             failureReason = "Byte stream not tagged with supplementary information";
             return false;
         }
-        else if (taggedByteEnumerator.Tag is not MultipartHeaderCollection headerCollection)
+        else if (taggedByteEnumerator.Tag is not IEnumerable<MultipartHeader> headerCollection)
         {
             failureReason = "Supplementary information wasn't headers";
             return false;
@@ -44,7 +44,7 @@ public static class MultipartHeaderValidation
             failureReason = "Field had no name";
             return false;
         }
-        else if (expectedName.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+        else if (!expectedName.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
         {
             failureReason = "Field name did not match";
             return false;

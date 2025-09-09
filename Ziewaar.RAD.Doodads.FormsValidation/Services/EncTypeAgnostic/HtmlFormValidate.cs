@@ -30,7 +30,7 @@ public class HtmlFormValidate : IService
             return;
         }
 
-        var validationBuilder = FormValidationInteraction.Build().SetStack(interaction);
+        using var validationBuilder = FormValidationInteraction.Build().SetStack(interaction);
         List<FormStructureMember> remainingFields = formStructure.Members.ToList();
         foreach (var field in formData.Data)
         {

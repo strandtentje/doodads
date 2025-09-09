@@ -13,9 +13,11 @@ public class MultibyteEotReader(
 {
     public static MultibyteEotReader CreateForCrlf(ICountingEnumerator<byte> source, long limit = 1024) =>
         new(source, "\r\n"u8.ToArray(), limit);
+
     public static MultibyteEotReader
         CreateForCrLfDashDash(ICountingEnumerator<byte> source, long limit = int.MaxValue) =>
         new(source, "\r\n--"u8.ToArray(), limit);
+
     public static MultibyteEotReader CreateForAscii(ICountingEnumerator<byte> source, string asciiText,
         long limit = int.MaxValue) =>
         new(source, Encoding.ASCII.GetBytes(asciiText), limit);
@@ -28,19 +30,21 @@ public class MultibyteEotReader(
     public long Cursor { get; private set; }
     private long DetectionCursor;
     public string? ErrorState { get; set; }
+
     public bool MoveNext()
     {
         if (!IsBeforeLimit())
             return false;
-        
+
         RefillDetectionBuffer();
-        
+
         for (var detectionPosition = Cursor; detectionPosition < DetectionCursor; detectionPosition++)
             if (HasFoundNewNonTerminatingByte(detectionPosition))
                 return true;
-        
+
         return TerminationSequenceDetected();
     }
+
     private bool IsBeforeLimit()
     {
         if (Cursor >= limit)
@@ -51,16 +55,18 @@ public class MultibyteEotReader(
 
         return true;
     }
-    
+
     private void RefillDetectionBuffer()
     {
         while (DetectionCursor < Cursor + eotMarker.Length)
         {
             if (!byteSource.MoveNext())
                 break;
-            DetectionBuffer.SetCircular(DetectionCursor + 1, byte.MinValue).SetCircular(DetectionCursor++, byteSource.Current);
+            DetectionBuffer.SetCircular(DetectionCursor + 1, byte.MinValue)
+                .SetCircular(DetectionCursor++, byteSource.Current);
         }
     }
+
     private bool HasFoundNewNonTerminatingByte(long bytePosition)
     {
         var candidateEotByte = DetectionBuffer.GetCircular(bytePosition);
@@ -72,16 +78,19 @@ public class MultibyteEotReader(
 
         return false;
     }
+
     private bool TerminationSequenceDetected()
     {
         AtEnd = true;
         return false;
     }
+
     public void ForSelection(Action<byte> callBack)
     {
         for (var i = Cursor; i < DetectionCursor; i++)
             callBack(DetectionBuffer.GetCircular(i));
     }
+
     public void Reset()
     {
         AtEnd = false;
@@ -89,6 +98,7 @@ public class MultibyteEotReader(
         DetectionCursor = 0;
         Array.Clear(DetectionBuffer);
     }
+
     public void Dispose()
     {
     }

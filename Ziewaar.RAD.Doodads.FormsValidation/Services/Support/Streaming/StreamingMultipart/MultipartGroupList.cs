@@ -4,9 +4,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 public class MultipartGroupList(ICountingEnumerator<byte> byteReader, string boundaryAscii) :
     IEnumerable<IGrouping<string, object>>
 {
-    private readonly UntilBoundaryReader boundaryDetector = new(
-        MultibyteEotReader.CreateForCrLfDashDash(byteReader),
-        MultibyteEotReader.CreateForAscii(byteReader, boundaryAscii));
+    private readonly MultibyteEotReader boundaryDetector = MultibyteEotReader.CreateForAscii(byteReader, boundaryAscii);
     private readonly MultibyteEotReader crlfDetector = MultibyteEotReader.CreateForCrlf(byteReader);
     public IEnumerator<IGrouping<string, object>> GetEnumerator()
     {

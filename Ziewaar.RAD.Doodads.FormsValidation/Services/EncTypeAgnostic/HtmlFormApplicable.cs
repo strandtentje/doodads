@@ -10,7 +10,7 @@ public class HtmlFormApplicable : IService
 {
     private readonly UpdatingKeyValue MaxBytesConstant = new("maxlength");
     private readonly UpdatingKeyValue DisableContentLengthRequirementConstant = new("requirecontentlength");
-    private int CurrentByteLimit = 2048;
+    private long CurrentByteLimit = 2048;
     private bool RequireContentLength = true;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
@@ -24,8 +24,10 @@ public class HtmlFormApplicable : IService
         {
             if (maxCandidate == null)
                 this.CurrentByteLimit = 2048;
-            else
-                this.CurrentByteLimit = (int)Convert.ToDecimal(maxCandidate);
+            else if (maxCandidate is decimal byteCount)
+                this.CurrentByteLimit = (long)byteCount;
+            else if (maxCandidate is string byteExpression)
+                this.CurrentByteLimit = byteExpression.ParseByteSize();
         }
 
         if ((constants, DisableContentLengthRequirementConstant).IsRereadRequired(
@@ -41,8 +43,8 @@ public class HtmlFormApplicable : IService
 
         if (!interaction.TryFindVariable("method", out string? candidateMethod) ||
             candidateMethod == null ||
-            !interaction.TryFindVariable("url", out string? candiateUrl) ||
-            candiateUrl == null)
+            !interaction.TryFindVariable("url", out string? candidateUrl) ||
+            candidateUrl == null)
         {
             OnException?.Invoke(this,
                 new CommonInteraction(interaction,
@@ -57,7 +59,7 @@ public class HtmlFormApplicable : IService
 
         if (parsedMethod == HttpMethod.Get)
         {
-            if (formStructure.AppliesTo(parsedMethod, candiateUrl, incomingContentType) &&
+            if (formStructure.AppliesTo(parsedMethod, candidateUrl, incomingContentType) &&
                 interaction.TryFindVariable("query", out string? queryString) && queryString != null)
             {
                 if (queryString.Length > CurrentByteLimit)
@@ -93,7 +95,7 @@ public class HtmlFormApplicable : IService
         incomingContentType = formDataSource.SourceContentTypePattern;
         var incomingLength = formDataSource.SourceContentLength;
 
-        if (!formStructure.AppliesTo(parsedMethod, candidateMethod, incomingContentType))
+        if (!formStructure.AppliesTo(parsedMethod, candidateUrl, incomingContentType))
         {
             OnElse?.Invoke(this, interaction);
             return;
@@ -148,10 +150,12 @@ public class HtmlFormApplicable : IService
                     return;
                 }
 
+                var prefixedByteReader = new PrefixedReader(limitedByteReader, "\r\n"u8.ToArray());
+                var debugByteReader = prefixedByteReader;// new DebugReader(prefixedByteReader);
                 var terminatingByteReader = MultibyteEotReader.CreateForAscii(
-                    limitedByteReader, $"--{boundaryText}--");
+                    debugByteReader, $"--{boundaryText}--");
                 var multipartEncodedReader = new MultipartGroupList(
-                    terminatingByteReader, boundaryText);
+                    terminatingByteReader, $"\r\n--{boundaryText}");
                 OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, multipartEncodedReader));
             }
             else

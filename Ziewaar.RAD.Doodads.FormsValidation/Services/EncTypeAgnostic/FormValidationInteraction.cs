@@ -1,7 +1,6 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
 {
-    public class FormValidationInteraction(IInteraction stack, IReadOnlyDictionary<string, object> data, bool isValid)
-        : IInteraction
+    public class FormValidationInteraction(IInteraction stack, IReadOnlyDictionary<string, object> data, bool isValid) : IInteraction
     {
         public bool IsValid => isValid;
         public IInteraction Stack => stack;
@@ -9,7 +8,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
         public IReadOnlyDictionary<string, object> Memory => data;
         public static FormValidationInteractionBuilder Build() => new();
 
-        public class FormValidationInteractionBuilder
+        public class FormValidationInteractionBuilder : IDisposable
         {
             private IInteraction Stack = StopperInteraction.Instance;
             private readonly SortedList<string, object> DataOutputs = new(), InfoOutputs = new();
@@ -52,8 +51,10 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
 
                 return this;
             }
+            private readonly List<FileInfo> TemporaryFiles = new();
             public FormValidationInteractionBuilder SingleValueFor(string fieldKey, object single)
             {
+                if (single is FileInfo fileInfo) TemporaryFiles.Add(fileInfo);
                 if (IsFieldnameConflicting(fieldKey))
                 {
                     this.InfoOutputs["Validation State"] = "conflict";
@@ -68,6 +69,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
             }
             public FormValidationInteractionBuilder MultipleValuesFor(string fieldKey, object[] validatedValues)
             {
+                TemporaryFiles.AddRange(validatedValues.OfType<FileInfo>());
                 if (IsFieldnameConflicting(fieldKey))
                 {
                     this.InfoOutputs["Validation State"] = "conflict";
@@ -92,6 +94,19 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
                     return new FormValidationInteraction(this.Stack, new FallbackReadOnlyDictionary(this.InfoOutputs, this.DataOutputs), true);
                 }
             }
+            public void Dispose()
+            {
+                foreach (FileInfo temporaryFile in TemporaryFiles)
+                {
+                    if (temporaryFile.Exists)
+                        temporaryFile.Delete();
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

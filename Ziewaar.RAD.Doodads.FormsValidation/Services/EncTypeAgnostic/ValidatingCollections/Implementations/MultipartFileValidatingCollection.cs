@@ -45,10 +45,11 @@ public class MultipartFileValidatingCollection(
         var formAcceptsText = acceptedMimes.Any(x => x.StartsWith("text/")) ||
                               acceptedExtensions.Contains(cleanExtension) ||
                               acceptedExtensions.Contains(".txt");
+        
+        var detector = new MimeTypeDetector(data);
 
         if (headerAnnouncesText && formAcceptsText)
         {
-            var detector = new MimeTypeDetector(data);
             if (!detector.IsText)
             {
                 IsSatisfied = false;
@@ -61,23 +62,34 @@ public class MultipartFileValidatingCollection(
             Transformations.Add(transformed);
             return;
         }
-        else if (mimeTypeFromFilename.MimeType == mimeTypeFromHeader &&
-                 (acceptedMimes.Contains(mimeTypeFromHeader) || acceptedExtensions.Contains(cleanExtension)))
-        {
-            var detector = new MimeTypeDetector(data);
-            if (detector.DetectedMime == mimeTypeFromHeader || acceptedMimes.Contains(detector.DetectedMime))
-            {
-                IsSatisfied = true;
-                transformed = new TaggedReader(detector) { Tag = cleanFilename };
-                Transformations.Add(transformed);
-                return;
-            }
-        }
         else
         {
-            IsSatisfied = false;
-            Reason = "Mimetype Mismatch; rejected.";
-            return;
+            string fileMimeClass = mimeTypeFromFilename.MimeType.Split('/', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "application";
+            string headerMimeClass = mimeTypeFromHeader.Split('/', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "application";
+            if (fileMimeClass.Equals(headerMimeClass, StringComparison.OrdinalIgnoreCase) &&
+                acceptedMimes.Any(x => ContentTypeMatcher.IsSubset(dom: x, sub: mimeTypeFromHeader) || 
+                                       acceptedExtensions.Contains(cleanExtension, StringComparer.OrdinalIgnoreCase)))
+            {
+                if (detector.DetectedMime == mimeTypeFromHeader || 
+                    acceptedMimes.Any(x => ContentTypeMatcher.IsSubset(dom: x, sub: detector.DetectedMime)))
+                {
+                    IsSatisfied = true;
+                    transformed = new TaggedReader(detector) { Tag = cleanFilename };
+                    Transformations.Add(transformed);
+                    return;
+                }
+            }
+            else if (data is { AtEnd: true, Cursor: 0 })
+            {
+                IsSatisfied = true;
+                transformed = Zero.Instance;
+            } 
+            else
+            {
+                IsSatisfied = false;
+                Reason = "Mimetype Mismatch; rejected.";
+                return;
+            }
         }
     }
 }

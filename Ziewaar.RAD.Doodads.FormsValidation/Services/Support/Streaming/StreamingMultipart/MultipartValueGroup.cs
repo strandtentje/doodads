@@ -2,13 +2,13 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 public class MultipartValueGroup : IGrouping<string, object>
 {
     private readonly MultibyteEotReader CrlfDetector;
-    private readonly UntilBoundaryReader BoundaryDetector;
+    private readonly MultibyteEotReader BoundaryDetector;
     public MultipartValueGroup? NextGroup { get; private set; }
     private MultipartHeader[]? Headers { get; } = null;
     public string Key { get; }
     public MultipartValueGroup(
         MultibyteEotReader crlfDetector,
-        UntilBoundaryReader boundaryDetector,
+        MultibyteEotReader boundaryDetector,
         MultipartHeader[]? headers = null)
     {
         this.CrlfDetector = crlfDetector;
@@ -36,6 +36,7 @@ public class MultipartValueGroup : IGrouping<string, object>
         while (true)
         {
             if (Headers == null) yield break;
+            BoundaryDetector.Reset();
             yield return new TaggedReader(BoundaryDetector) { Tag = Headers };
 
             if (!BoundaryDetector.AtEnd)
@@ -46,6 +47,7 @@ public class MultipartValueGroup : IGrouping<string, object>
                 CrlfDetector.Reset();
                 yield break;
             }
+            CrlfDetector.Reset();
             MultipartHeader[]? newHeaders = null;
             if (!TryConsumeHeaders(ref newHeaders, out var newFieldName))
                 yield break;

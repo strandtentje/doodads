@@ -5,7 +5,7 @@ public class ValidatingFileCollection : IValidatingCollection
     public void Add(object value, out object transformed)
     {
         transformed = value;
-        IsSatisfied &= value is ITaggedCountingEnumerator<byte> data && data.Tag is string fileName;
+        IsSatisfied &= value is FileInfo;
         if (IsSatisfied)
             BackingValues.Add(value);
         else

@@ -24,7 +24,7 @@ public class FormStructureMemberBuilder
             throw new ArgumentException("Form declares a field that's both a file and a regular input");
         this.InputClasses = inputTypes;
         IValidatingCollectionFactory[] fieldTypeValidators =
-            [..inputTypes.Select(field => new TypeValidatingCollectionFactory(field.Tag, field.Type))];
+            [..inputTypes.Distinct().Select(field => new TypeValidatingCollectionFactory(field.Tag, field.Type))];
         this.FieldTypeValidator = new AllValidCollectionsFactory(fieldTypeValidators);
         return this;
     }

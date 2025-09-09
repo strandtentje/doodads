@@ -68,15 +68,18 @@ public static class NodeExtensions
         return false;
     }
 
-    public static uint GetMinLength(this IEnumerable<HtmlNode> nodes) =>
-        nodes.NotDisabled().Select(x => x.GetUnsignedAttributeOrDefault("minlength", uint.MinValue))
-            .Concat([uint.MinValue])
+    public static uint GetMinLength(this IEnumerable<HtmlNode> nodes)
+    {
+        return nodes.NotDisabled().Select(x => x.GetUnsignedAttributeOrDefault("minlength", uint.MinValue))
+            .Concat([(uint)0])
             .OrderByDescending(x => x).First();
+    }
 
-    public static uint GetMaxLength(this IEnumerable<HtmlNode> nodes) =>
-        nodes.NotDisabled().Select(x => x.GetUnsignedAttributeOrDefault("maxlength", uint.MaxValue))
-            .Concat([uint.MaxValue])
-            .OrderBy(x => x).First();
+    public static uint GetMaxLength(this IEnumerable<HtmlNode> nodes)
+    {
+        return nodes.NotDisabled().Select(x => x.GetUnsignedAttributeOrDefault("maxlength", uint.MaxValue))
+            .OrderBy(x => x).Concat([(uint)1000]).First();
+    }
 
     public static string[] GetMinValues(this IEnumerable<HtmlNode> nodes) =>
         nodes.NotDisabled()
