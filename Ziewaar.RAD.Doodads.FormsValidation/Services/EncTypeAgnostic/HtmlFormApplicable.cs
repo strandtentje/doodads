@@ -6,16 +6,41 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.StreamingUr
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
+[Category("Input & Validation")]
+[Title("Check if HTML form is applicable to the current HTTP request")]
+[Description("""
+             Provided an HtmlFormApplicable (in)directly invoked this, this will 
+             decide based on the interpreted form and the request that came in,
+             if the form is applicable and should be validated. 
+
+             It is also responsible for exposing the data stream progress.
+             """)]
 public class HtmlFormApplicable : IService
 {
+    [NamedSetting("maxlength",
+        "Max. bytes that may be submitted to this form. defaults to 2k and rejects beyond that.")]
     private readonly UpdatingKeyValue MaxBytesConstant = new("maxlength");
+
+    [NamedSetting("requirecontentlength",
+        "Set this to true to only accept requests that have a content length header set.")]
     private readonly UpdatingKeyValue DisableContentLengthRequirementConstant = new("requirecontentlength");
+
     private long CurrentByteLimit = 2048;
     private bool RequireContentLength = true;
+
+    [EventOccasion("When the form turned out to apply to the current request")]
     public event CallForInteraction? OnThen;
+
+    [EventOccasion("When the form did not apply to the current request")]
     public event CallForInteraction? OnElse;
+
+    [EventOccasion("Fires once before OnThen and puts (changing) progress values in memory. Use with ie. Maintain.")]
     public event CallForInteraction? OnProgress;
+
+    [EventOccasion("If the form was applicable, but rejected early for technical reasons.")]
     public event CallForInteraction? OnRejection;
+
+    [EventOccasion("Likely when this wasn't preceeded by HtmlFormPrepare or an HTTP reqeust.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -151,7 +176,7 @@ public class HtmlFormApplicable : IService
                 }
 
                 var prefixedByteReader = new PrefixedReader(limitedByteReader, "\r\n"u8.ToArray());
-                var debugByteReader = prefixedByteReader;// new DebugReader(prefixedByteReader);
+                var debugByteReader = prefixedByteReader; // new DebugReader(prefixedByteReader);
                 var terminatingByteReader = MultibyteEotReader.CreateForAscii(
                     debugByteReader, $"--{boundaryText}--");
                 var multipartEncodedReader = new MultipartGroupList(
@@ -168,5 +193,6 @@ public class HtmlFormApplicable : IService
             progress.Finish();
         }
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
