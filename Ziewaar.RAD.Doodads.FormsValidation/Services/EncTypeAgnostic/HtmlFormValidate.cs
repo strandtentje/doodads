@@ -3,10 +3,32 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
+[Category("Input & Validation")]
+[Title("For a prepared, applicable and optionally deobfuscated form, validate.")]
+[Description("""
+             Will validate incoming form data in a streaming way until validation breaks down.
+             Consequentially, bad requests short circuit hard and early and the remaining request
+             data will be rejected.
+             """)]
 public class HtmlFormValidate : IService
 {
+    [EventOccasion("""
+                   When validation succeeded, this will output the field values under the names
+                   as defined in the HTML form. When a field has multiple values, you will find
+                   the value 'multiple' under the memory location with the fieldname suffixed with
+                   ` state`. If there's nothing, it'll be 'empty'. If it's a single value that doesn't need
+                   iterating, it'll be 'single'.
+                   """)]
     public event CallForInteraction? OnThen;
+    [EventOccasion("""
+                   When validation fails, the first failed that it failed on will be marked in memory 
+                   under its name suffixed with ` state` as 'failed'.
+                   """)]
     public event CallForInteraction? OnElse;
+    [EventOccasion("""
+                   When there was no form data, no form was prepared or the names of the form fields couldn't 
+                   be retrieved.
+                   """)]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

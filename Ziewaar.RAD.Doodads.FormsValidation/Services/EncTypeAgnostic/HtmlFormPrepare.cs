@@ -5,10 +5,20 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
+[Category("Input & Validation")]
+[Title("Attempts to prepare for form validation based on an HTML form.")]
+[Description("""
+             Will parse any standard HTML form into a set of relatively sane validation rules.
+             HtmlFormValidate, HtmlFormApplicable and HtmlFormPrint(Obfuscated) rely on this 
+             service to have worked.
+             """)]
 public class HtmlFormPrepare : IService
 {
+    [EventOccasion("When the form is prepared and ready to use.")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Sink the HTML form body here using ie. FileTemplate")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When there was no (HTTP) sink to mimic for the HTML form source.")]
     public event CallForInteraction? OnException;
     private FormStructureInteractionBuilder? CurrentFormBuilder = null;
     private TextSinkingInteraction? CurrentHtmlSink = null;
