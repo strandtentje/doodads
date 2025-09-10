@@ -6,12 +6,18 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 [Description("Uses ReadCache, WriteCache and UsingCache internally to associate OnThen's stream source with keys and validation keys for caching.")]
 public class SinkCache : IService
 {
+    [NamedSetting("keys", "Memory names of cache member identity")]
+    private readonly UpdatingKeyValue CacheIdentityKeysConstant = new("keys");
+    [NamedSetting("validatekeys", "Memory names to validate cache contents with")]
+    private readonly UpdatingKeyValue CacheValidateKeysConstant = new("validatekeys");
     private readonly UsingSinkCache CacheChecker = new();
     private readonly ReadCache ReadCache = new();
     private readonly WriteCache WriteCache = new();
-    
+    [EventOccasion("Hook up sinker to cache from here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens()]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the internl UsinkSinkCache, ReadCache or WriteCache caused a problem.")]
     public event CallForInteraction? OnException;
 
     public SinkCache()

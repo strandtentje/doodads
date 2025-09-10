@@ -6,8 +6,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 [Description("Use when UseSinkCache had a cache hit and didn't detect invalid validation values.")]
 public class ReadCache : IService
 {
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

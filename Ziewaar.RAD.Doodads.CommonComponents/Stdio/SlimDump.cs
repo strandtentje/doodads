@@ -6,11 +6,15 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Description("Dont do this in prod.")]
 public class SlimDump : IService
 {
+    [PrimarySetting("Serilog-style log line that may optionally contain memory names")]
     private readonly UpdatingPrimaryValue DumpFormatConstant = new();
     private string DumpFormat = "";
     private List<string> DumpVarNames = new();
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

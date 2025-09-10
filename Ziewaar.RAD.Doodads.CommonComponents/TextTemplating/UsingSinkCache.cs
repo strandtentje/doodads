@@ -9,12 +9,17 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class UsingSinkCache : IService
 {
     private readonly SortedList<CacheKey, CacheValue> Items = new();
+    [NamedSetting("keys", "Memory names of cache member identity")]
     private readonly UpdatingKeyValue CacheIdentityKeysConstant = new("keys");
+    [NamedSetting("validatekeys", "Memory names to validate cache contents with")]
     private readonly UpdatingKeyValue CacheValidateKeysConstant = new("validatekeys");
     private object[] CurrentIdentityKeys = [];
     private object[] CurrentValidateKeys = [];
+    [EventOccasion("Always happens (cache hit or cache regen); hook up a cache outputter like ReadCache here")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("On cache miss; hook up a cache producer here like WriteCache")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no identity or validation values could be retrieved, or when a cache refresh couldn't be validated.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

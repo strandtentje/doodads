@@ -6,10 +6,20 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 [Description("Use when UseSinkCache had a cache miss and requires new data to be determined.")]
 public class WriteCache : IService
 {
+    [PrimarySetting("""
+                    Mime-type to default to (defaults to application/octet-stream) but will generally honour the 
+                    content type that was previously set.
+                    """)]
     private readonly UpdatingPrimaryValue DefaultMimeTypeConstant = new();
     private string CurrentDefaultMimeType = "application/octet-stream";
+    [EventOccasion("Sink stream to cache here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("""
+                   Either happens when there was no original sinking interaction to mimic, or when we attempted to
+                   cache without cache access.
+                   """)]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
