@@ -9,12 +9,17 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
              """)]
  public class MultipleDelete : IService
  {
+     [PrimarySetting("Path to delete files from")]
      private readonly UpdatingPrimaryValue DirectoryPathConst = new();
+     [NamedSetting("pattern", "File pattern like *.bmp to delete")]
      private readonly UpdatingKeyValue PatternConst = new("pattern");
      private string? DirPath;
      private string? Pattern;
+     [NeverHappens]
      public event CallForInteraction? OnThen;
+     [NeverHappens]
      public event CallForInteraction? OnElse;
+     [EventOccasion("When no pattern was provided.")]
      public event CallForInteraction? OnException;
      public void Enter(StampedMap constants, IInteraction interaction)
      {

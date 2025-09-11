@@ -27,14 +27,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="server.rkop">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="site.rkop">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="server.rkop">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="boot.rkop">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

@@ -1,6 +1,3 @@
-using Ziewaar.RAD.Doodads.FormsValidation.Common;
-using Ziewaar.RAD.Doodads.FormsValidation.Interactions;
-
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Body;
 #pragma warning disable 67
 public abstract class ReadEncodedBody<TDictionary> : IService where TDictionary : IDecodingDictionary
@@ -38,7 +35,7 @@ public abstract class ReadEncodedBody<TDictionary> : IService where TDictionary 
             if (interaction.TryGetClosest<ICsrfTokenSourceInteraction>(out var csrfInteraction) &&
                 interaction.TryGetClosest<PreValidationStateInteraction>(out var prevalidation) &&
                 csrfInteraction != null && prevalidation != null)
-                currentWhiteList = csrfInteraction.Fields.GetObfuscatedWhitelist(prevalidation.FormName);
+                currentWhiteList = csrfInteraction.Fields.GetSortedObfuscatedWhitelist(prevalidation.FormName);
             else
             {
                 OnException?.Invoke(this,

@@ -1,8 +1,10 @@
 ﻿using System.Globalization;
+using System.Xml.Schema;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 #nullable enable
+
 [Category("Printing & Formatting")]
 [Title("Templating service")]
 [Description("""
@@ -43,22 +45,28 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class Template : IService
 {
     private TextSinkingInteraction? templatefile = null;
+
     [NamedSetting("contenttype",
         "Force the content type to be the specified MIME instead of deriving it from the file")]
     private readonly UpdatingKeyValue ForceContentTypeConstant = new("contenttype");
+
     private readonly TemplateParser Parser = new();
     private string? ContentTypeOverride;
+
     [EventOccasion("When the template needs to buffer an updated version of the template text")]
     public event CallForInteraction? OnThen;
+
     [EventOccasion("""
                    For tags that started with an `>`, or didn't start with anything and weren't found in memory. 
                    Will put the tag name in Register.
                    """)]
     public event CallForInteraction? OnElse;
+
     [EventOccasion("""
                    Likely happens when the template couldn't find a place to write the result to.
                    """)]
     public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var output) || output == null)
@@ -77,6 +85,13 @@ public class Template : IService
                 templatefile.SinkBuffer.Dispose();
                 templatefile = null;
             }
+        }
+
+        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) &&
+            checkUpdateRequiredInteraction != null)
+        {
+            checkUpdateRequiredInteraction.IsRequired = true;
+            return;
         }
 
         if (templatefile == null)
@@ -173,6 +188,7 @@ public class Template : IService
                             if (text.Length > 0)
                                 break;
                         }
+
                         if (defaultValue is string defaultString)
                             writer.Write(segment.Type.ApplyFilterTo(defaultString));
                         else if (segment.Formatter != null && defaultValue is not null)
@@ -201,5 +217,6 @@ public class Template : IService
             writer.Close();
         }
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

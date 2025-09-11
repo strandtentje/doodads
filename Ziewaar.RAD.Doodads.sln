@@ -35,6 +35,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.FormsVa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Cryptography", "Ziewaar.RAD.Doodads.Cryptography\Ziewaar.RAD.Doodads.Cryptography.csproj", "{2642578C-0CDE-4362-8401-51A4A7C8D91A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.FormsValidation.Tests", "Ziewaar.RAD.Doodads.FormsValidation.Tests\Ziewaar.RAD.Doodads.FormsValidation.Tests.csproj", "{38E859B3-453C-4B5F-9835-072F5C9A3554}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.Testkit", "Ziewaar.RAD.Doodads.Testkit\Ziewaar.RAD.Doodads.Testkit.csproj", "{05FE5B02-222F-412E-955E-6B17E8BA00D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +109,14 @@ Global
 		{2642578C-0CDE-4362-8401-51A4A7C8D91A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2642578C-0CDE-4362-8401-51A4A7C8D91A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2642578C-0CDE-4362-8401-51A4A7C8D91A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38E859B3-453C-4B5F-9835-072F5C9A3554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38E859B3-453C-4B5F-9835-072F5C9A3554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38E859B3-453C-4B5F-9835-072F5C9A3554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38E859B3-453C-4B5F-9835-072F5C9A3554}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05FE5B02-222F-412E-955E-6B17E8BA00D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05FE5B02-222F-412E-955E-6B17E8BA00D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05FE5B02-222F-412E-955E-6B17E8BA00D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05FE5B02-222F-412E-955E-6B17E8BA00D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

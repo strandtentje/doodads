@@ -9,8 +9,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
              """)]
 public class DeleteFile : IService
 {
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When it didn't receive a file on the register")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

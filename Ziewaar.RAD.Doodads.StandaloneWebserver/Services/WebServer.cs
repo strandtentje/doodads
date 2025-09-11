@@ -74,7 +74,9 @@ public class WebServer : IService, IDisposable
             };
             startable.NewContext += (sender, context) =>
             {
-                var headInteraction = new HttpHeadInteraction(StartingInteraction ?? VoidInteraction.Instance, context,
+                var headInteraction = new HttpHeadInteraction(
+                    StartingInteraction ?? VoidInteraction.Instance,
+                    context,
                     Prefixes.ActiveExpandedPrefixes);
                 OnHead?.Invoke(this, headInteraction);
                 var requestInteraction = new HttpRequestInteraction(headInteraction, context);

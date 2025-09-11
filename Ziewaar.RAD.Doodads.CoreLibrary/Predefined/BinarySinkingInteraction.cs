@@ -5,15 +5,27 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public class BinarySinkingInteraction(IInteraction parent) : ISinkingInteraction, IDisposable
 {
     private bool disposedValue;
-    public Encoding TextEncoding { get; } = NoEncoding.Instance;
-    public Stream SinkBuffer { get; } = new MemoryStream();
-    public string[] SinkContentTypePattern { get; } = ["*/*"];
+    public Encoding TextEncoding { get; private set;} = NoEncoding.Instance;
+    private readonly MemoryStream buffer = new MemoryStream();
+    public Stream SinkBuffer => buffer;
+    public string[] SinkContentTypePattern { get; private set;  } = ["*/*"];
     public string? SinkTrueContentType { get; set; }
     public long LastSinkChangeTimestamp { get; set; }
-    public string Delimiter { get; } = "";
+    public string Delimiter { get; private set;} = "";
     public IInteraction Stack { get; } = parent;
-    public object Register { get; } = parent.Register;
-    public IReadOnlyDictionary<string, object> Memory { get; } = parent.Memory;
+    public object Register { get; private set;} = parent.Register;
+    public IReadOnlyDictionary<string, object> Memory { get; private set; } = parent.Memory;
+    public static BinarySinkingInteraction CreateIntermediateFor(ISinkingInteraction original, IInteraction offset,
+        object? register = null, IReadOnlyDictionary<string, object>? memory = null) =>
+        new(offset)
+        {
+            SinkContentTypePattern = original.SinkContentTypePattern,
+            SinkTrueContentType = original.SinkTrueContentType,
+            Delimiter = original.Delimiter,
+            TextEncoding = original.TextEncoding,
+            Register = register ?? offset.Register,
+            Memory = memory ?? offset.Memory
+        };
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
@@ -45,6 +57,8 @@ public class BinarySinkingInteraction(IInteraction parent) : ISinkingInteraction
 
     public void SetContentLength64(long contentLength)
     {
-
+        
     }
+
+    public byte[] GetData() => buffer.ToArray();
 }

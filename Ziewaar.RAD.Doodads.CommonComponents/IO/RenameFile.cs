@@ -9,10 +9,16 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
              """)]
 public class RenameFile : IService
 {
+    [EventOccasion("Sink new filename here.")]
     public event CallForInteraction? SinkNewName;
 
+    [EventOccasion("Has renamed file in register")]
     public event CallForInteraction? OnThen;
+
+    [EventOccasion("When no file was found to rename")]
     public event CallForInteraction? OnElse;
+
+    [EventOccasion("Never happens")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -23,13 +29,14 @@ public class RenameFile : IService
             infoToWorkWith = registerInfo;
         }
         else if (interaction.Register is object pathObject &&
-            pathObject.ToString() is string path)
+                 pathObject.ToString() is string path)
         {
             if (File.Exists(path))
                 infoToWorkWith = new FileInfo(path);
             else if (Directory.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
         }
+
         if (infoToWorkWith is FileSystemInfo info)
         {
             if (!info.Exists)

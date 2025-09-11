@@ -7,12 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Ziewaar.RAD.Doodads.CommonComponents\Ziewaar.RAD.Doodads.CommonComponents.csproj" />
       <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="EmailValidation" Version="1.3.0" />
       <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
+      <PackageReference Include="HttpMultipartParser" Version="9.0.0" />
       <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
     </ItemGroup>
 

@@ -21,7 +21,7 @@
         };
     }
     | ExactRoute("GET /docs") 
-    : Dump("Rendering Docs") : ^!"title" = "Doodads Service Docs" : <"@ Skeleton"> {  
+    :^!"title" = "Doodads Service Docs" : <"@ Skeleton"> {  
         : <"@ H1"> :$ "Service Docs!"
         & <"@ Categorized Services">;
     }

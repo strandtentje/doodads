@@ -140,7 +140,7 @@ public class CsrfFields(
         }
     }
 
-    public string[] GetObfuscatedWhitelist(string formName)
+    public string[] GetSortedObfuscatedWhitelist(string formName)
     {
         return commands.UseCommand(command =>
         {
@@ -168,7 +168,7 @@ public class CsrfFields(
         });
     }
 
-    public string[] GetDeobfuscatedWhitelist(string formName)
+    public string[] GetSortedDeobfuscatedWhitelist(string formName)
     {
         return commands.UseCommand(command =>
         {
