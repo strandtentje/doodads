@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.RKOP.Text;
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
 public class ServiceConstantsDescription : IParityParser, IReadOnlyDictionary<string, object>
 {
-    private List<ServiceConstantsMember> Members = new();
+    public List<ServiceConstantsMember> Members = new();
     public ParityParsingState UpdateFrom(ref CursorText text)
     {
         int oCounter = Members.Count;

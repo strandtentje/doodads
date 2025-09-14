@@ -9,7 +9,7 @@ public class RegularNamedConstructor : ISerializableConstructor
     public object? PrimarySettingValue => PrimaryExpression.GetValue();
     public IReadOnlyDictionary<string, object> ConstantsList => Constants;
     private ServiceConstantExpression PrimaryExpression = new();
-    private ServiceConstantsDescription Constants = new();
+    public ServiceConstantsDescription Constants = new();
     public bool UpdateFrom(ref CursorText text)
     {
         text = text

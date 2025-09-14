@@ -2,7 +2,6 @@
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor;
-
 public class ServiceConstantExpression : IParityParser
 {
     public ConstantType ConstantType;
@@ -10,8 +9,7 @@ public class ServiceConstantExpression : IParityParser
     public FileInWorkingDirectory PathValue;
     public bool BoolValue;
     public decimal NumberValue;
-    private ServiceConstantExpression[] ArrayItems = [];
-
+    public ServiceConstantExpression[] ArrayItems = [];
     public object GetValue() => ConstantType switch
     {
         ConstantType.String => TextValue,
@@ -21,7 +19,6 @@ public class ServiceConstantExpression : IParityParser
         ConstantType.Array => ArrayItems.Select(x => x.GetValue()).ToArray(),
         _ => throw new InvalidOperationException(),
     };
-
     public ParityParsingState UpdateFrom(ref CursorText inText)
     {
         var text = inText.SkipWhile(char.IsWhiteSpace);
@@ -30,7 +27,9 @@ public class ServiceConstantExpression : IParityParser
         if (bln.IsValid)
         {
             var newValue = bool.Parse(bln.Text);
-            var state = ConstantType != ConstantType.Bool || newValue != BoolValue ? ParityParsingState.Changed : ParityParsingState.Unchanged;
+            var state = ConstantType != ConstantType.Bool || newValue != BoolValue
+                ? ParityParsingState.Changed
+                : ParityParsingState.Unchanged;
             SetBoolValue(newValue);
             inText = text;
             return state;
@@ -47,7 +46,8 @@ public class ServiceConstantExpression : IParityParser
         text = text.TakeToken(TokenDescription.RelativePathAnnouncement, out var rpa);
         if (rpa.IsValid)
         {
-            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(text.WorkingDirectory, x));
+            var pathRes =
+                ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue('f', text.WorkingDirectory, x));
             inText = text;
             return pathRes;
         }
@@ -57,7 +57,7 @@ public class ServiceConstantExpression : IParityParser
         {
             var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var appdataDirInfo = new DirectoryInfo(appdata);
-            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(appdataDirInfo, x));
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue('c', appdataDirInfo, x));
             inText = text;
             return pathRes;
         }
@@ -66,7 +66,7 @@ public class ServiceConstantExpression : IParityParser
         {
             var profilepath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var profileDirInfo = new DirectoryInfo(profilepath);
-            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x=>SetPathValue(profileDirInfo, x));
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue('p', profileDirInfo, x));
             inText = text;
             return pathRes;
         }
@@ -75,8 +75,8 @@ public class ServiceConstantExpression : IParityParser
         if (tpa.IsValid)
         {
             var queryDirectory = text.WorkingDirectory.GetDirectories().SingleOrDefault(x => x.Name == "queries")
-                ?? text.WorkingDirectory.CreateSubdirectory("queries");
-            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(queryDirectory, x));
+                                 ?? text.WorkingDirectory.CreateSubdirectory("queries");
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue('q', queryDirectory, x));
             inText = text;
             return pathRes;
         }
@@ -85,8 +85,8 @@ public class ServiceConstantExpression : IParityParser
         if (tppa.IsValid)
         {
             var templateDirectory = text.WorkingDirectory.GetDirectories().SingleOrDefault(x => x.Name == "templates")
-                ?? text.WorkingDirectory.CreateSubdirectory("templates");
-            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(templateDirectory, x));
+                                    ?? text.WorkingDirectory.CreateSubdirectory("templates");
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue('t', templateDirectory, x));
             inText = text;
             return pathRes;
         }
@@ -135,7 +135,6 @@ public class ServiceConstantExpression : IParityParser
 
         return ParityParsingState.Void;
     }
-
     private ParityParsingState ConsumeRemainingArrayIncludingCloser(ref CursorText text)
     {
         List<ServiceConstantExpression> newArrayExpressions = new();
@@ -164,18 +163,16 @@ public class ServiceConstantExpression : IParityParser
         ArrayItems = newArrayExpressions.ToArray();
         return state;
     }
-
-    private ParityParsingState SetPathValue(DirectoryInfo workingDirectory, string x)
+    private ParityParsingState SetPathValue(char prefix, DirectoryInfo workingDirectory, string x)
     {
         var state = ParityParsingState.Unchanged;
         if (ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
-        if (PathValue != (workingDirectory.FullName, x)) state |= ParityParsingState.Changed;
+        if (PathValue != (prefix, workingDirectory.FullName, x)) state |= ParityParsingState.Changed;
         ConstantType = ConstantType.Path;
-        PathValue = (workingDirectory.FullName, x);
+        PathValue = (prefix, workingDirectory.FullName, x);
 
         return state;
     }
-
     private ParityParsingState SetDecimalValue(decimal v)
     {
         var state = ParityParsingState.Unchanged;
@@ -198,7 +195,6 @@ public class ServiceConstantExpression : IParityParser
 
         return state;
     }
-
     private ParityParsingState ConsumeRemainingStringIncludingQuotes(
         ref CursorText inText, Func<string, ParityParsingState> process)
     {
@@ -212,7 +208,7 @@ public class ServiceConstantExpression : IParityParser
             if (!slash.IsValid)
             {
                 inText = text.ValidateToken(
-                    TokenDescription.DoubleQuotes, 
+                    TokenDescription.DoubleQuotes,
                     "this is an unlikely error. rob may need a coffee if you tell him about this.",
                     out var _);
                 return process(guts.ToString());
@@ -223,7 +219,6 @@ public class ServiceConstantExpression : IParityParser
             }
         }
     }
-
     private ParityParsingState SetStringValue(string v)
     {
         var state = ParityParsingState.Unchanged;
@@ -235,7 +230,6 @@ public class ServiceConstantExpression : IParityParser
 
         return state;
     }
-
     internal bool Mismatches(ServiceConstantExpression value)
     {
         if (ConstantType != value.ConstantType) return true;
