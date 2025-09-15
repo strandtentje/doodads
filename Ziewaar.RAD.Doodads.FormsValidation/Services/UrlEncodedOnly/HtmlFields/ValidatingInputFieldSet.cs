@@ -67,7 +67,8 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
         var methodFound = formNode.GetAttributeValue("method", "GET").ToUpperInvariant();
         if (methodFound != "POST" && methodFound != "GET")
             throw new FormValidationMarkupException($"Can only post and get");
-        var actionFound = HttpUtility.UrlDecode(formNode.GetAttributeValue("action", ""));
+        var fullActionFound = HttpUtility.UrlDecode(formNode.GetAttributeValue("action", ""));
+        var actionFound = fullActionFound.Split(['#'], 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "";
         if (string.IsNullOrWhiteSpace(actionFound))
             throw new FormValidationMarkupException($"Action required");
         var inputNodes = formNode.SelectNodes(".//input|.//select|.//textarea|.//button")?.ToArray() ?? [];
