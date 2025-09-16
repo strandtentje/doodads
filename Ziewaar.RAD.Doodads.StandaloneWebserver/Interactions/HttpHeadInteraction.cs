@@ -18,11 +18,12 @@ public class HttpHeadInteraction : IInteraction
         this.RequestLocale =
             context.Request.Headers["Accept-Language"]?.Split(',').ElementAtOrDefault(0)?.Trim().ToLower() ??
             CultureInfo.CurrentCulture.Name;
-        this.Memory = new SwitchingDictionary(["requestlocale", "method", "query", "url", "remoteip", "requesttime", "loopbackurl", "localipurl", "localnameurl"], x => x switch
+        this.Memory = new SwitchingDictionary(["requestlocale", "method", "query", "unescapedquery", "url", "remoteip", "requesttime", "loopbackurl", "localipurl", "localnameurl"], x => x switch
         {
             "requestlocale" => RequestLocale,
             "method" => Method,
             "query" => QueryString,
+            "unescapedquery" => HttpUtility.UrlDecode(QueryString, Encoding.UTF8),
             "url" => RouteString,
             "remoteip" => RemoteIp,
             "remoteport" => RemotePort,

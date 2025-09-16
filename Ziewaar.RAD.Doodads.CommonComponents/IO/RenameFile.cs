@@ -9,6 +9,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
              """)]
 public class RenameFile : IService
 {
+    private readonly UpdatingKeyValue AllowMovingConstant = new UpdatingKeyValue("allowmove");
+    private bool CurrentlyAllowsMoving;
+
     [EventOccasion("Sink new filename here.")]
     public event CallForInteraction? SinkNewName;
 
@@ -23,6 +26,11 @@ public class RenameFile : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if ((constants, AllowMovingConstant).IsRereadRequired(out bool? allowMoveCandidate))
+        {
+            this.CurrentlyAllowsMoving = allowMoveCandidate;
+        }
+
         FileSystemInfo? infoToWorkWith = null;
         if (interaction.Register is FileSystemInfo registerInfo)
         {
@@ -48,10 +56,21 @@ public class RenameFile : IService
             SinkNewName?.Invoke(this, tsi);
             var requestedName = tsi.ReadAllText();
             var delChars = Path.GetInvalidPathChars();
-
-            var cleanedName = string.Concat(requestedName.Where(x => !delChars.Contains(x)));
-
-            var fullNewPath = ChangeFileNameOnly(infoToWorkWith.FullName, cleanedName);
+            string fullNewPath;
+            if (CurrentlyAllowsMoving)
+            {
+                if (requestedName.Any(delChars.Contains))
+                {
+                    OnException?.Invoke(this, new CommonInteraction(interaction, "new path contains illegal chars"));
+                    return;
+                }
+                fullNewPath = requestedName;
+            }
+            else
+            {
+                var cleanedName = string.Concat(requestedName.Where(x => !delChars.Contains(x)));
+                fullNewPath = ChangeFileNameOnly(infoToWorkWith.FullName, cleanedName);
+            }
             File.Move(info.FullName, fullNewPath);
 
             OnThen?.Invoke(this, new CommonInteraction(interaction, fullNewPath));

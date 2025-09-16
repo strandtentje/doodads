@@ -61,13 +61,22 @@ public class HtmlFormPrepare : IService
 
             var encType = formNode.GetAttributeValue("enctype", "application/x-www-form-urlencoded");
             var isMultipart = encType.Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase);
-            string actionWithHash = formNode.GetAttributeValue("action", "");
-            var actionWithoutHash = actionWithHash.Split(['#'] , 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "";
+            string action = formNode.GetAttributeValue("action", "");
+            
+            IEnumerable<char> getActionBeforeSpecial()
+            {
+                using (var e = action.GetEnumerator())
+                {
+                    while(e.MoveNext() && e.Current != '#' && e.Current != '?')
+                        yield return e.Current;
+                }
+            }
+
             CurrentFormBuilder = FormStructureInteraction.Builder
                 .WithHtmlForm(formNode)
                 .WithRequestBodyType(encType)
                 .WithMethod(formNode.GetAttributeValue("method", "GET"))
-                .WithAction(actionWithHash);
+                .WithAction(new string(getActionBeforeSpecial().ToArray()));
 
             var inputGroups = formNode.SelectNodes(InputElementFilter)
                 .NotDisabled()
