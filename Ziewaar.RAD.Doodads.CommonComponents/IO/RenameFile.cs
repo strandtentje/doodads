@@ -28,7 +28,7 @@ public class RenameFile : IService
     {
         if ((constants, AllowMovingConstant).IsRereadRequired(out bool? allowMoveCandidate))
         {
-            this.CurrentlyAllowsMoving = allowMoveCandidate;
+            this.CurrentlyAllowsMoving = allowMoveCandidate == true;
         }
 
         FileSystemInfo? infoToWorkWith = null;
