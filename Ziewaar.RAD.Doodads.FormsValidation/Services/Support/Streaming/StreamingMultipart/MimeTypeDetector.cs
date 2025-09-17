@@ -22,23 +22,39 @@ public class MimeTypeDetector : ICountingEnumerator<byte>
     object IEnumerator.Current => _current;
     public bool AtEnd { get; private set; } = false;
     private long _cursor; private byte _current;
+    private bool _isErrorState;
+    private bool _outOfPrefetchBytes;
+
     public long Cursor => _cursor;
-    public string? ErrorState { get => ByteSource.ErrorState; set =>  ByteSource.ErrorState = value; }
+    public string? ErrorState
+    {
+        get
+        {
+            return ByteSource.ErrorState;
+        }
+
+        set
+        {
+            this._isErrorState = value != null;
+            ByteSource.ErrorState = value;
+        }
+    }
     public bool MoveNext()
     {
-        if (ErrorState != null) return false;
+        if (_isErrorState) return false;
 
-        if (PrefetchedBytes.Count > 0)
+        if (!_outOfPrefetchBytes)
         {
             _current = PrefetchedBytes.Dequeue();
+            _outOfPrefetchBytes = PrefetchedBytes.Count == 0;
             _cursor++;
             return true;
         }
 
         if (ByteSource.MoveNext())
         {
-            _cursor = ByteSource.Current;
-            _current++;
+            _current = ByteSource.Current;
+            _cursor++;
             return true;
         }
 

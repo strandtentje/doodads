@@ -5,7 +5,7 @@ public class MultipartGroupList(ICountingEnumerator<byte> byteReader, string bou
     IEnumerable<IGrouping<string, object>>
 {
     private readonly MultibyteEotReader boundaryDetector = MultibyteEotReader.CreateForAscii(byteReader, boundaryAscii);
-    private readonly MultibyteEotReader crlfDetector = MultibyteEotReader.CreateForCrlf(byteReader);
+    private readonly CrlfDetector crlfDetector = new CrlfDetector(byteReader);
     public IEnumerator<IGrouping<string, object>> GetEnumerator()
     {
         ConsumeMultipartPreamble();

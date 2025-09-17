@@ -1,13 +1,13 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 public class MultipartValueGroup : IGrouping<string, object>
 {
-    private readonly MultibyteEotReader CrlfDetector;
+    private readonly CrlfDetector CrlfDetector;
     private readonly MultibyteEotReader BoundaryDetector;
     public MultipartValueGroup? NextGroup { get; private set; }
     private MultipartHeader[]? Headers { get; } = null;
     public string Key { get; }
     public MultipartValueGroup(
-        MultibyteEotReader crlfDetector,
+        CrlfDetector crlfDetector,
         MultibyteEotReader boundaryDetector,
         MultipartHeader[]? headers = null)
     {

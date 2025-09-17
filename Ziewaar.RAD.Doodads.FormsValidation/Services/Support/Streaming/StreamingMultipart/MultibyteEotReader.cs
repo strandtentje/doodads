@@ -11,19 +11,13 @@ public class MultibyteEotReader(
     byte[] eotMarker)
     : ICountingEnumerator<byte>
 {
-    public static MultibyteEotReader CreateForCrlf(ICountingEnumerator<byte> source) =>
-        new(source, "\r\n"u8.ToArray());
-
-    public static MultibyteEotReader
-        CreateForCrLfDashDash(ICountingEnumerator<byte> source) =>
-        new(source, "\r\n--"u8.ToArray());
-
     public static MultibyteEotReader CreateForAscii(ICountingEnumerator<byte> source, string asciiText) =>
         new(source, Encoding.ASCII.GetBytes(asciiText));
 
     // private readonly Queue<byte> NonTerminatingBytes = new(eotMarker.Length + 1);
     public byte Current => _current;
     private byte _current;
+    private int _detbufLen = eotMarker.Length + 1;
     private byte[] _detectionBuffer = new byte[eotMarker.Length + 1];
     object? IEnumerator.Current => Current;
     public bool AtEnd { get; private set; }
@@ -33,7 +27,7 @@ public class MultibyteEotReader(
     private long _detectionCursor;
     public string? ErrorState { get; set; }
 
-    private byte[] _prefetchBuffer = new byte[1024];
+    private byte[] _prefetchBuffer = new byte[4096];
     private int _prefetchCursor = 0;
     private int _prefetchEndstop = 0;
     private bool _endInPrefetch = false;
@@ -48,25 +42,23 @@ public class MultibyteEotReader(
 
             _roomToDetect = _realCursor + eotMarker.Length;
             while (_detectionCursor < _roomToDetect - 1 && byteSource.MoveNext())
-                _detectionBuffer[_detectionCursor++ % _detectionBuffer.Length] = byteSource.Current;
+                _detectionBuffer[_detectionCursor++ % _detbufLen] = byteSource.Current;
 
             while (_prefetchEndstop < _prefetchBuffer.Length)
             {
                 if (byteSource.MoveNext())
+                    _detectionBuffer[_detectionCursor++ % _detbufLen] = byteSource.Current;
+                for (_positionToDetect = _realCursor; _positionToDetect < _detectionCursor; _positionToDetect++)
                 {
-                    _detectionBuffer[_detectionCursor++ % _detectionBuffer.Length] = byteSource.Current;
-                    for (_positionToDetect = _realCursor; _positionToDetect < _detectionCursor; _positionToDetect++)
+                    if (_detectionBuffer[_positionToDetect % _detbufLen] != eotMarker[_positionToDetect - _realCursor])
                     {
-                        if (_detectionBuffer[_positionToDetect % _detectionBuffer.Length] != eotMarker[_positionToDetect - _realCursor])
-                        {
-                            _prefetchBuffer[_prefetchEndstop++] = _detectionBuffer[_realCursor++ % _detectionBuffer.Length];
-                            goto nonMatching;
-                        }
+                        _prefetchBuffer[_prefetchEndstop++] = _detectionBuffer[_realCursor++ % _detbufLen];
+                        goto nonMatching;
                     }
                 }
                 _endInPrefetch = true;
                 break;
-                nonMatching:;
+            nonMatching:;
             }
         }
 
