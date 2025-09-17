@@ -5,10 +5,7 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
-public class MultibyteEotReader(
-    ICountingEnumerator<byte> byteSource,
-    byte[] eotMarker,
-    long limit)
+public class MultibyteEotReader
     : ICountingEnumerator<byte>
 {
     public static MultibyteEotReader CreateForCrlf(ICountingEnumerator<byte> source, long limit = 1024) =>
@@ -22,13 +19,38 @@ public class MultibyteEotReader(
         long limit = int.MaxValue) =>
         new(source, Encoding.ASCII.GetBytes(asciiText), limit);
 
+    public MultibyteEotReader(ICountingEnumerator<byte> byteSource, byte[] eotMarker, long limit)
+    {
+        this.ByteSource = byteSource;
+        this.EotMarker = eotMarker;
+        this.Limit = limit;
+
+        int lookaheadBufferSize = 0b1000;
+
+        for (; lookaheadBufferSize < 1 + eotMarker.Length * 8; lookaheadBufferSize *= 2) ;
+
+        // this shifts the buffer size from 0b1000 to 0b10000 and 0b100000 and 0b1000000 and onwards until the eotmarker fits
+        // we do this so that we end up with a mask like 0b0111, 0b01111, 0b0111111, 0b01111111 etc.
+        // or we get an int overflow. maybe. shift harpens.
+
+        this.LookaheadBuffer = new byte[lookaheadBufferSize];
+        this.LookaheadBufferMask = lookaheadBufferSize - 1;
+    }
+
     // private readonly Queue<byte> NonTerminatingBytes = new(eotMarker.Length + 1);
     public byte Current { get; private set; }
-    public byte[] DetectionBuffer { get; private set; } = new byte [eotMarker.Length + 1];
+    public byte[] LookaheadBuffer { get; private set; }
+
+    private readonly int LookaheadBufferMask;
+
     object? IEnumerator.Current => Current;
     public bool AtEnd { get; private set; }
     public long Cursor { get; private set; }
-    private long DetectionCursor;
+    private long LookaheadEndstop;
+    private ICountingEnumerator<byte> ByteSource;
+    private readonly byte[] EotMarker;
+    private readonly long Limit;
+
     public string? ErrorState { get; set; }
 
     public bool MoveNext()
@@ -36,18 +58,34 @@ public class MultibyteEotReader(
         if (!IsBeforeLimit())
             return false;
 
-        RefillDetectionBuffer();
+        if (LookaheadEndstop < (Cursor + EotMarker.Length + 1))
+        {
+            while (LookaheadEndstop < (Cursor + EotMarker.Length * 8) && ByteSource.MoveNext())
+            {
+                LookaheadBuffer[(LookaheadEndstop++) & LookaheadBufferMask] = ByteSource.Current;
+            }
+        }
 
-        for (var detectionPosition = Cursor; detectionPosition < DetectionCursor; detectionPosition++)
-            if (HasFoundNewNonTerminatingByte(detectionPosition))
+        var stopLookingHere = Math.Min(Cursor + EotMarker.Length, LookaheadEndstop);
+
+        for (var detectionPosition = Cursor; detectionPosition < stopLookingHere; detectionPosition++)
+        {
+            var candidateEotByte = LookaheadBuffer[detectionPosition & LookaheadBufferMask];
+            var expectedEotByte = EotMarker[detectionPosition - Cursor];
+            if (candidateEotByte != expectedEotByte)
+            {
+                Current = LookaheadBuffer[Cursor++ & LookaheadBufferMask];
                 return true;
+            }
+        }
 
-        return TerminationSequenceDetected();
+        AtEnd = true;
+        return false;
     }
 
     private bool IsBeforeLimit()
     {
-        if (Cursor >= limit)
+        if (Cursor >= Limit)
         {
             ErrorState = "Reached limit";
             return false;
@@ -55,48 +93,13 @@ public class MultibyteEotReader(
 
         return true;
     }
-
-    private void RefillDetectionBuffer()
-    {
-        while (DetectionCursor < Cursor + eotMarker.Length)
-        {
-            if (!byteSource.MoveNext())
-                break;
-            DetectionBuffer.SetCircular(DetectionCursor + 1, byte.MinValue)
-                .SetCircular(DetectionCursor++, byteSource.Current);
-        }
-    }
-
-    private bool HasFoundNewNonTerminatingByte(long bytePosition)
-    {
-        var candidateEotByte = DetectionBuffer.GetCircular(bytePosition);
-        if (candidateEotByte != eotMarker[bytePosition - Cursor])
-        {
-            Current = DetectionBuffer.GetCircular(Cursor++);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool TerminationSequenceDetected()
-    {
-        AtEnd = true;
-        return false;
-    }
-
-    public void ForSelection(Action<byte> callBack)
-    {
-        for (var i = Cursor; i < DetectionCursor; i++)
-            callBack(DetectionBuffer.GetCircular(i));
-    }
-
+    
     public void Reset()
     {
         AtEnd = false;
         Cursor = 0;
-        DetectionCursor = 0;
-        Array.Clear(DetectionBuffer);
+        LookaheadEndstop = 0;
+        Array.Clear(LookaheadBuffer);
     }
 
     public void Dispose()
