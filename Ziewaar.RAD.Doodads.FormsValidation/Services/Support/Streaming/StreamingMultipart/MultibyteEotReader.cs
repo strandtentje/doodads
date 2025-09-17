@@ -66,21 +66,34 @@ public class MultibyteEotReader
             }
         }
 
-        var stopLookingHere = Math.Min(Cursor + EotMarker.Length, LookaheadEndstop);
-
-        for (var detectionPosition = Cursor; detectionPosition < stopLookingHere; detectionPosition++)
+        if (IsMatchAtCursor())
         {
-            var candidateEotByte = LookaheadBuffer[detectionPosition & LookaheadBufferMask];
-            var expectedEotByte = EotMarker[detectionPosition - Cursor];
-            if (candidateEotByte != expectedEotByte)
-            {
-                Current = LookaheadBuffer[Cursor++ & LookaheadBufferMask];
-                return true;
-            }
+            AtEnd = true;
+            return false;
         }
 
-        AtEnd = true;
+        // Not a match yet — consume one byte
+        if (Cursor < LookaheadEndstop)
+        {
+            Current = LookaheadBuffer[Cursor++ & LookaheadBufferMask];
+            return true;
+        }
+
         return false;
+    }
+
+    bool IsMatchAtCursor()
+    {
+        for (int i = 0; i < EotMarker.Length; i++)
+        {
+            if ((Cursor + i) >= LookaheadEndstop)
+                return false; // not enough data
+
+            var candidate = LookaheadBuffer[(Cursor + i) & LookaheadBufferMask];
+            if (candidate != EotMarker[i])
+                return false;
+        }
+        return true;
     }
 
     private bool IsBeforeLimit()
