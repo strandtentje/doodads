@@ -51,67 +51,52 @@ public class MultibyteEotReader
     private readonly byte[] EotMarker;
     private readonly long Limit;
 
+    private int EotMatchLength = 0;
+
     public string? ErrorState { get; set; }
+
+    private bool IsFullEotMatch, IsLimitReached, IsLookaheadPlentiful, IsLookaheadOverfilled;
 
     public bool MoveNext()
     {
-        if (!IsBeforeLimit())
-            return false;
-
-        if (LookaheadEndstop < (Cursor + EotMarker.Length + 1))
+        if (!IsFullEotMatch && !IsLimitReached && !IsLookaheadPlentiful)
         {
-            while (LookaheadEndstop < (Cursor + EotMarker.Length * 8) && ByteSource.MoveNext())
+            IsLimitReached = LookaheadEndstop >= Limit;
+            while (!IsFullEotMatch && !IsLimitReached && !IsLookaheadOverfilled && ByteSource.MoveNext())
             {
-                LookaheadBuffer[(LookaheadEndstop++) & LookaheadBufferMask] = ByteSource.Current;
+                var nextByte = ByteSource.Current;
+                if (nextByte == EotMarker[EotMatchLength++])
+                    IsFullEotMatch = EotMatchLength == EotMarker.Length;
+                else if (nextByte == EotMarker[0])
+                    EotMatchLength = 1;
+                else
+                    EotMatchLength = 0;
+                LookaheadBuffer[LookaheadEndstop++] = nextByte;
+                IsLimitReached = LookaheadEndstop >= Limit;
+                IsLookaheadOverfilled = LookaheadEndstop >= (Cursor + EotMarker.Length * 7);
             }
         }
 
-        if (IsMatchAtCursor())
-        {
-            AtEnd = true;
-            return false;
-        }
-
-        // Not a match yet — consume one byte
-        if (Cursor < LookaheadEndstop)
+        if (Cursor < LookaheadEndstop - (IsFullEotMatch ? EotMatchLength : 0))
         {
             Current = LookaheadBuffer[Cursor++ & LookaheadBufferMask];
+            IsLookaheadPlentiful = LookaheadEndstop >= Cursor + EotMarker.Length;
             return true;
         }
-
+        AtEnd = true;
         return false;
     }
 
-    bool IsMatchAtCursor()
-    {
-        for (int i = 0; i < EotMarker.Length; i++)
-        {
-            if ((Cursor + i) >= LookaheadEndstop)
-                return false; // not enough data
-
-            var candidate = LookaheadBuffer[(Cursor + i) & LookaheadBufferMask];
-            if (candidate != EotMarker[i])
-                return false;
-        }
-        return true;
-    }
-
-    private bool IsBeforeLimit()
-    {
-        if (Cursor >= Limit)
-        {
-            ErrorState = "Reached limit";
-            return false;
-        }
-
-        return true;
-    }
-    
     public void Reset()
     {
         AtEnd = false;
         Cursor = 0;
         LookaheadEndstop = 0;
+        EotMatchLength = 0;
+        IsFullEotMatch = false;
+        IsLimitReached = false;
+        IsLookaheadOverfilled = false;
+        IsLookaheadPlentiful = false;
         Array.Clear(LookaheadBuffer);
     }
 
