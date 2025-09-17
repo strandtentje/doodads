@@ -7,25 +7,27 @@ public class PrefixedReader(
     byte[] prefix) : ICountingEnumerator<byte>
 {
     private readonly Queue<byte> PrefixQueue = new Queue<byte>(prefix);
-    public byte Current { get; private set; }
-    object? IEnumerator.Current => Current;
+    private byte _current;
+    public byte Current => _current;
+    object? IEnumerator.Current => _current;
     public bool AtEnd { get; private set; }
-    public long Cursor { get; private set; }
+    private long _cursor;
+    public long Cursor => _cursor;
     public string? ErrorState { get; set; }
 
     public bool MoveNext()
     {
         while (PrefixQueue.TryDequeue(out byte item))
         {
-            Current = item;
-            Cursor++;
+            _current = item;
+            _cursor++;
             return true;
         }
 
-        while (byteSource.MoveNext())
+        if (byteSource.MoveNext())
         {
-            Current = byteSource.Current;
-            Cursor++;
+            _current = byteSource.Current;
+            _cursor++;
             return true;
         }
 
@@ -36,7 +38,7 @@ public class PrefixedReader(
     public void Reset()
     {
         AtEnd = false;
-        Cursor = 0;
+        _cursor = 0;
         ErrorState = null;
     }
 

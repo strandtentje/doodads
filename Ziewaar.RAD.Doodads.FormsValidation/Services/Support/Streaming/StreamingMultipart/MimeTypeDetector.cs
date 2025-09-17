@@ -18,10 +18,11 @@ public class MimeTypeDetector : ICountingEnumerator<byte>
         DetectedMime = SignatureMimeGuesser.GuessMimeType(PrefetchedBytes.ToList(), out var isText);
         IsText = isText;
     }
-    public byte Current { get; set; }
-    object IEnumerator.Current => Current;
+    public byte Current => _current;
+    object IEnumerator.Current => _current;
     public bool AtEnd { get; private set; } = false;
-    public long Cursor { get; private set; } = 0;
+    private long _cursor; private byte _current;
+    public long Cursor => _cursor;
     public string? ErrorState { get => ByteSource.ErrorState; set =>  ByteSource.ErrorState = value; }
     public bool MoveNext()
     {
@@ -29,15 +30,15 @@ public class MimeTypeDetector : ICountingEnumerator<byte>
 
         if (PrefetchedBytes.Count > 0)
         {
-            Current = PrefetchedBytes.Dequeue();
-            Cursor++;
+            _current = PrefetchedBytes.Dequeue();
+            _cursor++;
             return true;
         }
 
         if (ByteSource.MoveNext())
         {
-            Current = ByteSource.Current;
-            Cursor++;
+            _cursor = ByteSource.Current;
+            _current++;
             return true;
         }
 

@@ -1,20 +1,21 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 
-public class RootByteReader(Stream stream, long limit = -1, params byte[] terminators)
+public class RootByteReader(Stream stream, long limit = -1)
     : ICountingEnumerator<byte>, ILongPosition
 {
-    public bool AtEnd { get; private set; }
+    public bool AtEnd => _atEnd;
+    private bool _atEnd;
     public long Limit => limit;
     public static ICountingEnumerator<byte> Empty = new RootByteReader(new MemoryStream([]));
-    private readonly byte[] PreBuffer = new byte[4096];
+    private readonly byte[] PreBuffer = new byte[4096*16];
     private int PreBufferCursor = 0;
     private int PreBufferEndstop = 0;
 
     public bool MoveNext()
     {
-        if (limit > -1 && Cursor >= limit)
-            ErrorState = $"Read limit at {limit} bytes reached.";
-        if (AtEnd || ErrorState != null) return false;
+        if (limit > -1 && _cursor >= limit)
+            _errorState = $"Read limit at {limit} bytes reached.";
+        if (_atEnd || _errorState != null) return false;
 
         if (PreBufferCursor >= PreBufferEndstop)
         {
@@ -22,25 +23,27 @@ public class RootByteReader(Stream stream, long limit = -1, params byte[] termin
             PreBufferCursor = 0;
         }
 
-        if (PreBufferCursor >= PreBufferEndstop || terminators.Contains(Current))
+        if (PreBufferCursor >= PreBufferEndstop)
         {
-            AtEnd = true;
+            _atEnd = true;
             return false;
         }
 
-        Current = PreBuffer[PreBufferCursor++];
-        Cursor++;
+        _current = PreBuffer[PreBufferCursor++];
+        _cursor++;
         return true;
     }
 
     public void Reset()
     {
         ErrorState = null;
-        Cursor = 0;
-        AtEnd = false;
+        _cursor = 0;
+        _atEnd = false;
     }
 
-    public byte Current { get; private set; }
+    private byte _current;
+    public byte Current => _current;
+
     object? IEnumerator.Current => Current;
 
     public void Dispose()
@@ -48,7 +51,8 @@ public class RootByteReader(Stream stream, long limit = -1, params byte[] termin
         if (!AtEnd && ErrorState == null)
             throw new InvalidOperationException("Leaving byte reader before it was fully read");
     }
-
-    public long Cursor { get; private set; }
-    public string? ErrorState { get; set; }
+    private long _cursor;
+    public long Cursor => _cursor;
+    private string? _errorState;
+    public string? ErrorState { get => _errorState; set => _errorState = value; }
 }
