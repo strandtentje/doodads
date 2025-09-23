@@ -1,7 +1,7 @@
 ﻿#nullable enable
 #pragma warning disable 67
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.ObjectPool;
+using System.Data.SQLite;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
@@ -17,15 +17,19 @@ namespace Ziewaar.RAD.Doodads.SQLite;
 [Description("""
     Open an SQLite file for querying and modifying using the data commands.
     """)]
-public class SqliteConnectionSource : ConnectionSource<SqliteConnection, SqliteCommand>
+public class SqliteConnectionSource : ConnectionSource<SQLiteConnection, SQLiteCommand>
 {
     [PrimarySetting("Data source filename")]
     private readonly UpdatingPrimaryValue DataSourceFileConstant = new();
     private string? CurrentDbPath;
-    protected override SqliteConnection CreateConnection() =>
-        new(new SqliteConnectionStringBuilder()
+
+    protected override SQLiteConnection CreateConnection() =>
+        new(new SQLiteConnectionStringBuilder()
         {
             DataSource = this.CurrentDbPath, 
+            JournalMode = SQLiteJournalModeEnum.Wal,
+            Pooling = true,
+            SyncMode = SynchronizationModes.Full,           
         }.ToString());
     protected override bool IsReloadRequired(StampedMap constants, IInteraction interaction)
     {

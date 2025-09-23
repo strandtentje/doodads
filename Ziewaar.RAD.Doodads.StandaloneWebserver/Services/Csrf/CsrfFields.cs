@@ -1,11 +1,11 @@
-using Microsoft.Data.Sqlite;
+using System.Data.SQLite;
 using Ziewaar.RAD.Doodads.Data;
 using Ziewaar.RAD.Doodads.Data.Implementable;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 #pragma warning disable 67
 public class CsrfFields(
-    CommandSourceInteraction<SqliteCommand> commands,
+    CommandSourceInteraction<SQLiteCommand> commands,
     string instanceCookie,
     string csrfCookieValue) : ICsrfFields
 {

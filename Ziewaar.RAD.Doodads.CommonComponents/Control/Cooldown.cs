@@ -21,7 +21,7 @@ public class Cooldown : IService
     [EventOccasion("When the cooldown was hot")]
     public event CallForInteraction? OnException;
 
-    public TimeSpan LastInvocation = TimeSpan.Zero;
+    public TimeSpan LastInvocation = TimeSpan.MinValue;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
@@ -32,6 +32,9 @@ public class Cooldown : IService
         this.CurrentDelay = (double)Math.Max(this.CurrentDelay, 100);
 
         var currentTime = GlobalStopwatch.Instance.Elapsed;
+
+        if (LastInvocation == TimeSpan.MinValue)
+            LastInvocation = TimeSpan.Zero.Subtract(TimeSpan.FromMilliseconds(CurrentDelay + 1));
 
         var elapsedTime = currentTime - LastInvocation;
 

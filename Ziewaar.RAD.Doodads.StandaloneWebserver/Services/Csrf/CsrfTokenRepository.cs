@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using System.Data.SQLite;
 using Ziewaar.RAD.Doodads.Data.Implementable;
 using Ziewaar.RAD.Doodads.SQLite;
 
@@ -7,18 +7,18 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 public class CsrfTokenRepository(
     string instanceCookie,
     SqliteConnectionSource connections,
-    CommandSourceInteraction<SqliteCommand> commands) : IDisposable
+    CommandSourceInteraction<SQLiteCommand> commands) : IDisposable
 {
     public static readonly CsrfTokenRepository Instance = CsrfTokenRepository.Create();
     private static CsrfTokenRepository Create()
     {
         var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var csrfStoreDb = Path.Join(appdata, "doodads", "csrf.sqlite");
-        CommandSourceInteraction<SqliteCommand>? commands = null;
+        CommandSourceInteraction<SQLiteCommand>? commands = null;
         var connectionSource = new SqliteConnectionSource();
         connectionSource.OnThen += (sender, interaction) =>
         {
-            commands = (CommandSourceInteraction<SqliteCommand>)interaction;
+            commands = (CommandSourceInteraction<SQLiteCommand>)interaction;
         };
         connectionSource.Enter(new StampedMap(csrfStoreDb), StopperInteraction.Instance);
         commands!.UseCommand(cmd =>
