@@ -1,4 +1,4 @@
-using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories;
 
@@ -22,10 +22,11 @@ public class MultipartParameterValidatingCollection(
             return;
         }
 
-        bool isGivenPlainText = "text/plain".Equals(contentType.HeaderValue, StringComparison.OrdinalIgnoreCase);
-        var isGivenFilename = disposition.HeaderArgs.TryGetValue("filename", out string? dirtyFilename);
+        bool isGivenPlainText = "text/plain".Equals(contentType?.HeaderValue, StringComparison.OrdinalIgnoreCase);
+        var isGivenFilename = disposition?.HeaderArgs.TryGetValue("filename", out string? dirtyFilename) == true;
 
-        contentType.HeaderArgs.TryGetValue("charset", out var charset);
+        string? charset = null;
+        contentType?.HeaderArgs.TryGetValue("charset", out charset);
         charset ??= "utf-8";
 
         if (!"utf-8".Equals(charset, StringComparison.OrdinalIgnoreCase))

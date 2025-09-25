@@ -1,5 +1,5 @@
-using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
-using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.StreamingUrlEncoded;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingUrlEncoded;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.FormBodyReading;
 [TestClass]

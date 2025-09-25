@@ -1,4 +1,4 @@
-using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 

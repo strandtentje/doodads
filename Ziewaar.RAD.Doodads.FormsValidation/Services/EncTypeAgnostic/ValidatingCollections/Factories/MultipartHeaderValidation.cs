@@ -1,4 +1,7 @@
-using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingMultipart;
+using MultipartHeader =
+    (string HeaderName, string HeaderValue, System.Collections.Generic.IReadOnlyDictionary<string, string> HeaderArgs);
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories;
 
@@ -21,25 +24,29 @@ public static class MultipartHeaderValidation
             failureReason = "Byte stream not tagged with supplementary information";
             return false;
         }
-        else if (taggedByteEnumerator.Tag is not IEnumerable<MultipartHeader> headerCollection)
+        else if (taggedByteEnumerator.Tag is not IEnumerable<MultipartHeader> headerCollection ||
+                 headerCollection?.ToArray() is not MultipartHeader[] headerArray ||
+                 headerArray.Length < 1)
         {
             failureReason = "Supplementary information wasn't headers";
             return false;
         }
         else if (
-            headerCollection.FirstOrDefault(x =>
-                x.HeaderName.Equals("content-disposition", StringComparison.OrdinalIgnoreCase)) is not MultipartHeader
-            dispositionHeader)
+            headerArray?.Where(x =>
+                        x.HeaderName.Equals("content-disposition", StringComparison.OrdinalIgnoreCase))
+                    .ToArray() is not MultipartHeader[]
+                dispositionHeaderArray ||
+            dispositionHeaderArray.Length < 1)
         {
             failureReason = "No content disposition";
             return false;
         }
-        else if (!dispositionHeader.HeaderValue.Equals("form-data", StringComparison.OrdinalIgnoreCase))
+        else if (!dispositionHeaderArray[0].HeaderValue.Equals("form-data", StringComparison.OrdinalIgnoreCase))
         {
             failureReason = "Content disposition wasn't form-data";
             return false;
         }
-        else if (!dispositionHeader.HeaderArgs.TryGetValue("name", out string? fieldName))
+        else if (!dispositionHeaderArray[0].HeaderArgs.TryGetValue("name", out string? fieldName))
         {
             failureReason = "Field had no name";
             return false;
@@ -52,10 +59,13 @@ public static class MultipartHeaderValidation
         else
         {
             data = taggedByteEnumerator;
-            disposition = dispositionHeader;
-            contentType = headerCollection.FirstOrDefault(x =>
-                x.HeaderName.Equals("content-type", StringComparison.OrdinalIgnoreCase)) ?? new MultipartHeader(
-                "Content-Type", "text/plain", new Dictionary<string, string>(1) { ["charset"] = "utf-8" });
+            disposition = dispositionHeaderArray[0];
+            contentType = headerArray.Where(x =>
+                    x.HeaderName.Equals("content-type", StringComparison.OrdinalIgnoreCase)).Concat([
+                    (
+                        "Content-Type", "text/plain", new Dictionary<string, string>(1) { ["charset"] = "utf-8" })
+                ])
+                .ToArray()[0];
             return true;
         }
     }

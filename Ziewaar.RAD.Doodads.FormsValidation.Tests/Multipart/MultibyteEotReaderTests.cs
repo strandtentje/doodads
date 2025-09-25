@@ -1,6 +1,8 @@
 using System.Text;
-using Ziewaar.RAD.Doodads.FormsValidation.Services.Support.Streaming.Readers;
 using System.Collections;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingMultipart;
+
 namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.Multipart;
 [TestClass]
 public class MultibyteEotReaderTests

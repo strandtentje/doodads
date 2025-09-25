@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingMultipart;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories;
 
@@ -26,9 +27,11 @@ public class MultipartFileValidatingCollection(
         }
 
         string? recoveredExtension = null;
-        if (!disposition.HeaderArgs.TryGetValue("filename", out string? dirtyFilename))
+        string? dirtyFilename = null;
+        if (disposition?.HeaderArgs.TryGetValue("filename", out dirtyFilename) == false || dirtyFilename == null)
         {
-            MimeMapping.MimeTypeToExtension.TryGetValue(contentType.HeaderValue, out recoveredExtension);
+            if (contentType?.HeaderValue is { } headerValue)
+                MimeMapping.MimeTypeToExtension.TryGetValue(headerValue, out recoveredExtension);
             recoveredExtension ??= "bin";
             dirtyFilename = $"{Guid.NewGuid()}.{recoveredExtension}";
         }
@@ -40,12 +43,12 @@ public class MultipartFileValidatingCollection(
             cleanFilename = cleanFilename[..^(recoveredExtension.Length + 1)] + cleanExtension;
 
         var mimeTypeFromFilename = MimeMapping.GetMimeInfo(cleanFilename);
-        var mimeTypeFromHeader = contentType.HeaderValue;
+        var mimeTypeFromHeader = contentType?.HeaderValue ?? "application/octet-stream";
         var headerAnnouncesText = mimeTypeFromFilename.IsText && mimeTypeFromHeader.StartsWith("text/");
         var formAcceptsText = acceptedMimes.Any(x => x.StartsWith("text/")) ||
                               acceptedExtensions.Contains(cleanExtension) ||
                               acceptedExtensions.Contains(".txt");
-        
+
         var detector = new MimeTypeDetector(data);
 
         if (headerAnnouncesText && formAcceptsText)
@@ -64,13 +67,16 @@ public class MultipartFileValidatingCollection(
         }
         else
         {
-            string fileMimeClass = mimeTypeFromFilename.MimeType.Split('/', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "application";
-            string headerMimeClass = mimeTypeFromHeader.Split('/', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "application";
+            string fileMimeClass =
+                mimeTypeFromFilename.MimeType.Split('/', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ??
+                "application";
+            string headerMimeClass = mimeTypeFromHeader.Split('/', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ??
+                                     "application";
             if (fileMimeClass.Equals(headerMimeClass, StringComparison.OrdinalIgnoreCase) &&
-                acceptedMimes.Any(x => ContentTypeMatcher.IsSubset(dom: x, sub: mimeTypeFromHeader) || 
+                acceptedMimes.Any(x => ContentTypeMatcher.IsSubset(dom: x, sub: mimeTypeFromHeader) ||
                                        acceptedExtensions.Contains(cleanExtension, StringComparer.OrdinalIgnoreCase)))
             {
-                if (detector.DetectedMime == mimeTypeFromHeader || 
+                if (detector.DetectedMime == mimeTypeFromHeader ||
                     acceptedMimes.Any(x => ContentTypeMatcher.IsSubset(dom: x, sub: detector.DetectedMime)))
                 {
                     IsSatisfied = true;
@@ -83,7 +89,7 @@ public class MultipartFileValidatingCollection(
             {
                 IsSatisfied = true;
                 transformed = Zero.Instance;
-            } 
+            }
             else
             {
                 IsSatisfied = false;
