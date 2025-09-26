@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Ziewaar.RAD.Doodads.Cryptography;
 
 public class RecoveredSinkingInteraction(IInteraction interaction, SinkNamingInteraction namingInteraction)

@@ -1,9 +1,11 @@
 namespace Ziewaar.RAD.Doodads.Cryptography;
 
-public class SetSourceName : IService
+#nullable enable
+public class GetNamedSource : IService
 {
     private readonly UpdatingPrimaryValue SourceNameConstant = new();
     private string? CurrentSourceName;
+
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -18,14 +20,14 @@ public class SetSourceName : IService
             return;
         }
 
-        if (!interaction.TryGetClosest<ISourcingInteraction>(out var sourcingInteraction) ||
-            sourcingInteraction == null)
+        if (!interaction.TryGetClosest<SourceNamingInteraction>(out var namedInteraction,
+                x => x.SourceName == this.CurrentSourceName) || namedInteraction == null)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "sourcing interaction required"));
             return;
         }
 
-        OnThen?.Invoke(this, new SourceNamingInteraction(interaction, this.CurrentSourceName, sourcingInteraction));
+        OnThen?.Invoke(this, new RecoveredSourcingInteraction(interaction, namedInteraction));
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

@@ -18,4 +18,10 @@
     <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.ObjectPool">
+      <HintPath>..\..\..\.nuget\packages\microsoft.extensions.objectpool\9.0.7\lib\net9.0\Microsoft.Extensions.ObjectPool.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

@@ -4,7 +4,6 @@ using System.Security.Claims;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.Cryptography;
-
 public class SshSessionPublicKeyQuery : IService
 {
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
@@ -12,7 +11,6 @@ public class SshSessionPublicKeyQuery : IService
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!(constants, RepeatNameConstant).IsRereadRequired(out string? repeatNameCandidate))
@@ -37,7 +35,11 @@ public class SshSessionPublicKeyQuery : IService
                 return;
             var pem = formatter.Export(args.PublicKey, includePrivate: false).EncodePem();
             var repeatInteraction = new RepeatInteraction(this.CurrentRepeatName, interaction) { IsRunning = false };
-            var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction, [new Claim("publickeypem", pem)]);
+            var pemInteraction = new ClaimsSinkingInteraction(
+                repeatInteraction, [
+                    new Claim("publickeypem", pem),
+                    new Claim(ClaimTypes.Name, args.Username ?? "")
+                ]);
             OnThen?.Invoke(this, pemInteraction);
             if (repeatInteraction.IsRunning)
             {
@@ -47,6 +49,5 @@ public class SshSessionPublicKeyQuery : IService
             }
         };
     }
-
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

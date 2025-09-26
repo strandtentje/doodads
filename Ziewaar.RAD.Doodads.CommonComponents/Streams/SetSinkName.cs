@@ -1,5 +1,6 @@
 namespace Ziewaar.RAD.Doodads.Cryptography;
 
+#nullable enable
 public class SetSinkName : IService
 {
     private readonly UpdatingPrimaryValue SinkNameConstant = new();

@@ -1,9 +1,11 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Doodads.Cryptography;
 
+#nullable enable
 internal class TcpClientDuplexInteraction(IInteraction origin, TcpClient freshClient, NetworkStream networkStream) 
     : IInteraction, ISourcingInteraction, ISinkingInteraction
 {

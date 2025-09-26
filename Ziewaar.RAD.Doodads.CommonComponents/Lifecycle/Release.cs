@@ -36,7 +36,6 @@ public class Release : IService
         if (interaction.TryGetClosest<ResidentialInteraction>(out var candidate, x => x.Name == desiredName) && 
             candidate != null)
         {
-            GlobalLog.Instance?.Information("Leaving " + desiredName);
             candidate.Leave();
             OnThen?.Invoke(this, interaction);
         } else

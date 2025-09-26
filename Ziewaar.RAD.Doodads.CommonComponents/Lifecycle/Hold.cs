@@ -30,7 +30,6 @@ public class Hold : IService, IDisposable
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely happens when a name was not provided.")]
     public event CallForInteraction? OnException;
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, LockNameConstant).IsRereadRequired(out string? lockName);

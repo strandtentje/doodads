@@ -1,12 +1,16 @@
+using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.Cryptography;
 
+#nullable enable
+
 public class StreamSourceToSink : IService
 {
     private readonly UpdatingPrimaryValue CopyNameConstant = new();
+    private readonly UpdatingKeyValue ZeroIsEofConstant = new("eof");
     private string? CurrentCopyName;
-
+    private bool IsZeroEof = true;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -15,6 +19,8 @@ public class StreamSourceToSink : IService
     {
         if ((constants, CopyNameConstant).IsRereadRequired(out string? copyNameCandidate))
             this.CurrentCopyName = copyNameCandidate;
+        if ((constants, ZeroIsEofConstant).IsRereadRequired(out bool zeroIsEofCandidate))
+            this.IsZeroEof = zeroIsEofCandidate;
 
         if (string.IsNullOrWhiteSpace(this.CurrentCopyName))
         {
@@ -50,6 +56,9 @@ public class StreamSourceToSink : IService
                 {
                     trueReadCount = sourcingInteraction.SourceBuffer.Read(buffer, 0, 1024);
 
+                    if (trueReadCount == 0 && IsZeroEof)
+                        break;
+                    
                     repeatInteraction.IsRunning = false;
                     countInteraction.Register = trueReadCount;
                     OnThen?.Invoke(this, countInteraction);
