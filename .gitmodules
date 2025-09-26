@@ -1,3 +1,3 @@
 [submodule "dev-tunnels-ssh"]
 	path = dev-tunnels-ssh
-	url = https://github.com/microsoft/dev-tunnels-ssh.git
+	url = git@github.com:strandtentje/dev-tunnels-ssh.git
