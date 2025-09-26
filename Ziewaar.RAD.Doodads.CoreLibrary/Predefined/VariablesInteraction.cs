@@ -17,7 +17,7 @@ public class CommonInteraction : IInteraction
         this.Memory = memory ?? interaction.Memory;
     }
     public IInteraction Stack { get; }
-    public object Register { get; }
+    public object Register { get; set; }
     public IReadOnlyDictionary<string, object> Memory { get; }
 }
 
