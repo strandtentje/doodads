@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 [Category("Deprecated")]
@@ -26,7 +27,7 @@ public class CircularPush : IService
         OnElse?.Invoke(this, tsi);
         stackName = tsi.ReadAllText();
 
-        if (string.IsNullOrWhiteSpace(stackName) || stackName == null)
+        if (string.IsNullOrWhiteSpace(stackName))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "loop must have name"));
             return;

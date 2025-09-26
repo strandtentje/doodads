@@ -3,7 +3,7 @@ using Microsoft.DevTunnels.Ssh;
 using Microsoft.DevTunnels.Ssh.Events;
 using Buffer = Microsoft.DevTunnels.Ssh.Buffer;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
 public class SshChannelReceivingStream : Stream, IDisposable
 {
     private Pipe ChannelPipe;

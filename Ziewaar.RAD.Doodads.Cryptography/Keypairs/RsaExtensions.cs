@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs;
 public static class RsaExtensions
 {
     // Encryption

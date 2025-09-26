@@ -1,5 +1,5 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 #pragma warning disable 67
 [Category("System & IO")]
 [Title("Save to File")]

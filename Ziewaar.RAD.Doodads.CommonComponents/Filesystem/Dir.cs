@@ -1,13 +1,8 @@
 ﻿#nullable enable
 #pragma warning disable 67
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 [Category("System & IO")]
 [Title("Produces a list of directories, given the path currently in the Register.")]
 [Description("""

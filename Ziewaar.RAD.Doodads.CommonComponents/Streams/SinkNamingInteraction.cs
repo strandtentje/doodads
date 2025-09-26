@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 
 public class SinkNamingInteraction(
     IInteraction interaction,

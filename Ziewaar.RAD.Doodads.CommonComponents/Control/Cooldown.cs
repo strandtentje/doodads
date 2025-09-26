@@ -12,7 +12,6 @@ public class Cooldown : IService
     [PrimarySetting("Time in ms to cooldown with")]
     private readonly UpdatingPrimaryValue DelayInMsConst = new();
     private double CurrentDelay;
-    private System.Threading.Timer? CurrentTimer;
 
     [EventOccasion("When the cooldown was cool")]
     public event CallForInteraction? OnThen;

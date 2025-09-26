@@ -1,10 +1,9 @@
 ﻿#nullable enable
 #pragma warning disable 67
 using System.Diagnostics;
-using Ziewaar.RAD.Doodads.CommonComponents.Control;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
 
 [Category("System & IO")]
 [Title("Run program and access stdio via source and sink")]

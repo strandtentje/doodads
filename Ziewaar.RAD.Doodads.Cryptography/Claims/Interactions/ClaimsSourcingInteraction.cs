@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
 public class ClaimsSourcingInteraction(IInteraction interaction, ClaimsPrincipal? argsPrincipal)
     : IClaimsReadingInteraction
 {

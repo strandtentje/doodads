@@ -1,6 +1,8 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+#pragma warning disable 67
+
 [Category("Printing & Formatting")]
 [Title("Increase number in Memory")]
 [Description("""
@@ -33,7 +35,7 @@ public class Delta : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "counter name is required"));
             return;
         }
-        if (!interaction.TryGetClosest<CounterInteraction>(out CounterInteraction? counterInteraction,
+        if (!interaction.TryGetClosest(out CounterInteraction? counterInteraction,
                 x => x.Name == this.CurrentCounterName) || counterInteraction == null)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "couldn't find counter with name"));

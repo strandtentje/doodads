@@ -1,6 +1,6 @@
 using Microsoft.DevTunnels.Ssh.Algorithms;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs;
 
 public class EcdsaPrivateKeyInteraction(
     IInteraction interaction,

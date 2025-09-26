@@ -1,6 +1,6 @@
 #pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 [Category("Memory & Register")]
 [Title("Conditional branch on register value")]
 [Shorthand("~PRIMARY")]

@@ -1,7 +1,10 @@
 using System.Net;
 using Microsoft.DevTunnels.Ssh;
+using Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels;
 public class SshReverseTcpChannel : IService
 {
     public event CallForInteraction? OnThen;

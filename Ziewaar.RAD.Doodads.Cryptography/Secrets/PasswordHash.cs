@@ -1,7 +1,9 @@
 using Isopoh.Cryptography.Argon2;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+using Ziewaar.RAD.Doodads.Cryptography.Secrets.Interactions;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Secrets;
 [Category("Tokens & Cryptography")]
 [Title("Hash Password with Argon2")]
 [Description("""

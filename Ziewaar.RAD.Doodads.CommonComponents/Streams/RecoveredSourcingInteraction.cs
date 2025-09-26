@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 
 public class RecoveredSourcingInteraction(IInteraction interaction, SourceNamingInteraction namingInteraction)
     : ISourcingInteraction

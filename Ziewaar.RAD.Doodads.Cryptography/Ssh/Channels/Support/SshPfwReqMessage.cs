@@ -2,7 +2,7 @@ using Microsoft.DevTunnels.Ssh;
 using Microsoft.DevTunnels.Ssh.IO;
 using Microsoft.DevTunnels.Ssh.Messages;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
 public class SshPfwReqMessage(
     string serverGotConnectionOnAddress,
     uint serverGotConnectionOnPort,

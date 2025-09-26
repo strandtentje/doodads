@@ -1,6 +1,6 @@
 using Microsoft.DevTunnels.Ssh.Tcp;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 public class SshSessionChannel : IService
 {
     public event CallForInteraction? OnThen;
@@ -8,6 +8,7 @@ public class SshSessionChannel : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        /*TODO*/
     }
     private void HandleChannel(SshServer server)
     {

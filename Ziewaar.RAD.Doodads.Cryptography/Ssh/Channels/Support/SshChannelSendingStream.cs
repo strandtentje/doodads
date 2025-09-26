@@ -1,7 +1,7 @@
 using Microsoft.DevTunnels.Ssh;
 using Buffer = Microsoft.DevTunnels.Ssh.Buffer;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
 public class SshChannelSendingStream(SshChannel channel) : Stream
 {
     public override void Flush()

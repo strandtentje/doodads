@@ -1,7 +1,8 @@
 using Isopoh.Cryptography.Argon2;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+using Ziewaar.RAD.Doodads.Cryptography.Secrets.Interactions;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Secrets;
 [Category("Tokens & Cryptography")]
 [Title("Validate Password with Argon2")]
 [Description("""

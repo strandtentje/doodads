@@ -1,6 +1,7 @@
 using Microsoft.DevTunnels.Ssh;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 
 public class CloseSshSession : IService
 {

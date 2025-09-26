@@ -1,7 +1,8 @@
 using Microsoft.DevTunnels.Ssh.Algorithms;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;
 
 [Category("Tokens & Cryptography")]
 [Title("Load ECDSA pair from PEM file")]

@@ -1,7 +1,8 @@
 using Microsoft.DevTunnels.Ssh.Algorithms;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;
 
 [Category("Tokens & Cryptography")]
 [Title("Save a new ECDSA pair to PEM file")]
@@ -14,7 +15,7 @@ public class GenerateEcdsaPem : IService
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         var pemFileCandidate = interaction.Register.ToString();
-        if (string.IsNullOrWhiteSpace(pemFileCandidate) || pemFileCandidate == null)
+        if (string.IsNullOrWhiteSpace(pemFileCandidate))
             OnException?.Invoke(this, new CommonInteraction(interaction, "Filename required"));
         else if (File.Exists(pemFileCandidate))
             OnException?.Invoke(this, new CommonInteraction(interaction, "Cannot overwrite PEM"));

@@ -51,7 +51,7 @@ public class Hopper : IService, IDisposable
             {
                 Runner?.Dispose();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // whatever
             }
@@ -79,7 +79,7 @@ public class Hopper : IService, IDisposable
         {
             Runner?.Dispose();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // whatever
         }

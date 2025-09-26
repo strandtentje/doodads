@@ -6,18 +6,16 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStruc
 public class FormStructureMemberBuilder
 {
     private IValidatingCollectionFactory?
-        FieldTypeValidator = null,
-        OptionsValidator = null,
-        LengthBoundsValidator = null,
-        ValueBoundsValidator = null,
-        TextPatternValidator = null,
-        ValueCountValidator = null;
+        FieldTypeValidator,
+        OptionsValidator,
+        LengthBoundsValidator,
+        ValueBoundsValidator,
+        TextPatternValidator,
+        ValueCountValidator;
     private InputClass[] InputClasses = [];
-    private string[]? intersectedAccepts = null; 
-    private bool AllFixed;
-    private string Name;
+    private string[]? IntersectedAccepts;
+    private string? Name;
     private bool OnlyOptions;
-
     public FormStructureMemberBuilder SetTypes(InputClass[] inputTypes)
     {
         if (inputTypes.Any(x => x.Type == "file") && inputTypes.Any(x => x.Type != "file"))
@@ -33,7 +31,6 @@ public class FormStructureMemberBuilder
         this.OptionsValidator = new OptionsValidatingCollectionFactory(validOptions);
         return this;
     }
-
     public FormStructureMemberBuilder CanOnlyFitOptions(bool isOptionType)
     {
         this.OnlyOptions = isOptionType;
@@ -43,10 +40,10 @@ public class FormStructureMemberBuilder
     {
         foreach (var accept in accepts)
         {
-            intersectedAccepts = 
-                intersectedAccepts == null ? 
-                    accept.Split(",", (StringSplitOptions)3) : 
-                    intersectedAccepts.Intersect(accept.Split(",", (StringSplitOptions)3)).ToArray();
+            IntersectedAccepts =
+                IntersectedAccepts == null
+                    ? accept.Split(",", (StringSplitOptions)3)
+                    : IntersectedAccepts.Intersect(accept.Split(",", (StringSplitOptions)3)).ToArray();
         }
         return this;
     }
@@ -83,10 +80,12 @@ public class FormStructureMemberBuilder
     }
     public FormStructureMember Build(bool isMultipart, bool isFile)
     {
+        if (string.IsNullOrWhiteSpace(this.Name))
+            throw new ArgumentException("Form member must have a name");
         if (isMultipart && isFile)
         {
             var validator = new AllValidCollectionsFactory(
-                new MultipartFileValidationCollectionFactory(this.Name, string.Join(',', intersectedAccepts ?? [])),
+                new MultipartFileValidationCollectionFactory(this.Name, string.Join(',', IntersectedAccepts ?? [])),
                 this.LengthBoundsValidator,
                 this.FieldTypeValidator,
                 this.ValueCountValidator
@@ -107,7 +106,7 @@ public class FormStructureMemberBuilder
                 )
             );
             return new FormStructureMember(this.Name, validator);
-        } 
+        }
         else if (!isMultipart && !isFile)
         {
             var validator = new AllValidCollectionsFactory(
@@ -133,5 +132,4 @@ public class FormStructureMemberBuilder
             throw new InvalidOperationException("Cannot use file field in non-multipart");
         }
     }
-
 }

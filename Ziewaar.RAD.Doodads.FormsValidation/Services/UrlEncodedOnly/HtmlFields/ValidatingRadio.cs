@@ -25,13 +25,13 @@ public class ValidatingRadio(HtmlNode node) : IValidatingInputFieldInSet
         get => 1;
         set { }
     }
-    private IEnumerable<string> ValidValues { get; set; }
+    private IEnumerable<string> ValidValues { get; set; } = [];
     public List<IValidatingInputField> AltValidators { get; } = new();
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
         if (node.GetInputTypeName() != "radio")
             return false;
-        if (node.GetInputName() is not string inputName)
+        if (node.GetInputName() is not string)
             return true;
         if (node.GetInputValue() is string radioValue)
             set.Merge(new ValidatingRadio(node)

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Claims;
 public class ReadRoleClaim : ReadClaim
 {
     public override void Enter(StampedMap constants, IInteraction interaction) =>

@@ -1,5 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
+#pragma warning disable 67
 
 [Category("Printing & Formattin")]
 [Title("Capture number in memory")]
@@ -53,7 +54,7 @@ public class Number : IService
             {
                 initialValue = Convert.ToDecimal(existingNumberObject);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // whatever
             }

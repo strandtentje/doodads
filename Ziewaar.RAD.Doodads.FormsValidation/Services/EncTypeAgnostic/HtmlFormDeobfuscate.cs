@@ -1,5 +1,5 @@
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
-
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
 [Category("Input & Validation")]

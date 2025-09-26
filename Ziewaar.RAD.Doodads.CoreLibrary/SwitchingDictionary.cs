@@ -1,9 +1,6 @@
 ﻿#nullable enable
-
 using Serilog;
-
 namespace Ziewaar.RAD.Doodads.CoreLibrary;
-
 public class SwitchingDictionary(
     string[] members,
     Func<string, object> valueSource) : IReadOnlyDictionary<string, object>
@@ -22,8 +19,8 @@ public class SwitchingDictionary(
         members.ToDictionary(x => x, valueSource).GetEnumerator();
     public bool TryGetValue(string key, out object value)
     {
-        value = null;
-        if (key == null) return false;
+        value = string.Empty;
+        if (string.IsNullOrWhiteSpace(key)) return false;
         if (!members.Contains(key)) return false;
         value = valueSource(key);
         return true;

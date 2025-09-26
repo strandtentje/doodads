@@ -1,9 +1,9 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Implementations.Bounding;
 public class BoundsValidatingNumberCollection(decimal lBound, decimal uBound) : IValidatingCollection
 {
-    private readonly List<object> BackingValues = new();
+    private readonly List<object> BackingValues = [];
     public bool IsSatisfied { get; private set; } = true;
-    public string Reason { get; private set; }
+    public string Reason { get; private set; } = string.Empty;
     public IEnumerable ValidItems => BackingValues;
     public void Add(object value, out object transformed)
     {

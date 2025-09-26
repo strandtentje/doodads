@@ -29,7 +29,7 @@ public class ScopedByteReaderTests
     public void YieldsUntilTerminator_ThenStops()
     {
         var inner = new Seq((byte)'A', (byte)'B', (byte)'C', (byte)'&', (byte)'D');
-        var scoped = new ScopedByteReader("abc", inner, limit: -1, (byte)'&');
+        var scoped = new ScopedByteReader(inner, limit: -1, (byte)'&');
 
         var got = new List<byte>();
         while (scoped.MoveNext()) got.Add(scoped.Current);
@@ -43,7 +43,7 @@ public class ScopedByteReaderTests
     public void EnforcesLimit()
     {
         var inner = new Seq((byte)'1', (byte)'2', (byte)'3', (byte)'4');
-        var scoped = new ScopedByteReader("limited", inner, limit: 2, (byte)'&');
+        var scoped = new ScopedByteReader(inner, limit: 2, (byte)'&');
 
         var got = new List<byte>();
         while (scoped.MoveNext()) got.Add(scoped.Current);

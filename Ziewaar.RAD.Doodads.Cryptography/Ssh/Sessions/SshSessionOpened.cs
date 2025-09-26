@@ -1,7 +1,9 @@
-using Microsoft.DevTunnels.Ssh.Events;
 using System.Security.Claims;
+using Microsoft.DevTunnels.Ssh.Events;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Server.Support;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 
 public class SshSessionOpened : IService
 {
@@ -17,9 +19,9 @@ public class SshSessionOpened : IService
             return;
         }
 
-        serverInteraction.SshServer.SessionOpened += (sender, session) =>
+        serverInteraction.SshServer.SessionOpened += (_, session) =>
         {
-            session.Authenticating += (o, args) =>
+            session.Authenticating += (_, args) =>
             {
                 if (args.AuthenticationType != SshAuthenticationType.ClientPublicKey &&
                     args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery)

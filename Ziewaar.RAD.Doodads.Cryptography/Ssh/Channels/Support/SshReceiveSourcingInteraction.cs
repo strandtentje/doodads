@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
 public class SshReceiveSourcingInteraction(IInteraction interaction, Stream receivingSshStream) : ISourcingInteraction
 {
     public IInteraction Stack => interaction;

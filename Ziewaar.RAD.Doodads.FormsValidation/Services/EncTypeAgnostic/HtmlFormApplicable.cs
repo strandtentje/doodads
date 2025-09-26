@@ -100,7 +100,7 @@ public class HtmlFormApplicable : IService
                     formData = new FormDataDictionary(queryString)
                         .SelectMany(x => x.Value.OfType<object>().Select(value => (key: x.Key, value)))
                         .GroupBy(x => x.key, x => x.value);
-                    OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, formData));
+                    OnThen?.Invoke(this, new FormDataInteraction(interaction, formData));
                     return;
                 }
             }
@@ -162,7 +162,7 @@ public class HtmlFormApplicable : IService
             {
                 var urlEncodedReader = new UrlEncodedTokenReader(limitedByteReader);
                 formData = new StreamingFormDataEnumerable(urlEncodedReader);
-                OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, formData));
+                OnThen?.Invoke(this, new FormDataInteraction(interaction, formData));
             }
             else if (incomingContentType == "multipart/form-data")
             {
@@ -182,7 +182,7 @@ public class HtmlFormApplicable : IService
                     debugByteReader, $"--{boundaryText}--");
                 var multipartEncodedReader = new MultipartGroupList(
                     terminatingByteReader, $"\r\n--{boundaryText}");
-                OnThen?.Invoke(this, new FormDataInteraction(interaction, formStructure, multipartEncodedReader));
+                OnThen?.Invoke(this, new FormDataInteraction(interaction, multipartEncodedReader));
             }
             else
             {

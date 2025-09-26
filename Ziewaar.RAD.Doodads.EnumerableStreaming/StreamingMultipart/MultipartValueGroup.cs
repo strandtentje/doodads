@@ -5,7 +5,7 @@ public class MultipartValueGroup : IGrouping<string, object>
     private readonly CrlfDetector CrlfDetector;
     private readonly MultibyteEotReader BoundaryDetector;
     public MultipartValueGroup? NextGroup { get; private set; }
-    private MultipartHeader[]? Headers { get; } = null;
+    private MultipartHeader[]? Headers { get; }
     public string Key { get; }
 
     public MultipartValueGroup(
@@ -16,7 +16,7 @@ public class MultipartValueGroup : IGrouping<string, object>
         this.CrlfDetector = crlfDetector;
         this.BoundaryDetector = boundaryDetector;
         this.Key = "";
-        if (TryConsumeHeaders(ref headers, out var fieldName))
+        if (TryConsumeHeaders(ref headers, out var fieldName) && fieldName != null)
         {
             this.Key = fieldName;
             this.Headers = headers;

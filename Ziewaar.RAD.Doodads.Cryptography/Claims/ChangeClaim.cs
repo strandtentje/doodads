@@ -1,4 +1,7 @@
-namespace Ziewaar.RAD.Doodads.Cryptography;
+using Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
+#pragma warning disable 67
+
+namespace Ziewaar.RAD.Doodads.Cryptography.Claims;
 public class ChangeClaim : IService
 {
     private readonly UpdatingPrimaryValue ClaimTypeOverrideConst = new();

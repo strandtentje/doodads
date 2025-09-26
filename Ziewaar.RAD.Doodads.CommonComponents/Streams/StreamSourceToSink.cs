@@ -1,18 +1,31 @@
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 
 #nullable enable
 
+[Category("Sourcing & Sinking")]
+[Title("Pump bytes from source to sink")]
+[Description("""
+             So long as nothing breaks and the copy name is touched with Continue,
+             this will continue pumping data from the source to the sink. For each block,
+             OnThen is invoked with the byte total in register. 
+             When copying stops, OnElse is hit with the total byte count in register.
+             """)]
 public class StreamSourceToSink : IService
 {
+    [PrimarySetting("Copy name to use with Continue")]
     private readonly UpdatingPrimaryValue CopyNameConstant = new();
+    [NamedSetting("eof", "If a 0-length read means EOF")]
     private readonly UpdatingKeyValue ZeroIsEofConstant = new("eof");
     private string? CurrentCopyName;
     private bool IsZeroEof = true;
+    [EventOccasion("When another block of data was moved; use Continue here.")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("After copying stopped")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when the copy name is missing, or sources/sinks were missing.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -22,7 +35,7 @@ public class StreamSourceToSink : IService
         if ((constants, ZeroIsEofConstant).IsRereadRequired(out bool zeroIsEofCandidate))
             this.IsZeroEof = zeroIsEofCandidate;
 
-        if (string.IsNullOrWhiteSpace(this.CurrentCopyName))
+        if (this.CurrentCopyName == null || string.IsNullOrWhiteSpace(this.CurrentCopyName))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "copy name required as primary constant"));
             return;

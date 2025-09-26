@@ -1,7 +1,9 @@
 using Microsoft.DevTunnels.Ssh.Events;
 using Microsoft.DevTunnels.Ssh.Keys;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 public class SshSessionPublicKeyAuthentic : IService
 {
     public event CallForInteraction? OnThen;
@@ -16,8 +18,8 @@ public class SshSessionPublicKeyAuthentic : IService
         }
 
         var formatter = new Pkcs8KeyFormatter();
-
-        sessionInteraction.Session.Authenticating += (sender, args) =>
+/* TODO */
+        sessionInteraction.Session.Authenticating += (_, args) =>
         {
             if (args.AuthenticationType != SshAuthenticationType.ClientPublicKey || args.PublicKey == null)
                 return;

@@ -2,7 +2,7 @@
 #nullable enable
 using System.Text.RegularExpressions;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTests;
 
 [Category("Input & Validation")]
 [Title("Check if register text matches regex")]

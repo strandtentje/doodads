@@ -28,7 +28,19 @@ public class FormDataDictionary : IReadOnlyDictionary<string, IEnumerable>
     public IEnumerable<IEnumerable> Values => backingStore.Values;
     public int Count => backingStore.Count;
     public bool ContainsKey(string key) => backingStore.ContainsKey(key);
-    public bool TryGetValue(string key, out IEnumerable value) => backingStore.TryGetValue(key, out value);
+    public bool TryGetValue(string key, out IEnumerable value)
+    {
+        if (backingStore.TryGetValue(key, out var candidate))
+        {
+            value = candidate;
+            return true;
+        }
+        else
+        {
+            value = string.Empty;
+            return false;
+        }
+    }
     public IEnumerator<KeyValuePair<string, IEnumerable>> GetEnumerator() => backingStore.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => backingStore.GetEnumerator();
 }

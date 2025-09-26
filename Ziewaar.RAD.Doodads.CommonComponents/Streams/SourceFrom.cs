@@ -1,6 +1,6 @@
 #pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 [Category("Input & Validation")]
 [Title("Memory to Stream")]
 [Description("Make text in memory readable as a stream")]

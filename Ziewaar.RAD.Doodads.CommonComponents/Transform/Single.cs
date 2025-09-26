@@ -2,7 +2,7 @@
 #nullable enable
 using System.Collections;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 [Category("Deprecated")]
 [Title("Ensure the list contains one item, and take it.")]
 [Description("""

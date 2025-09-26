@@ -2,25 +2,17 @@
 using System.Runtime.InteropServices;
 
 namespace Ziewaar.RAD.Doodads.AdvancedFilesystem;
-
 public sealed class SymlinkRepository
 {
-    private static readonly Lazy<SymlinkRepository> _instance = new(() => new SymlinkRepository());
-    public static SymlinkRepository Instance => _instance.Value;
-
-    private readonly bool _isWindows;
-
-    private SymlinkRepository()
-    {
-        _isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-    }
-
+    private static readonly Lazy<SymlinkRepository> LazyInstance = new(() => new SymlinkRepository());
+    public static SymlinkRepository Instance => LazyInstance.Value;
+    private bool IsWindows { get; } = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     public void Create(string linkPath, string targetPath, bool isDirectory)
     {
         if (File.Exists(linkPath) || Directory.Exists(linkPath))
             throw new IOException($"Link path already exists: {linkPath}");
 
-        if (_isWindows)
+        if (IsWindows)
         {
             string linkType = isDirectory ? "/D" : "";
             string args = $"/C mklink {linkType} \"{linkPath}\" \"{targetPath}\"";
@@ -32,13 +24,12 @@ public sealed class SymlinkRepository
             RunCommand("ln", args);
         }
     }
-
     public string Read(string linkPath)
     {
         EnsureSymlink(linkPath);
-
-        var resolved = new FileInfo(SymlinkHelper.ResolveSymlinkTarget(linkPath) ?? throw new IOException("Could not resolve symlink target"));
-        return resolved?.FullName ?? throw new IOException("Could not resolve link target");
+        var resolved = new FileInfo(SymlinkHelper.ResolveSymlinkTarget(linkPath) ??
+                                    throw new IOException("Could not resolve symlink target"));
+        return resolved.FullName ?? throw new IOException("Could not resolve link target");
     }
     public void Upsert(string linkPath, string targetPath, bool isDirectory)
     {
@@ -64,7 +55,6 @@ public sealed class SymlinkRepository
         }
         Create(linkPath, newTargetPath, isDirectory);
     }
-
     public void Delete(string linkPath)
     {
         EnsureSymlink(linkPath);
@@ -74,24 +64,20 @@ public sealed class SymlinkRepository
         else if (Directory.Exists(linkPath))
             Directory.Delete(linkPath);
     }
-
     public List<SymlinkInfo> ListSymlinks(string directoryPath)
     {
         var result = new List<SymlinkInfo>();
 
         foreach (var path in Directory.EnumerateFileSystemEntries(directoryPath))
         {
-            if (SymlinkHelper.IsSymlink(path))
-            {
-                var target = new FileInfo(SymlinkHelper.ResolveSymlinkTarget(path));
-                bool isDir = target?.Attributes.HasFlag(FileAttributes.Directory) ?? false;
-                result.Add(new SymlinkInfo(path, target?.FullName ?? "", isDir));
-            }
+            if (SymlinkHelper.ResolveSymlinkTarget(path) is not string symlinkPathCandidate) continue;
+            var target = new FileInfo(symlinkPathCandidate);
+            var isDir = target.Attributes.HasFlag(FileAttributes.Directory);
+            result.Add(new SymlinkInfo(path, target.FullName, isDir));
         }
 
         return result;
     }
-
     public void ClearSymlinks(string directoryPath)
     {
         foreach (var path in Directory.EnumerateFileSystemEntries(directoryPath))
@@ -105,13 +91,11 @@ public sealed class SymlinkRepository
             }
         }
     }
-
     private static void EnsureSymlink(string path)
     {
         if (!SymlinkHelper.IsSymlink(path))
             throw new IOException($"Not a symbolic link: {path}");
     }
-
     private static void RunCommand(string fileName, string args)
     {
         var process = new Process

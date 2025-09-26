@@ -3,5 +3,6 @@ public class FormStructureMember(string name, IValidatingCollectionFactory valid
 {
     public static FormStructureMemberBuilder Builder => new();
     public string Name => name;
-    public IValidatingCollection CreateValidatingCollection() => validatorFactory.Create();
+    public IValidatingCollection CreateValidatingCollection() => validatorFactory.Create() ?? AlwaysMatchingCollection;
+    private static IValidatingCollection AlwaysMatchingCollection = new AndValidatingCollection([]);
 }

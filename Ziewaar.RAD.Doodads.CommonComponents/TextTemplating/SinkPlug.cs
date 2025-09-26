@@ -1,4 +1,5 @@
 #nullable enable
+#pragma warning disable 67
 using Ziewaar.RAD.Doodads.CommonComponents.Control;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 

@@ -1,10 +1,11 @@
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
+#pragma warning disable 67
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
 [Category("Input & Validation")]
-[Title("Prints a prepared and obfuscated form to the true otuput.")]
+[Title("Prints a prepared and obfuscated form to the true output.")]
 [Description("""
              After HtmlFormPrepare happened, this may be invoked at any point to print the form
              to the current sink; likely an HTTP request. It'll obfuscate the field names with one-time 

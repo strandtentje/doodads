@@ -1,5 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
+#pragma warning disable 67
 
 [Category("Printing & Formatting")]
 [Title("Cache by keys, invalidate by keys")]

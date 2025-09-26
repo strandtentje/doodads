@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using Serilog;
 using Serilog.Events;
-using System.Diagnostics;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Server.Support;
 
 public class SerilogTraceListener : TraceListener
 {

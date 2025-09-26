@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 public static class FileOpener
 {

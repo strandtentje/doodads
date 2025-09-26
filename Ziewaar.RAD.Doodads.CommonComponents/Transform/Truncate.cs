@@ -1,6 +1,6 @@
 ﻿#pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 
 [Category("Input & Validation")]
 [Title("Makes sure text in register is not too long")]

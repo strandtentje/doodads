@@ -1,7 +1,10 @@
 using Microsoft.DevTunnels.Ssh;
 using Microsoft.DevTunnels.Ssh.Events;
+using Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 public class SetSshSessionShelved : IService
 {
     internal static readonly SortedList<Guid, SshServerSession> ShelvedSessions = new();

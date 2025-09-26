@@ -1,5 +1,5 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 #pragma warning disable 67
 [Category("Memory & Register")]
 [Title("If a name doesn't exist in memory, set it to a default value from stream")]
@@ -33,7 +33,8 @@ public class Default : IService
             OnException?.Invoke(this, interaction);
             return;
         }
-        if (!interaction.TryFindVariable<object>(this.CurrentMemoryName, out var memoryValue))
+        if (!interaction.TryFindVariable<object>(this.CurrentMemoryName, out var memoryValue)
+            || memoryValue == null)
         {
             if (FixedDefaultValue != null && (FixedDefaultValue is not string fixedDefaultString ||
                                               !string.IsNullOrWhiteSpace(fixedDefaultString)))

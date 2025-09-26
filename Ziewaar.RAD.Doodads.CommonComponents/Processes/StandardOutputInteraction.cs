@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
 
 public class StandardOutputInteraction(IInteraction parent, Stream outputStream, Encoding encoding = null) : ISourcingInteraction
 {

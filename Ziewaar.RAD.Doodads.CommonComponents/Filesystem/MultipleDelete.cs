@@ -1,6 +1,6 @@
 ﻿#nullable enable
 #pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
 [Title("Deletes files by pattern")]

@@ -23,6 +23,6 @@ public class ValidatingWeekCollection : IValidatingCollection
         }
     }
     public bool IsSatisfied { get; private set; } = true;
-    public string Reason { get; private set; }
+    public string Reason { get; private set; } = string.Empty;
     public IEnumerable ValidItems => BackingValues;
 }

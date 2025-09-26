@@ -1,6 +1,8 @@
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+using Ziewaar.RAD.Doodads.Cryptography.Secrets.Interactions;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Secrets;
 [Category("Tokens & Cryptography")]
 [Title("Load string as sensitive")]
 [Description("""

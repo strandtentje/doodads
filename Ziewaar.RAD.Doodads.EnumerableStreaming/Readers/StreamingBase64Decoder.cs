@@ -1,62 +1,60 @@
-namespace Ziewaar.RAD.Doodads.EnumerableStreaming.Readers
+namespace Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
+public class StreamingBase64Decoder(ICountingEnumerator<char> reader) : ICountingEnumerator<byte>
 {
-    public class StreamingBase64Decoder(ICountingEnumerator<char> reader) : ICountingEnumerator<byte>
+    public bool AtEnd { get; private set; }
+    public long Cursor { get; private set; }
+    public string? ErrorState { get; set; }
+    public byte Current { get; private set; }
+    object IEnumerator.Current => Current;
+    private int ByteBufferCursor;
+    private int ByteBufferEndStop;
+    private readonly byte[] DataBuffer = new byte[5 * 1024];
+    private int Base64Length;
+    private readonly char[] Base64Buffer = new char[5 * 1024];
+    public bool MoveNext()
     {
-        public bool AtEnd { get; private set; }
-        public long Cursor { get; private set; }
-        public string ErrorState { get; set; }
-        public byte Current { get; private set; }
-        object IEnumerator.Current => Current;
-        private int byteBufferCursor = 0;
-        private int byteBufferEndstop = 0;
-        private byte[] dataBuffer = new byte[5 * 1024];
-        private int base64Length = 0;
-        private char[] base64Buffer = new char[5 * 1024];
-        public bool MoveNext()
+        if (ByteBufferCursor >= ByteBufferEndStop)
         {
-            if (byteBufferCursor >= byteBufferEndstop)
-            {
-                base64Length = 0;
+            Base64Length = 0;
 
-                while ((base64Length < 4 * 1024) && reader.MoveNext())
-                    base64Buffer[base64Length++] = reader.Current;
+            while ((Base64Length < 4 * 1024) && reader.MoveNext())
+                Base64Buffer[Base64Length++] = reader.Current;
         
-                if ((base64Length % 4) != 0)
-                {
-                    ErrorState = "Base64 corrupt; not a multiple of 4 in length. Likely missing padding chars.";
-                    return false;
-                }
-
-                if (!NonAllocatingBase64Decoder.TryDecode(base64Buffer, base64Length, dataBuffer, out byteBufferEndstop))
-                {
-                    ErrorState = "Base64 corrupt; likely wrong characters encountered.";
-                    return false;
-                }
-            
-                byteBufferCursor = 0;
-            }
-
-            if (byteBufferCursor < byteBufferEndstop)
+            if ((Base64Length % 4) != 0)
             {
-                Current = dataBuffer[byteBufferCursor++];
-                Cursor++;
-                return true;
-            } else
-            {
-                AtEnd = true;
+                ErrorState = "Base64 corrupt; not a multiple of 4 in length. Likely missing padding chars.";
                 return false;
             }
+
+            if (!NonAllocatingBase64Decoder.TryDecode(Base64Buffer, Base64Length, DataBuffer, out ByteBufferEndStop))
+            {
+                ErrorState = "Base64 corrupt; likely wrong characters encountered.";
+                return false;
+            }
+            
+            ByteBufferCursor = 0;
         }
-        public void Reset()
+
+        if (ByteBufferCursor < ByteBufferEndStop)
         {
-            Current = 0;
-            Cursor = 0;        
-            AtEnd = false;
-            ErrorState = null;
+            Current = DataBuffer[ByteBufferCursor++];
+            Cursor++;
+            return true;
+        } else
+        {
+            AtEnd = true;
+            return false;
         }
-        public void Dispose()
-        {
+    }
+    public void Reset()
+    {
+        Current = 0;
+        Cursor = 0;        
+        AtEnd = false;
+        ErrorState = null;
+    }
+    public void Dispose()
+    {
         
-        }
     }
 }

@@ -34,8 +34,8 @@ public static class SymlinkHelper
             };
 
             using var proc = System.Diagnostics.Process.Start(psi);
-            proc.WaitForExit();
-            var result = proc.StandardOutput.ReadToEnd().Trim();
+            proc?.WaitForExit();
+            var result = proc?.StandardOutput.ReadToEnd().Trim();
 
             return string.IsNullOrWhiteSpace(result) ? null : result;
         }

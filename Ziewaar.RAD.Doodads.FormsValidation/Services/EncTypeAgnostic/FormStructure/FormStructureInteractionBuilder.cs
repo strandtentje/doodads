@@ -1,14 +1,13 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 public class FormStructureInteractionBuilder
 {
-    public bool IsSealed { get; private set; } = false;
+    private bool IsSealed;
     private string RequestContentType = "application/x-www-form-urlencoded";
     private HttpMethod HttpMethod = HttpMethod.Get;
     private string ActionUrl = "";
     private List<FormStructureMember> Members = new();
-    private HtmlNode FormNode;
+    private HtmlNode? FormNode;
     private string ResponseContentType = "text/html";
-
     public FormStructureInteractionBuilder WithResponseBodyType(string contentType)
     {
         if (IsSealed) throw new InvalidOperationException("Cannot change sealed formstructure builder");
@@ -43,16 +42,16 @@ public class FormStructureInteractionBuilder
     {
         if (IsSealed) throw new InvalidOperationException("Cannot change sealed formstructure builder");
         IsSealed = true;
-        return;
     }
     public FormStructureInteraction CreateFor(IInteraction stack)
     {
         if (!IsSealed) throw new InvalidOperationException("Cannot create with unsealed formstructure builder");
+        if (this.FormNode == null) throw new InvalidOperationException("Builder not finished; no form node.");
         return new FormStructureInteraction(
             stack,
-            this.RequestContentType, this.ResponseContentType, this.HttpMethod, this.ActionUrl, this.FormNode, this.Members);
+            this.RequestContentType, this.ResponseContentType, this.HttpMethod, this.ActionUrl, this.FormNode,
+            this.Members);
     }
-
     public FormStructureInteractionBuilder WithHtmlForm(HtmlNode formNode)
     {
         if (IsSealed) throw new InvalidOperationException("Cannot set form html on sealed form data");

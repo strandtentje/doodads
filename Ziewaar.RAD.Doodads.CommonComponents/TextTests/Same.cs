@@ -2,7 +2,7 @@
 #nullable enable
 using System.Collections;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.TextTests;
 
 [Category("Parsing & Composing")]
 [Title("Compare two memroy values")]

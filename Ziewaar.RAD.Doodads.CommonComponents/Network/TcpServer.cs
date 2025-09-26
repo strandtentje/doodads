@@ -3,22 +3,36 @@ using System.Net.Sockets;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+#pragma warning disable 67
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.Network;
 #nullable enable
+[Category("System & IO")]
+[Title("Listen for TCP clients")]
+[Description("""
+             Provided an endpoint, a name for this server's loop, and client handling,
+             start handling TCP traffic.
+             """)]
 public class TcpServer : IService
 {
+    [PrimarySetting("TCP Server Loop name")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     private string? CurrentRepeatName;
+    [EventOccasion("Provide a named Continue here to check after each new connection if we must continue listening.")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Sink `address:port` string here, to listen on.")]
     public event CallForInteraction? OnIpEndpoint;
+    [EventOccasion("Full duplex (sourcing and sinking) client interaction here; client-ip and client-port are in memory")]
     public event CallForInteraction? OnClient;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when the loop name was missing or the ip/port string was bad.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!(constants, RepeatNameConstant).IsRereadRequired(out string? repeatNameCandidate))
             this.CurrentRepeatName = repeatNameCandidate;
-        if (string.IsNullOrWhiteSpace(this.CurrentRepeatName))
+        if (this.CurrentRepeatName == null || string.IsNullOrWhiteSpace(this.CurrentRepeatName))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "Repeat name required"));
             return;
@@ -26,7 +40,7 @@ public class TcpServer : IService
 
         var tsi = new TextSinkingInteraction(interaction);
         OnIpEndpoint?.Invoke(this, tsi);
-        string endpointString = tsi.ReadAllText();
+        var endpointString = tsi.ReadAllText();
 
         IPEndPoint listenEndpoint;
         var splitEndpoint = endpointString.Split(':');

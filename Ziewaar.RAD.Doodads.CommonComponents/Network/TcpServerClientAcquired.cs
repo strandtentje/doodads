@@ -1,7 +1,7 @@
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Network;
 
 public class TcpServerClientAcquired(
     TcpListener listener,

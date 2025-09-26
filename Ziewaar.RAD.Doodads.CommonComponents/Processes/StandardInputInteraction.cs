@@ -1,5 +1,6 @@
 ﻿using System.Text;
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
 public class StandardInputInteraction(IInteraction interaction, Stream basestream, Encoding encoding = null) : ISinkingInteraction
 {
     public Encoding TextEncoding => encoding ?? Console.InputEncoding ?? Encoding.Default;

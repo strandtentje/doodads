@@ -1,7 +1,8 @@
-#nullable enable
 using Newtonsoft.Json;
-
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+
+#nullable enable
+#pragma warning disable 67
 
 [Category("Diagnostics & Debug")]
 [Title("Dump the full context to console")]
@@ -34,7 +35,7 @@ public class Dump : IService
             {
                 this.CurrentDumpLimit = Convert.ToInt32(limit);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "Dump limit formatted incorrectly"));
                 this.CurrentDumpLimit = -1;
@@ -55,12 +56,12 @@ public class Dump : IService
             var dumpBlob = JsonConvert.SerializeObject(new
             {
                 Type = working.GetType().Name,
-                Memory = working.Memory.Select<KeyValuePair<string, object>, (string, object)>(x => (x.Key,
-                    x.Value switch
+                Memory = working.Memory.Select<KeyValuePair<string, object>, (string, object)>(memoryItem => (memoryItem.Key,
+                    memoryItem.Value switch
                     {
                         IEnumerable<string> strEnumerable => strEnumerable,
                         string text => text,
-                        IEnumerable<object> objEnumerable => objEnumerable.Select(x => x.ToString()),
+                        IEnumerable<object> objEnumerable => objEnumerable.Select(valueItem => valueItem.ToString()),
                         object anything => anything.ToString(),
                         _ => "Don't know"
                     })).ToArray(),

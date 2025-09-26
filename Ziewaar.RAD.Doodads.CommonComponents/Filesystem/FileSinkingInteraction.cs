@@ -1,7 +1,7 @@
 #nullable enable
 using System.Text;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 #pragma warning disable 67
 public class FileSinkingInteraction(IInteraction interaction, Stream stream) : ISinkingInteraction
 {

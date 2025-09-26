@@ -1,5 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
+#pragma warning disable 67
 
 [Category("Printing & Formatting")]
 [Title("Cache by keys, invalidate by keys")]
@@ -7,8 +8,10 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class SinkCache : IService
 {
     [NamedSetting("keys", "Memory names of cache member identity")]
+    // ReSharper disable once UnusedMember.Local; this serves a documentative purpose.
     private readonly UpdatingKeyValue CacheIdentityKeysConstant = new("keys");
     [NamedSetting("validatekeys", "Memory names to validate cache contents with")]
+    // ReSharper disable once UnusedMember.Local; this serves a documentative purpose.
     private readonly UpdatingKeyValue CacheValidateKeysConstant = new("validatekeys");
     private readonly UsingSinkCache CacheChecker = new();
     private readonly ReadCache ReadCache = new();
@@ -22,8 +25,8 @@ public class SinkCache : IService
 
     public SinkCache()
     {
-        CacheChecker.OnThen += (s, e) => ReadCache.Enter(new(new object()), e);
-        CacheChecker.OnElse += (s, e) => WriteCache.Enter(new(new object()), e);
+        CacheChecker.OnThen += (_, e) => ReadCache.Enter(new(new object()), e);
+        CacheChecker.OnElse += (_, e) => WriteCache.Enter(new(new object()), e);
         WriteCache.OnThen += this.OnThen;
         CacheChecker.OnException += this.OnException;
         ReadCache.OnException += this.OnException;

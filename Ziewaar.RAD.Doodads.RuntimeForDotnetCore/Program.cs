@@ -6,6 +6,7 @@ using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.Cryptography;
+using Ziewaar.RAD.Doodads.Cryptography.Secrets;
 using Ziewaar.RAD.Doodads.FormsValidation.Services;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;

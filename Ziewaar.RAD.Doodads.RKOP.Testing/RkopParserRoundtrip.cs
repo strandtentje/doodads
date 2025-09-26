@@ -1,8 +1,8 @@
-﻿using System.Xml.Resolvers;
-using Ziewaar.RAD.Doodads.RKOP.Blocks;
+﻿using Ziewaar.RAD.Doodads.RKOP.Blocks;
 using Ziewaar.RAD.Doodads.RKOP.Constructor;
 using Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
 using Ziewaar.RAD.Doodads.RKOP.Text;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 namespace Ziewaar.RAD.Doodads.RKOP.Testing
 {
@@ -109,18 +109,18 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
 
             var child = desc.
                 Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child").
-                QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>(x => true).
+                QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>(_ => true).
                 SingleOrDefault();
 
             var child2 = desc.
                 Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child2").
-                QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>(x => true).
+                QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>(_ => true).
                 SingleOrDefault();
 
             Assert.IsNotNull(child);
             Assert.IsNotNull(child2);
             Assert.IsNotNull(desc.Children.Branches);
-            Assert.AreEqual(2, desc.Children.Branches.Count);
+            Assert.HasCount(2, desc.Children.Branches);
             Assert.AreEqual("OtherService", child.CurrentConstructor.ServiceTypeName);
             Assert.AreEqual("MoreService", child2.CurrentConstructor.ServiceTypeName);
         }
@@ -155,7 +155,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
             Assert.AreEqual("SomeService", desc.CurrentConstructor.ServiceTypeName);
 
             Assert.IsNotNull(desc.Children.Branches);
-            Assert.AreEqual(2, desc.Children.Branches.Count);
+            Assert.HasCount(2, desc.Children.Branches);
 
             var childSet = desc.
                 Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child").
@@ -165,9 +165,9 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 QueryAllServices<ServiceExpression<MockWrapper>, SerializableRedirection<MockWrapper>, MockWrapper>().
                 QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>();*
             var earlyDefine = earlyDefineSet.SingleOrDefault();*/
-            var child2set = desc.Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child2").
+            var child2Set = desc.Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "Child2").
                 QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>();
-            var child2 = child2set.SingleOrDefault();
+            var child2 = child2Set.SingleOrDefault();
             var callBackSet = desc.Query<ServiceExpression<MockWrapper>>(x => x.CurrentNameInScope == "CallbackBranch").
                 QueryAllServices<ServiceExpression<MockWrapper>, ServiceDescription<MockWrapper>, MockWrapper>();
             var callBack = callBackSet.SingleOrDefault();
@@ -204,7 +204,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -235,7 +235,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -270,7 +270,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -298,7 +298,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -334,7 +334,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -369,7 +369,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
@@ -408,7 +408,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Testing
                 new DirectoryInfo(cdir),
                 "test",
                 testText);
-            var result = desc.UpdateFrom("test", ref simple);
+            desc.UpdateFrom("test", ref simple);
 
             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);

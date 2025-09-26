@@ -1,5 +1,5 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
-public class ValidatingEmailPicker(HtmlNode node) : IValidatingInputFieldInSet
+public partial class ValidatingEmailPicker(HtmlNode node) : IValidatingInputFieldInSet
 {
     public event EventHandler<(string oldName, string newName)>? NameChanged;
     public string Name
@@ -13,7 +13,7 @@ public class ValidatingEmailPicker(HtmlNode node) : IValidatingInputFieldInSet
             NameChanged?.Invoke(this, (oldName, value));
         }
     }
-    public Regex Pattern;
+    private Regex Pattern = MatchAnything();
     public int MinExpectedValues { get; set; }
     public int MaxExpectedValues { get; set; }
     public bool IsMaxUnbound { get; private set; }
@@ -36,13 +36,13 @@ public class ValidatingEmailPicker(HtmlNode node) : IValidatingInputFieldInSet
     {
         if (otherFieldInSet.Name != this.Name)
             throw new FormValidationMarkupException("Cannot merge fields with different name");
-        return otherFieldInSet is ValidatingEmailPicker otherMailPicker;
+        return otherFieldInSet is ValidatingEmailPicker;
     }
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
         if (node.GetInputTypeName() != "email")
             return false;
-        if (node.GetInputName() is not string inputName)
+        if (node.GetInputName() is not string)
             return true;
         var isRequired = node.IsRequired();
         set.Merge(new ValidatingEmailPicker(node)
@@ -52,4 +52,7 @@ public class ValidatingEmailPicker(HtmlNode node) : IValidatingInputFieldInSet
         });
         return true;
     }
+
+    [GeneratedRegex("^.*$")]
+    private static partial Regex MatchAnything();
 }

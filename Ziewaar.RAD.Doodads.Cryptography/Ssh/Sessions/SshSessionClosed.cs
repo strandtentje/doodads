@@ -1,4 +1,7 @@
-namespace Ziewaar.RAD.Doodads.Cryptography;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
+
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
+#pragma warning disable 67
 
 public class SshSessionClosed : IService
 {
@@ -14,7 +17,7 @@ public class SshSessionClosed : IService
             return;
         }
 
-        sessionInteraction.Session.Closed += (sender, session) =>
+        sessionInteraction.Session.Closed += (_, _) =>
         {
             OnThen?.Invoke(this, interaction);
         };

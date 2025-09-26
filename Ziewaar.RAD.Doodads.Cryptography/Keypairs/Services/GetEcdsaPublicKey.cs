@@ -1,6 +1,6 @@
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
-
-namespace Ziewaar.RAD.Doodads.Cryptography;
+#pragma warning disable 67
+namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;
 
 [Category("Tokens & Cryptography")]
 [Title("Save a new ECDSA pair to PEM file")]
@@ -12,11 +12,10 @@ public class GetEcdsaPublicKey : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (!interaction.TryGetClosest<EcdsaPrivateKeyInteraction>(out EcdsaPrivateKeyInteraction? privateKey) ||
+        if (!interaction.TryGetClosest(out EcdsaPrivateKeyInteraction? privateKey) ||
             privateKey == null)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "private key required to extract public key from."));
-            return;
         }
         else
         {

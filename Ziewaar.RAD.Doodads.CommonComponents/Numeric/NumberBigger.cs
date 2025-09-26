@@ -1,6 +1,6 @@
 ﻿#pragma warning disable 67
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Numeric;
 
 [Category("Input & Validation")]
 [Title("Check if number is bigger")]

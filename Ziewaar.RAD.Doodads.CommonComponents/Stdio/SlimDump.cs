@@ -1,5 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+#pragma warning disable 67
 
 [Category("Diagnostics & Debug")]
 [Title("Dump the partial context to console")]
@@ -9,7 +10,7 @@ public class SlimDump : IService
     [PrimarySetting("Serilog-style log line that may optionally contain memory names")]
     private readonly UpdatingPrimaryValue DumpFormatConstant = new();
     private string DumpFormat = "";
-    private List<string> DumpVarNames = new();
+    private List<string> DumpVarNames = [];
     [NeverHappens]
     public event CallForInteraction? OnThen;
     [NeverHappens]

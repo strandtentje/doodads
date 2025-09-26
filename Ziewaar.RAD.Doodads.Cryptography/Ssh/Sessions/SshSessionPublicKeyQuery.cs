@@ -1,9 +1,12 @@
+using System.Security.Claims;
 using Microsoft.DevTunnels.Ssh.Events;
 using Microsoft.DevTunnels.Ssh.Keys;
-using System.Security.Claims;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+using Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
+using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
+#pragma warning disable 67
 
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 public class SshSessionPublicKeyQuery : IService
 {
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
@@ -29,7 +32,7 @@ public class SshSessionPublicKeyQuery : IService
 
         var formatter = new Pkcs8KeyFormatter();
 
-        sessionInteraction.Session.Authenticating += (sender, args) =>
+        sessionInteraction.Session.Authenticating += (_, args) =>
         {
             if (args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery || args.PublicKey == null)
                 return;

@@ -1,4 +1,6 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
+﻿#pragma warning disable 67
+
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 

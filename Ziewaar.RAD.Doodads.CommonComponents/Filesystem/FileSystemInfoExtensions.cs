@@ -2,7 +2,7 @@
 #pragma warning disable 67
 using System.Runtime.InteropServices;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.IO;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 public static class FileSystemInfoExtensions
 {

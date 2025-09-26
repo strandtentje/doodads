@@ -1,13 +1,25 @@
 #nullable enable
+#pragma warning disable 67
+
 using System.Text.RegularExpressions;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
+[Category("Scheduling & Flow")]
+[Title("Blocks from here on out to prevent premature finishing of the execution")]
+[Description("""
+             Will not return control to scope above until FixedDaemonControl is used for 
+             the current name. Useful for daemonizing otherwise transient services.
+             """)]
 public class FixedDaemonControl : IService
 {
+    [PrimarySetting("Instruction (stop/restart), then pattern to match repeat name used by the daemonizable service.")]
     private readonly UpdatingPrimaryValue DaemonNamePatternConstant = new();
     private string? CurrentDaemonNamePattern;
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the control string was formatted badly.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

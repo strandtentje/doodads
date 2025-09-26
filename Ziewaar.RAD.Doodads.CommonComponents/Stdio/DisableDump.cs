@@ -1,5 +1,6 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
+#pragma warning disable 67
 
 [Category("Diagnostics & Debug")]
 [Title("Stop dumps globally")]

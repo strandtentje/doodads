@@ -1,5 +1,5 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.TextActions;
+namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 #pragma warning disable 67
 [Category("Memory & Register")]
 [Title("Regardless of whether a name exists in memory, set it to a default value from stream")]
@@ -27,7 +27,7 @@ public class Override : IService
             this.CurrentMemoryName = newMemoryName;
         if ((constants, DefaultValueConst).IsRereadRequired(out object? newFixedDefault))
             this.FixedDefaultValue = newFixedDefault;
-        if (string.IsNullOrWhiteSpace(this.CurrentMemoryName))
+        if (CurrentMemoryName == null || string.IsNullOrWhiteSpace(this.CurrentMemoryName))
         {
             OnException?.Invoke(this, interaction);
             return;

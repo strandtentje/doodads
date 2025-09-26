@@ -1,9 +1,9 @@
-﻿#nullable enable
-namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
+﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpHeadInteraction : IInteraction
 {
     public readonly string RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort, RequestLocale;
-    public HttpHeadInteraction(IInteraction parent, HttpListenerContext context, Services.ExpandedPrefixes expandedPrefixes)
+    public HttpHeadInteraction(IInteraction parent, HttpListenerContext context,
+        Services.ExpandedPrefixes expandedPrefixes)
     {
         var urlHalves = context.Request.RawUrl?.Split("?") ?? ["/", ""];
         this.Context = context;
@@ -18,7 +18,11 @@ public class HttpHeadInteraction : IInteraction
         this.RequestLocale =
             context.Request.Headers["Accept-Language"]?.Split(',').ElementAtOrDefault(0)?.Trim().ToLower() ??
             CultureInfo.CurrentCulture.Name;
-        this.Memory = new SwitchingDictionary(["requestlocale", "method", "query", "unescapedquery", "url", "remoteip", "requesttime", "loopbackurl", "localipurl", "localnameurl"], x => x switch
+        this.Memory = new SwitchingDictionary(
+        [
+            "requestlocale", "method", "query", "unescapedquery", "url", "remoteip", "requesttime", "loopbackurl",
+            "localipurl", "localnameurl"
+        ], x => x switch
         {
             "requestlocale" => RequestLocale,
             "method" => Method,
@@ -31,7 +35,7 @@ public class HttpHeadInteraction : IInteraction
             "loopbackurl" => expandedPrefixes.LoopbackURL.TrimEnd('/'),
             "localipurl" => expandedPrefixes.LocalIPURL.TrimEnd('/'),
             "localnameurl" => expandedPrefixes.LocalHostnameURL.Trim('/'),
-            _ => null
+            _ => throw new KeyNotFoundException()
         });
     }
     public HttpListenerContext Context { get; set; }

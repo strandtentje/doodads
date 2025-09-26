@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.Cryptography;
+namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
 public class SshReceiveSinkingInteraction(IInteraction interaction, Stream sendingSshStream) : ISinkingInteraction
 {
     public IInteraction Stack => interaction.Stack;
