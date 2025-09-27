@@ -46,7 +46,7 @@ public class MultibyteEotReaderTests
     {
         // Arrange: the data contains bytes ending with CRLF
         var data = new byte[] { 65, 66, 67, 13, 10 }; // ABC\r\n
-        using var reader = MultibyteEotReader.CreateForCrlf(new ByteEnumerator(data));
+        using var reader = MultibyteEotReader.CreateForAscii(new ByteEnumerator(data), "\r\n");
 
         var output = new List<byte>();
 
@@ -66,7 +66,7 @@ public class MultibyteEotReaderTests
     {
         // Arrange: input has two blocks separated by CRLF
         var data = new byte[] { 88, 89, 13, 10, 90, 91, 13, 10 }; // XY\r\nZ[\r\n
-        using var reader = MultibyteEotReader.CreateForCrlf(new ByteEnumerator(data));
+        using var reader = MultibyteEotReader.CreateForAscii(new ByteEnumerator(data), "\r\n");
         var results = new List<byte[]>();
 
         // Act: first block
@@ -91,7 +91,7 @@ public class MultibyteEotReaderTests
     {
         // Arrange: Similar-looking but invalid sequences
         var data = new byte[] { 65, 13, 13, 10 }; // A\r\r\n (only one CRLF)
-        using var reader = MultibyteEotReader.CreateForCrlf(new ByteEnumerator(data));
+        using var reader = MultibyteEotReader.CreateForAscii(new ByteEnumerator(data), "\r\n");
 
         var output = new List<byte>();
 
@@ -108,7 +108,7 @@ public class MultibyteEotReaderTests
     {
         // Arrange
         var data = new byte[] { 0x41, 0x42, 13, 10 }; // A, B, \r, \n
-        using var reader = MultibyteEotReader.CreateForCrlf(new ByteEnumerator(data));
+        using var reader = MultibyteEotReader.CreateForAscii(new ByteEnumerator(data),"\r\n");
 
         var chars = new List<char>();
 
