@@ -1,21 +1,42 @@
-﻿namespace Ziewaar.RAD.Doodads.Python;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
+namespace Ziewaar.RAD.Doodads.Python;
+
+[Category("Interop & Languages")]
+[Title("Setup a Python venv")]
+[Description("""
+             Provided a working directory, venv directory, python version and requirements file,
+             will set up and prepare a python environmen to use under OnThen
+             """)]
 public class PythonEnvironment : IService, IDisposable
 {
     private readonly SingletonResourceRepository<PythonEnvironmentParameters, ServiceProvider> Environments =
         SingletonResourceRepository<PythonEnvironmentParameters, ServiceProvider>.Get();
 
+    [NamedSetting("home", "Path to working directory")]
     private readonly UpdatingKeyValue WorkingDirectoryConstant = new("home");
-    private readonly UpdatingKeyValue VenvDirectoryConstant = new("venv");
+
+    [NamedSetting("venv", "Venv path")] private readonly UpdatingKeyValue VenvDirectoryConstant = new("venv");
+
+    [NamedSetting("version", "Python version")]
     private readonly UpdatingKeyValue VersionNumberConstant = new("version");
+
+    [NamedSetting("requirements", "Path to requirements.txt file")]
     private readonly UpdatingKeyValue RequirementsFileConstant = new("requirements");
+
     private PythonEnvironmentParameters CurrentEnvironmentParameters = new(), NewEnvironmentParameters = new();
     private Guid CurrentEnvironmentGuid = Guid.Empty;
     private ServiceProvider? CurrentEnvironment;
 
-
+    [EventOccasion("Python environment is available here.")]
     public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
+
+    [NeverHappens] public event CallForInteraction? OnElse;
+
+    [EventOccasion("""
+                   Likely happens when one of the paths was incorrect or missing, 
+                   or the venv couldnt be set up.
+                   """)]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -32,7 +53,8 @@ public class PythonEnvironment : IService, IDisposable
         if (!this.NewEnvironmentParameters.Equals(this.CurrentEnvironmentParameters) &&
             !this.NewEnvironmentParameters.TryValidate(out string wd, out string venv, out string ver, out string req))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "home, venv, requirements and version are required."));
+            OnException?.Invoke(this,
+                new CommonInteraction(interaction, "home, venv, requirements and version are required."));
             return;
         }
         else if (!this.NewEnvironmentParameters.Equals(this.CurrentEnvironmentParameters))
@@ -60,7 +82,8 @@ public class PythonEnvironment : IService, IDisposable
         var paths = environment.ExecuteExpression("(__import__('os').getcwd(), list(__import__('sys').path))");
         var arr = paths.AsEnumerable<PyObject>().ToArray();
         GlobalLog.Instance?.Information("Python wording dir {wd}", arr[0].As<string>());
-        foreach (var p in arr[1].AsEnumerable<PyObject>()) GlobalLog.Instance?.Information("Python PATH: " + p.As<string>());
+        foreach (var p in arr[1].AsEnumerable<PyObject>())
+            GlobalLog.Instance?.Information("Python PATH: " + p.As<string>());
 
         OnThen?.Invoke(this, new PythonEnvironmentInteraction(
             interaction, environment));

@@ -1,10 +1,18 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 #pragma warning disable 67
+[Category("Memory & Register")]
+[Title("Hard-code a value into register")]
+[Description("""
+             Put a value in the primary constant and it'll be in Register at OnThen
+             """)]
 public class Register : IService
 {
+    [EventOccasion("Primary constant comes out in register here")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no register value was present")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

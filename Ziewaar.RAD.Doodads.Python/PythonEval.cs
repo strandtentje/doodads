@@ -1,9 +1,21 @@
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+
 namespace Ziewaar.RAD.Doodads.Python;
 
+[Category("Interop & Languages")]
+[Title("Evaluate python expression")]
+[Description("""
+             Provided a python environment, evaluates a python expression.
+             """)]
 public class PythonEval : IService
 {
+    [EventOccasion("Will contain output of python expression in register here.")]
     public event CallForInteraction? OnThen;
+
+    [EventOccasion("Sink python expression text here.")]
     public event CallForInteraction? OnElse;
+
+    [EventOccasion("Likely happens when no python environment was setup.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -38,19 +50,39 @@ public class PythonEval : IService
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
 
+[Category("Interop & Languages")]
+[Title("Run python module")]
+[Description("""
+             Provided a python environment, runs a python module
+             """)]
 public class PythonMod : IService
 {
+    [PrimarySetting("Name of the python module as in the current venv")]
     private readonly UpdatingPrimaryValue ModnameConst = new UpdatingPrimaryValue();
+
+    [NamedSetting("def", "Name of function (def) in python module to run")]
     private readonly UpdatingKeyValue FuncnameConst = new UpdatingKeyValue("def");
+
+    [NamedSetting("args", "Argument names to grab from context and stick into the function (by order)")]
     private readonly UpdatingKeyValue ParamsConst = new UpdatingKeyValue("args");
+
     private string? NewMod;
     private string? NewFunc;
-    private IEnumerable<string> CurrentArgs=[];
+    private IEnumerable<string> CurrentArgs = [];
     private string? CurFunc, CurMod;
     private PyObject? CurModInst;
     private PyObject? CurDefInst;
+
+    [EventOccasion("Contains result of function call here.")]
     public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
+
+    [NeverHappens] public event CallForInteraction? OnElse;
+
+    [EventOccasion(
+        """
+        Likely happens when no python environment existed, module/def name were missing or
+        some execution failure occurred.
+        """)]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -83,7 +115,7 @@ public class PythonMod : IService
                 this.CurDefInst?.Dispose();
                 this.CurModInst = Import.ImportModule(this.NewMod);
                 this.CurDefInst = CurModInst.GetAttr(this.NewFunc);
-                
+
                 this.CurFunc = NewFunc;
                 this.CurMod = NewMod;
             }
@@ -94,7 +126,7 @@ public class PythonMod : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "no def"));
             return;
         }
-        
+
         using (GIL.Acquire())
         {
             var callArguments = new List<PyObject>();
@@ -106,9 +138,10 @@ public class PythonMod : IService
                     callArguments.Add(ConvertToPyObject(argval));
                 }
             }
+
             GlobalLog.Instance?.Information("Invoking with {num} args", callArguments.Count);
             using var ret = CurDefInst.Call(callArguments.ToArray());
-            
+
             OnThen?.Invoke(this, new CommonInteraction(interaction, ret.As<string>()));
 
             foreach (PyObject pyObject in callArguments)

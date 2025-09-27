@@ -9,6 +9,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
              """)]
 public class RenameFile : IService
 {
+    [NamedSetting("allowmove", """
+                               Set this to true to allow the rename to imply a move to a different location
+                               """)]
     private readonly UpdatingKeyValue AllowMovingConstant = new UpdatingKeyValue("allowmove");
     private bool CurrentlyAllowsMoving;
 
