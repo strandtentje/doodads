@@ -32,25 +32,23 @@ public class SshSessionPublicKeyQuery : IService
 
         var formatter = new Pkcs8KeyFormatter();
 
-        sessionInteraction.Session.Authenticating += (_, args) =>
+        void CurrentSessionPublicKeyQueryIncoming(object? _, SshAuthenticatingEventArgs args)
         {
-            if (args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery || args.PublicKey == null)
-                return;
+            if (args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery || args.PublicKey == null) return;
             var pem = formatter.Export(args.PublicKey, includePrivate: false).EncodePem();
             var repeatInteraction = new RepeatInteraction(this.CurrentRepeatName, interaction) { IsRunning = false };
-            var pemInteraction = new ClaimsSinkingInteraction(
-                repeatInteraction, [
-                    new Claim("publickeypem", pem),
-                    new Claim(ClaimTypes.Name, args.Username ?? "")
-                ]);
+            var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction, [new Claim("publickeypem", pem), new Claim(ClaimTypes.Name, args.Username ?? "")]);
             OnThen?.Invoke(this, pemInteraction);
             if (repeatInteraction.IsRunning)
             {
                 var claimsIdentity = new ClaimsIdentity(pemInteraction.Claims);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
                 args.AuthenticationTask = Task.FromResult<ClaimsPrincipal?>(claimsPrincipal);
+                sessionInteraction.Session.Authenticating -= CurrentSessionPublicKeyQueryIncoming;
             }
-        };
+        }
+
+        sessionInteraction.Session.Authenticating += CurrentSessionPublicKeyQueryIncoming;
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

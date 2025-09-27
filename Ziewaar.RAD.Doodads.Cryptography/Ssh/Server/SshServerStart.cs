@@ -18,8 +18,11 @@ public class SshServerStart : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "ssh server setup required"));
             return;
         }
-        _ = serverInteraction.SshServer.AcceptSessionsAsync(CurrentPortNumber);
-        OnThen?.Invoke(this, new CommonInteraction(interaction, register: CurrentPortNumber));
+        using (serverInteraction.SshServer)
+        {
+            _ = serverInteraction.SshServer.AcceptSessionsAsync(CurrentPortNumber);
+            OnThen?.Invoke(this, new CommonInteraction(interaction, register: CurrentPortNumber));
+        }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
