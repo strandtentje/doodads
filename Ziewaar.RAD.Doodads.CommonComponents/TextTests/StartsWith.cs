@@ -10,6 +10,8 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTests;
     """)]
 public class StartsWith : IService
 {
+    private readonly UpdatingPrimaryValue TailVariableConstant = new();
+    private string? CurrentlySavingTailTo;
     [EventOccasion("Sink an expression here that the register string should start with")]
     public event CallForInteraction? Expression;
     [EventOccasion("When the register string did indeed start with the expression")]
@@ -20,11 +22,19 @@ public class StartsWith : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if ((constants, TailVariableConstant).IsRereadRequired(out string? tailVarCandidate))
+            this.CurrentlySavingTailTo = tailVarCandidate;
+
         var tsi = new TextSinkingInteraction(interaction);
         Expression?.Invoke(this, tsi);
         var sw = tsi.ReadAllText();
-        if (interaction.Register.ToString().StartsWith(sw))
+        if (string.IsNullOrWhiteSpace(CurrentlySavingTailTo) && interaction.Register.ToString().StartsWith(sw))
             OnThen?.Invoke(this, interaction);
+        else if (CurrentlySavingTailTo != null && interaction.Register.ToString().StartsWith(sw))
+            OnThen?.Invoke(this, new CommonInteraction(interaction, memory: new SortedList<string, object>()
+            {
+                [CurrentlySavingTailTo] = interaction.Register.ToString().Substring(sw.Length),
+            }));
         else
             OnElse?.Invoke(this, interaction);
     }
