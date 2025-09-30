@@ -23,7 +23,7 @@ public class BootstrappedStart(string workingDirectory, Assembly[] populateAssem
     public IReadOnlyDictionary<string, object> RootInteractionMemory => rootInteractionMemory;
     public void Run(IInteraction? rootInteraction = null)
     {
-        GlobalLog.Instance?.Information("Bootstrapped start information: {info}", JsonConvert.SerializeObject(this, Formatting.Indented));
+        // GlobalLog.Instance?.Information("Bootstrapped start information: {info}", JsonConvert.SerializeObject(this, Formatting.Indented));
         Environment.CurrentDirectory = WorkingDirectory;
         foreach (var item in populateAssemblies)
             TypeRepository.Instance.PopulateWith(item);
