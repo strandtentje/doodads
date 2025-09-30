@@ -1,6 +1,9 @@
+using Microsoft.Extensions.ObjectPool;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 
@@ -37,7 +40,7 @@ public class StreamSourceToSink : IService
 
     [EventOccasion("Likely happens when the copy name is missing, or sources/sinks were missing.")]
     public event CallForInteraction? OnException;
-
+    
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, CopyNameConstant).IsRereadRequired(out string? copyNameCandidate))
@@ -72,82 +75,60 @@ public class StreamSourceToSink : IService
             return;
         }
 
-        byte[] buffer = new byte[this.BufferSize];
+        var arrayPool = ByteArrayPoolFactory.Instance.GetOrCreate(128, BufferSize, TimeSpan.FromSeconds(60));
 
         ThreadPool.QueueUserWorkItem(_ =>
         {
+            byte[] buffer = arrayPool.Rent();
             long totalCopyCount = 0;
+            int trueReadCount = 0;
             try
             {
                 var repeatInteraction = new RepeatInteraction(this.CurrentCopyName, interaction);
-                var countDict = new SortedList<string, object>() { ["currentcount"] = 0, ["totalcount"] = 0, };
-                var countInteraction = new CommonInteraction(repeatInteraction, register: 0, memory: countDict);
-                repeatInteraction.IsRunning = true;
-                int trueReadCount = 0;
-                var fsr = sourcingInteraction.SourceBuffer as IFinishSensingStream;
-
-                while (repeatInteraction.IsRunning)
-                {
-                    if (fsr?.IsFinished == true)
+                var countInteraction = new CommonInteraction(repeatInteraction, register: 0,
+                    memory: new SwitchingDictionary(["currentcount", "totalcount"], key => key switch
                     {
-                        try
-                        {
-                            sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
-                            sinkingInteraction.SinkBuffer.Flush();
-                        }
-                        catch (Exception ex)
-                        {
-                            GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
-                        }
+                        "currentcount" => trueReadCount,
+                        "totalcount" => totalCopyCount,
+                        _ => throw new KeyNotFoundException(),
+                    }));
+                repeatInteraction.IsRunning = true;
+                var sensingStream = sourcingInteraction.SourceBuffer as IFinishSensingStream;
+                bool isFinishSensing = sensingStream != null;
 
-                        break;
-                    }
-
-                    try
+                try
+                {
+                    while (repeatInteraction.IsRunning && (!isFinishSensing || !sensingStream!.IsFinished))
                     {
                         trueReadCount = sourcingInteraction.SourceBuffer.Read(buffer, 0, this.BufferSize);
+
+                        if (trueReadCount == 0 && IsZeroEof)
+                            break;
+
+                        sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                        sinkingInteraction.SinkBuffer.Flush();
+
+                        totalCopyCount += trueReadCount;
+                        repeatInteraction.IsRunning = false;
+                        OnThen?.Invoke(this, countInteraction);
                     }
-                    catch (Exception ex)
-                    {
-                        GlobalLog.Instance?.Warning(ex, "Stream copying stopped due to broken read stream");
-                        return;
-                    }
-
-                    if (trueReadCount == 0 && IsZeroEof)
-                    {
-                        try
-                        {
-                            sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
-                            sinkingInteraction.SinkBuffer.Flush();
-                        }
-                        catch (Exception ex)
-                        {
-                            GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
-                        }
-
-                        break;
-                    }
-
-                    repeatInteraction.IsRunning = false;
-                    countInteraction.Register = trueReadCount;
-                    countDict["currentcount"] = trueReadCount;
-                    countDict["totalcount"] = totalCopyCount + trueReadCount;
-                    OnThen?.Invoke(this, countInteraction);
-
-                    if (!repeatInteraction.IsRunning) break;
-
+                }
+                catch (Exception ex)
+                {
+                    GlobalLog.Instance?.Warning(ex, "Stream copying stopped due to broken read stream");
+                    return;
+                }
+                finally
+                {
                     try
                     {
-                        sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                        sinkingInteraction.SinkBuffer.Write([], 0, 0);
                         sinkingInteraction.SinkBuffer.Flush();
                     }
                     catch (Exception ex)
                     {
-                        GlobalLog.Instance?.Warning(ex, "Stream copying stopped due to broken write stream");
-                        return;
+                        GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
                     }
-
-                    totalCopyCount += trueReadCount;
                 }
             }
             catch (Exception ex)
@@ -156,7 +137,11 @@ public class StreamSourceToSink : IService
             }
             finally
             {
-                OnElse?.Invoke(this, new CommonInteraction(interaction, totalCopyCount));
+                Task.Run(() =>
+                {
+                    arrayPool.Return(buffer);
+                    OnElse?.Invoke(this, new CommonInteraction(interaction, totalCopyCount));
+                });
             }
         }, null);
     }

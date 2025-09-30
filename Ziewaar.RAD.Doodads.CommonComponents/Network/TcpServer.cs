@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 #pragma warning disable 67
@@ -67,19 +68,19 @@ public class TcpServer : IService, IDisposable
 
         var repeater = new RepeatInteraction(CurrentRepeatName, interaction);
         repeater.IsRunning = true;
-        using var ingestAnother = new Semaphore(15, 15);
+        using var ingestAnother = new Semaphore(5, 10);
         TcpListener listener = new(listenEndpoint);
 
         Disposing += OnDisposing;
         listener.Start();
         try
         {
-            while (true)
+            while (repeater.IsRunning)
             {
+                ingestAnother.WaitOne();
                 repeater.IsRunning = false;
                 listener.BeginAcceptTcpClient(NewTcpClientHandler,
-                    new TcpServerClientAcquired(listener, interaction, ingestAnother));
-                ingestAnother.WaitOne();
+                    new TcpServerClientAcquired(listener, interaction, ingestAnother, repeater));
                 OnThen?.Invoke(this, repeater);
             }
         }
@@ -138,13 +139,26 @@ public class TcpServer : IService, IDisposable
         {
         }
 
-        using (freshClient)
+        Task.Run(() =>
         {
-            var clientInteraction =
-                new TcpClientDuplexInteraction(asyncResult.Origin, freshClient, freshClient.GetStream());
-            OnClient?.Invoke(this, clientInteraction);
-            freshClient.Close();
+            using (freshClient)
+            {
+                var clientInteraction =
+                    new TcpClientDuplexInteraction(asyncResult.Origin, freshClient, freshClient.GetStream());
+                OnClient?.Invoke(this, clientInteraction);
+                freshClient.Close();
+            }
+        });
+
+        if (!asyncResult.Repeater.IsRunning)
+            return;
+        try
+        {
             asyncResult.IngestAnother.Release();
+        }
+        catch (Exception ex)
+        {
+            // whatever
         }
     }
 

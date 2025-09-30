@@ -25,29 +25,35 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
     private readonly EventWaitHandle BlockUntilItems =
         new EventWaitHandle(initialState: false, EventResetMode.ManualReset);
 
-    private readonly uint WindowIncrement;
-
-    private ulong CurrentWindowSize;
-    private ulong CurrentReceiveCount;
-    
     private bool IsDisposed;
-    private const uint DEFAULT_PIPE_UPPER = 64 * 1024;
-    private const uint DEFAULT_PIPE_LOWER = 8 * 1024;
-    private const uint DEFAULT_WINDOW_INCREMENT = 8 * 1024;
+    private int LastReadSize = 1024;
+    private readonly EventWaitHandle TriggerToIncreaseWindow = new(false, EventResetMode.AutoReset);
 
-    public SshChannelReceivingStream(
-        SshChannel channelToRemoteServer,
-        uint currentWindowSize,
-        uint pipeUpperLimit = DEFAULT_PIPE_UPPER,
-        uint pipeLowerLimit = DEFAULT_PIPE_LOWER,
-        uint windowIncrement = DEFAULT_WINDOW_INCREMENT)
+    public SshChannelReceivingStream(SshChannel channelToRemoteServer)
     {
-        this.CurrentWindowSize = currentWindowSize;
-        this.WindowIncrement = windowIncrement;
         this.SshChannel = channelToRemoteServer;
         this.WindowingChannel = channelToRemoteServer;
         this.SshChannel.DataReceived += SshChannelOnDataReceived;
         this.SshChannel.Closed += SshChannelOnClosed;
+        
+        
+        Task.Run(() =>
+        {
+            try
+            {
+                while (!IsFinished)
+                {
+                    while (!TriggerToIncreaseWindow.WaitOne(Moment))
+                        if (IsFinished)
+                            return;
+                    WindowingChannel.IncreaseWindowSize((uint)LastReadSize);
+                }
+            }
+            catch (Exception)
+            {
+                // whatever
+            }
+        });
     }
 
     private void SshChannelOnClosed(object? sender, SshChannelClosedEventArgs e)
@@ -63,6 +69,7 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
 
         this.SshChannel.DataReceived -= SshChannelOnDataReceived;
         this.SshChannel.Closed -= SshChannelOnClosed;
+
     }
 
     private void SshChannelOnDataReceived(object? sender, Buffer e)
@@ -78,9 +85,6 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
                 ReceivedBuffers.Enqueue(new(e.Copy()));
                 BlockUntilItems.Set();
             }
-
-            WindowingChannel.IncreaseWindowSize(1024 * 8);
-            CurrentReceiveCount += (ulong)e.Count;
         }
     }
 
@@ -91,6 +95,9 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
 
     public override int Read(byte[] buffer, int offset, int count)
     {
+        LastReadSize = count;
+        TriggerToIncreaseWindow.Set();
+
         HolderOf<Buffer> wrapper;
         while (!ReceivedBuffers.TryPeek(out wrapper))
         {
@@ -164,6 +171,7 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
             this.IsDisposed = true;
             BlockUntilItems.Set();
             BlockUntilItems.Dispose();
+            TriggerToIncreaseWindow.Dispose();
             base.Dispose(disposing);
         }
     }

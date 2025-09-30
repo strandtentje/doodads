@@ -59,7 +59,7 @@ public class SshReverseTcpChannel : IService
                 (uint)originEndpoint.Port), initialRequest: null).Result;
 
         using Stream receivingSshStream =
-            new SshChannelReceivingStream(channelToRemoteServer, SshChannel.DefaultMaxWindowSize);
+            new SshChannelReceivingStream(channelToRemoteServer);
         using Stream sendingSshStream = new SshChannelSendingStream(channelToRemoteServer);
 
         var diagInteraction = new CommonInteraction(interaction,

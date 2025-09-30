@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
 
@@ -46,7 +47,7 @@ public sealed class ByteArrayPool
         if (buffer == null || buffer.Length != _arraySize)
             throw new ArgumentException("Returned array does not match pool specification.");
 
-        Array.Clear(buffer);
+        Array.Clear(buffer, 0, buffer.Length);
         
         _queue.Enqueue(buffer);
         _semaphore.Release();

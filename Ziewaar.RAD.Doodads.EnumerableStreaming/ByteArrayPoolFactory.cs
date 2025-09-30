@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using PoolKey = (int Count, int Size, System.TimeSpan Timeout);
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support
 {
@@ -12,7 +13,5 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.Support
             var key = new PoolKey(arrayCount, arraySize, timeout);
             return _pools.GetOrAdd(key, _ => new ByteArrayPool(arrayCount, arraySize, timeout));
         }
-
-        private readonly record struct PoolKey(int Count, int Size, TimeSpan Timeout);
     }
 }

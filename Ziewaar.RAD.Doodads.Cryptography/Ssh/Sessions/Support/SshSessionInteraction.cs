@@ -8,7 +8,7 @@ public class SshSessionInteraction(IInteraction interaction, SshServerSession se
     public IInteraction Stack => interaction;
     public object Register => interaction.Register;
     public IReadOnlyDictionary<string, object> Memory { get; } = new SwitchingDictionary(
-        ["remotehost", "remoteversion", "remoteprotocol", "sshconnected"], key =>
+        ["remotehost", "remoteversion", "remoteprotocol", "sshsessionstate"], key =>
             key switch
             {
                 "remotehost" => (session.RemoteEndpoint as IPEndPoint)?.Address?.ToString() ?? "",
