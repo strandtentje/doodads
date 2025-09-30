@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 namespace Ziewaar.RAD.Doodads.Cryptography.Claims;
 public class ChangeNameClaim : ChangeClaim
 {

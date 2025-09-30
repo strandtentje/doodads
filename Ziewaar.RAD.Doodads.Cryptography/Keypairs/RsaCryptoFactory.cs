@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs;
+﻿namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs;
 public static class RsaCryptoFactory
 {
     // Key generation

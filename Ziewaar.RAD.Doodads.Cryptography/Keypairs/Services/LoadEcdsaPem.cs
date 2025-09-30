@@ -1,5 +1,5 @@
-using Microsoft.DevTunnels.Ssh.Algorithms;
-using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+using ECDsa = Microsoft.DevTunnels.Ssh.Algorithms.ECDsa;
+
 #pragma warning disable 67
 
 namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;

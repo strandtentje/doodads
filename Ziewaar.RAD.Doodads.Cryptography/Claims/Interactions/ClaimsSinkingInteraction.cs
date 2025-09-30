@@ -1,5 +1,3 @@
-using System.Security.Claims;
-
 namespace Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
 public class ClaimsSinkingInteraction(IInteraction interaction, IList<Claim> claims)
     : IInteraction, IClaimsReadingInteraction

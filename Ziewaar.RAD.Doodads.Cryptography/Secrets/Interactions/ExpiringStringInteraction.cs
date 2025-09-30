@@ -1,5 +1,3 @@
-using Ziewaar.RAD.Doodads.CoreLibrary;
-
 namespace Ziewaar.RAD.Doodads.Cryptography.Secrets.Interactions;
 public class ExpiringStringInteraction(IInteraction stack, string overrideName, string sensitiveValue) : ISensitiveInteraction
 {

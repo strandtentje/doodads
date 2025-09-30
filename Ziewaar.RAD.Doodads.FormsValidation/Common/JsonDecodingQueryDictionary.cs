@@ -6,13 +6,18 @@ public class JsonDecodingQueryDictionary(
     LazyDictionary(jsonSanitizedWhitelist), IDecodingDictionary
 {
     private Dictionary<string, object>? BackingStore;
-    public static IDecodingDictionary CreateFor(string encodedData, string[] unsanitizedWhitelist) =>
+
+    public static IDecodingDictionary CreateFor(string encodedData,
+        string[] unsanitizedWhitelist) =>
         new JsonDecodingQueryDictionary(
             unsanitizedWhitelist,
             encodedData);
+
     protected override object? FindValue(string sanitizedKey)
     {
-        this.BackingStore ??= JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonEncodedQuery);
+        this.BackingStore ??=
+            JsonConvert.DeserializeObject<Dictionary<string, object>>(
+                jsonEncodedQuery);
         if (this.BackingStore!.TryGetValue(sanitizedKey, out object? value))
         {
             return value;
@@ -22,6 +27,7 @@ public class JsonDecodingQueryDictionary(
             return null;
         }
     }
+
     protected override string Sanitize(string unsanitized) => unsanitized;
     protected override string Desanitize(string sanitized) => sanitized;
 }

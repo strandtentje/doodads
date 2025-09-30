@@ -1,10 +1,12 @@
-using System.Security.Claims;
-using Microsoft.DevTunnels.Ssh.Events;
-using Ziewaar.RAD.Doodads.Cryptography.Ssh.Server.Support;
-using Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
-
 namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
 
+[Category("Networking & Connections")]
+[Title("Detect SSH Session Opened")]
+[Description("""
+             Triggers when an SSH session is opened on a server.
+             It'll demand publickey authentication by default, so badly 
+             opened sessions that aren't otherwise handled, will die.
+             """)]
 public class SshSessionOpened : IService
 {
     public event CallForInteraction? OnThen;

@@ -1,4 +1,4 @@
-using Microsoft.DevTunnels.Ssh.Algorithms;
+using ECDsa = Microsoft.DevTunnels.Ssh.Algorithms.ECDsa;
 
 namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs;
 
