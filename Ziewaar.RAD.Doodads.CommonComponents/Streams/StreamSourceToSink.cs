@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
@@ -17,14 +18,23 @@ public class StreamSourceToSink : IService
 {
     [PrimarySetting("Copy name to use with Continue")]
     private readonly UpdatingPrimaryValue CopyNameConstant = new();
+
     [NamedSetting("eof", "If a 0-length read means EOF")]
     private readonly UpdatingKeyValue ZeroIsEofConstant = new("eof");
+
+    [NamedSetting("buffer", "Buffer size, defaults to 1024")]
+    private readonly UpdatingKeyValue BufferSizeConstant = new("buffer");
+
     private string? CurrentCopyName;
     private bool IsZeroEof = true;
+    private int BufferSize = 1024;
+
     [EventOccasion("When another block of data was moved; use Continue here.")]
     public event CallForInteraction? OnThen;
+
     [EventOccasion("After copying stopped")]
     public event CallForInteraction? OnElse;
+
     [EventOccasion("Likely happens when the copy name is missing, or sources/sinks were missing.")]
     public event CallForInteraction? OnException;
 
@@ -32,8 +42,16 @@ public class StreamSourceToSink : IService
     {
         if ((constants, CopyNameConstant).IsRereadRequired(out string? copyNameCandidate))
             this.CurrentCopyName = copyNameCandidate;
-        if ((constants, ZeroIsEofConstant).IsRereadRequired(out bool zeroIsEofCandidate))
+        if ((constants, ZeroIsEofConstant).IsRereadRequired(() => true, out bool zeroIsEofCandidate))
             this.IsZeroEof = zeroIsEofCandidate;
+        if ((constants, BufferSizeConstant).IsRereadRequired(() => 1024M, out decimal bufferSizeCandidate))
+            this.BufferSize = (int)bufferSizeCandidate;
+
+        if (this.BufferSize < 16)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "Buffer size too small"));
+            return;
+        }
 
         if (this.CurrentCopyName == null || string.IsNullOrWhiteSpace(this.CurrentCopyName))
         {
@@ -54,7 +72,7 @@ public class StreamSourceToSink : IService
             return;
         }
 
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[this.BufferSize];
 
         ThreadPool.QueueUserWorkItem(_ =>
         {
@@ -62,23 +80,73 @@ public class StreamSourceToSink : IService
             try
             {
                 var repeatInteraction = new RepeatInteraction(this.CurrentCopyName, interaction);
-                var countInteraction = new CommonInteraction(repeatInteraction, 0);
+                var countDict = new SortedList<string, object>() { ["currentcount"] = 0, ["totalcount"] = 0, };
+                var countInteraction = new CommonInteraction(repeatInteraction, register: 0, memory: countDict);
                 repeatInteraction.IsRunning = true;
                 int trueReadCount = 0;
+                var fsr = sourcingInteraction.SourceBuffer as IFinishSensingStream;
+
                 while (repeatInteraction.IsRunning)
                 {
-                    trueReadCount = sourcingInteraction.SourceBuffer.Read(buffer, 0, 1024);
+                    if (fsr?.IsFinished == true)
+                    {
+                        try
+                        {
+                            sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                            sinkingInteraction.SinkBuffer.Flush();
+                        }
+                        catch (Exception ex)
+                        {
+                            GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
+                        }
+
+                        break;
+                    }
+
+                    try
+                    {
+                        trueReadCount = sourcingInteraction.SourceBuffer.Read(buffer, 0, this.BufferSize);
+                    }
+                    catch (Exception ex)
+                    {
+                        GlobalLog.Instance?.Warning(ex, "Stream copying stopped due to broken read stream");
+                        return;
+                    }
 
                     if (trueReadCount == 0 && IsZeroEof)
+                    {
+                        try
+                        {
+                            sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                            sinkingInteraction.SinkBuffer.Flush();
+                        }
+                        catch (Exception ex)
+                        {
+                            GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
+                        }
+
                         break;
-                    
+                    }
+
                     repeatInteraction.IsRunning = false;
                     countInteraction.Register = trueReadCount;
+                    countDict["currentcount"] = trueReadCount;
+                    countDict["totalcount"] = totalCopyCount + trueReadCount;
                     OnThen?.Invoke(this, countInteraction);
 
                     if (!repeatInteraction.IsRunning) break;
 
-                    sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                    try
+                    {
+                        sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                        sinkingInteraction.SinkBuffer.Flush();
+                    }
+                    catch (Exception ex)
+                    {
+                        GlobalLog.Instance?.Warning(ex, "Stream copying stopped due to broken write stream");
+                        return;
+                    }
+
                     totalCopyCount += trueReadCount;
                 }
             }

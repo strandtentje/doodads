@@ -16,7 +16,7 @@ public class SshSessionPublicKeyQuery : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (!(constants, RepeatNameConstant).IsRereadRequired(out string? repeatNameCandidate))
+        if ((constants, RepeatNameConstant).IsRereadRequired(out string? repeatNameCandidate))
             this.CurrentRepeatName = repeatNameCandidate;
         if (string.IsNullOrWhiteSpace(this.CurrentRepeatName))
         {
@@ -34,7 +34,8 @@ public class SshSessionPublicKeyQuery : IService
 
         void CurrentSessionPublicKeyQueryIncoming(object? _, SshAuthenticatingEventArgs args)
         {
-            if (args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery || args.PublicKey == null) return;
+            if (args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery 
+                || args.PublicKey == null) return;
             var pem = formatter.Export(args.PublicKey, includePrivate: false).EncodePem();
             var repeatInteraction = new RepeatInteraction(this.CurrentRepeatName, interaction) { IsRunning = false };
             var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction, [new Claim("publickeypem", pem), new Claim(ClaimTypes.Name, args.Username ?? "")]);

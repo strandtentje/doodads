@@ -4,7 +4,7 @@ namespace Ziewaar.RAD.Doodads.Cryptography.Claims.Interactions;
 public class ClaimsSinkingInteraction(IInteraction interaction, IList<Claim> claims)
     : IInteraction, IClaimsReadingInteraction
 {
-    public IInteraction Stack => interaction.Stack;
+    public IInteraction Stack => interaction;
     public object Register => interaction.Register;
     public IReadOnlyDictionary<string, object> Memory => interaction.Memory;
     public IList<Claim> Claims => claims;

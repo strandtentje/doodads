@@ -10,8 +10,12 @@ public class SshChannelSendingStream(SshChannel channel) : Stream
     public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
     public override void SetLength(long value) => throw new NotSupportedException();
-    public override void Write(byte[] buffer, int offset, int count) =>
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        if (channel.IsClosed) return;
         channel.SendAsync(Buffer.From(buffer, offset, count), CancellationToken.None).Wait();
+    }
+
     public override bool CanRead => false;
     public override bool CanSeek => false;
     public override bool CanWrite => true;

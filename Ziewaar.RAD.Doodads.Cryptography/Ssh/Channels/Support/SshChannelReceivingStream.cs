@@ -1,21 +1,40 @@
 using System.IO.Pipelines;
 using Microsoft.DevTunnels.Ssh;
 using Microsoft.DevTunnels.Ssh.Events;
+using System.Buffers;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Buffer = Microsoft.DevTunnels.Ssh.Buffer;
 
 namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels.Support;
-public class SshChannelReceivingStream : Stream, IDisposable
+
+public class HolderOf<TStruct>(TStruct str) where TStruct : struct
 {
-    private Pipe ChannelPipe;
+    public TStruct Struct = str;
+}
+
+public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStream
+{
     private readonly SshChannel SshChannel;
     private readonly IWindowingChannel WindowingChannel;
-    private readonly Stream ChannelPipeReadStream;
+    private readonly Queue<HolderOf<Buffer>> ReceivedBuffers = new();
+    private static readonly HolderOf<Buffer> Empty = new HolderOf<Buffer>([]);
+    private readonly Lock QueueLock = new();
+
+    private readonly EventWaitHandle BlockUntilItems =
+        new EventWaitHandle(initialState: false, EventResetMode.ManualReset);
+
+    private readonly uint WindowIncrement;
+
     private ulong CurrentWindowSize;
     private ulong CurrentReceiveCount;
-    private readonly uint WindowIncrement;
+    
+    private bool IsDisposed;
     private const uint DEFAULT_PIPE_UPPER = 64 * 1024;
     private const uint DEFAULT_PIPE_LOWER = 8 * 1024;
     private const uint DEFAULT_WINDOW_INCREMENT = 8 * 1024;
+
     public SshChannelReceivingStream(
         SshChannel channelToRemoteServer,
         uint currentWindowSize,
@@ -27,52 +46,103 @@ public class SshChannelReceivingStream : Stream, IDisposable
         this.WindowIncrement = windowIncrement;
         this.SshChannel = channelToRemoteServer;
         this.WindowingChannel = channelToRemoteServer;
-        this.ChannelPipe = new(new PipeOptions(pauseWriterThreshold: pipeUpperLimit, resumeWriterThreshold: pipeLowerLimit));
-        this.ChannelPipeReadStream = this.ChannelPipe.Reader.AsStream();
         this.SshChannel.DataReceived += SshChannelOnDataReceived;
         this.SshChannel.Closed += SshChannelOnClosed;
     }
+
     private void SshChannelOnClosed(object? sender, SshChannelClosedEventArgs e)
     {
-        this.SshChannel.Closed -= SshChannelOnClosed;
+        lock (this.QueueLock)
+        {
+            if (!IsDisposed)
+            {
+                ReceivedBuffers.Enqueue(Empty);
+                BlockUntilItems.Set();
+            }
+        }
+
         this.SshChannel.DataReceived -= SshChannelOnDataReceived;
-        ChannelPipe.Writer.Complete();
+        this.SshChannel.Closed -= SshChannelOnClosed;
     }
+
     private void SshChannelOnDataReceived(object? sender, Buffer e)
     {
-        if (e.Count == 0)
+        lock (QueueLock)
         {
-            try
+            if (IsDisposed)
             {
-                SshChannel.SendAsync(Buffer.Empty, CancellationToken.None).Wait();
-                SshChannel.CloseAsync().Wait();
+                SshChannel.SendAsync(Buffer.Empty, CancellationToken.None).ConfigureAwait(false);
             }
-            finally
+            else
             {
-                this.SshChannel.DataReceived -= SshChannelOnDataReceived;
-                ChannelPipe.Writer.Complete();
+                ReceivedBuffers.Enqueue(new(e.Copy()));
+                BlockUntilItems.Set();
             }
-            return;
-        }
-        else
-        {
+
+            WindowingChannel.IncreaseWindowSize(1024 * 8);
             CurrentReceiveCount += (ulong)e.Count;
         }
-        var writeResult = ChannelPipe.Writer.WriteAsync(
-            new ReadOnlyMemory<byte>(e.Array, e.Offset, e.Count)).Result;
+    }
 
-        if (CurrentReceiveCount + this.WindowIncrement > CurrentWindowSize)
+    public override void Flush() => throw new NotSupportedException();
+
+    private static readonly TimeSpan Moment = TimeSpan.FromMilliseconds(100);
+    public bool IsFinished => IsDisposed || SshChannel.IsClosed;
+
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        HolderOf<Buffer> wrapper;
+        while (!ReceivedBuffers.TryPeek(out wrapper))
         {
-            WindowingChannel.IncreaseWindowSize(this.WindowIncrement);
-            CurrentWindowSize += this.WindowIncrement;
+            if (!BlockUntilItems.WaitOne(Moment))
+            {
+                if (IsDisposed || SshChannel.IsClosed)
+                    throw new ObjectDisposedException(nameof(SshChannelReceivingStream));
+            }
         }
 
-        if (writeResult.IsCanceled || writeResult.IsCompleted)
-            SshChannel.SendAsync(Buffer.Empty, CancellationToken.None).Wait();
+        lock (QueueLock)
+        {
+            int byteCountReceived = wrapper.Struct.Count;
+            if (byteCountReceived == 0)
+            {
+                ReceivedBuffers.Dequeue();
+                if (!IsFinished)
+                    BlockUntilItems.Reset();
+                return 0;
+            }
+
+            if (count < byteCountReceived)
+            {
+                Array.Copy(wrapper.Struct.Array, wrapper.Struct.Offset, buffer, offset, count);
+                wrapper.Struct.Offset += count;
+                wrapper.Struct.Count -= count;
+                return count;
+            }
+            else if (count == byteCountReceived)
+            {
+                Array.Copy(wrapper.Struct.Array, wrapper.Struct.Offset, buffer, offset, count);
+                ReceivedBuffers.Dequeue();
+                if (!IsFinished)
+                    BlockUntilItems.Reset();
+                return count;
+            }
+            else if (count > byteCountReceived)
+            {
+                Array.Copy(wrapper.Struct.Array, wrapper.Struct.Offset, buffer, offset, byteCountReceived);
+                ReceivedBuffers.Dequeue();
+                if (!IsFinished)
+                    BlockUntilItems.Reset();
+                return byteCountReceived;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "Read count wasn't lower, bigger, or equal. This shouldn't happen.");
+            }
+        }
     }
-    public override void Flush() => throw new NotSupportedException();
-    public override int Read(byte[] buffer, int offset, int count) =>
-        ChannelPipeReadStream.Read(buffer, offset, count);
+
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
     public override void SetLength(long value) => throw new NotSupportedException();
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
@@ -80,10 +150,21 @@ public class SshChannelReceivingStream : Stream, IDisposable
     public override bool CanSeek => false;
     public override bool CanWrite => false;
     public override long Length { get => throw new NotSupportedException(); }
-    public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+    public override long Position
+    {
+        get => throw new NotSupportedException();
+        set => throw new NotSupportedException();
+    }
+
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
-        ChannelPipeReadStream.Dispose();
+        lock (QueueLock)
+        {
+            this.IsDisposed = true;
+            BlockUntilItems.Set();
+            BlockUntilItems.Dispose();
+            base.Dispose(disposing);
+        }
     }
 }

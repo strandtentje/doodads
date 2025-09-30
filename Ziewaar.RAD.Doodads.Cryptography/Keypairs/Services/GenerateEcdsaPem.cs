@@ -28,6 +28,7 @@ public class GenerateEcdsaPem : IService
             var netEcdsa = System.Security.Cryptography.ECDsa.Create();
             netEcdsa.ImportParameters(tunnelEcdsaPair.ExportParameters(includePrivate: true));
             File.WriteAllText(newPemFile.FullName, netEcdsa.ExportPkcs8PrivateKeyPem());
+            OnThen?.Invoke(this, new CommonInteraction(interaction, newPemFile));
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

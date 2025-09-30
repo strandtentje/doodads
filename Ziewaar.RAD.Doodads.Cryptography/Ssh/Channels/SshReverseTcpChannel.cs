@@ -10,7 +10,7 @@ public class SshReverseTcpChannel : IService
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnEndpoint;
-    public event CallForInteraction? OnOrigin;
+    public event CallForInteraction? OnDestination;
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
@@ -23,20 +23,34 @@ public class SshReverseTcpChannel : IService
         var claimsInteraction = new ClaimsSourcingInteraction(interaction, sessionInteraction.Session.Principal);
         var endpointSink = new TextSinkingInteraction(claimsInteraction);
         OnEndpoint?.Invoke(this, endpointSink);
-        if (!IPEndPoint.TryParse(endpointSink.ReadAllText(), out var connectedEndpoint))
+        string endpointText = endpointSink.ReadAllText();
+        if (!IPEndPoint.TryParse(endpointText, out var connectedEndpoint))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "Badly formatted connected endpoint"));
             return;
         }
 
-        var originSink = new TextSinkingInteraction(claimsInteraction);
-        OnOrigin?.Invoke(this, originSink);
-        if (!IPEndPoint.TryParse(connectedEndpoint.Address.ToString(), out var originEndpoint))
+        var destinationSink = new TextSinkingInteraction(claimsInteraction);
+        OnDestination?.Invoke(this, destinationSink);
+        string destinationText = destinationSink.ReadAllText();
+        if (!IPEndPoint.TryParse(destinationText, out var originEndpoint))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Badly formatted origin endpoint"));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "Badly formatted destination endpoint"));
             return;
         }
 
+        if (sessionInteraction.Session.IsClosed)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "SSH session closed"));
+            return;
+        }
+
+        if (!sessionInteraction.Session.IsConnected)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "SSH not connected"));
+            return;
+        }
+        
         using var channelToRemoteServer = sessionInteraction.Session.OpenChannelAsync(
             new SshPfwReqMessage(
                 connectedEndpoint.Address.ToString(),
@@ -48,7 +62,9 @@ public class SshReverseTcpChannel : IService
             new SshChannelReceivingStream(channelToRemoteServer, SshChannel.DefaultMaxWindowSize);
         using Stream sendingSshStream = new SshChannelSendingStream(channelToRemoteServer);
 
-        var sourcing = new SshReceiveSourcingInteraction(interaction, receivingSshStream);
+        var diagInteraction = new CommonInteraction(interaction,
+            memory: new SortedList<string, object>() { ["channelid"] = channelToRemoteServer.ChannelId, });
+        var sourcing = new SshReceiveSourcingInteraction(diagInteraction, receivingSshStream);
         var combined = new SshReceiveSinkingInteraction(sourcing, sendingSshStream);
 
         try
@@ -58,6 +74,8 @@ public class SshReverseTcpChannel : IService
         finally
         {
             OnElse?.Invoke(this, claimsInteraction);
+            if (!channelToRemoteServer.IsClosed)
+                channelToRemoteServer.CloseAsync().Wait();
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

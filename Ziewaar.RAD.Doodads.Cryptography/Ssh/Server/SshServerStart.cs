@@ -20,8 +20,15 @@ public class SshServerStart : IService
         }
         using (serverInteraction.SshServer)
         {
-            _ = serverInteraction.SshServer.AcceptSessionsAsync(CurrentPortNumber);
             OnThen?.Invoke(this, new CommonInteraction(interaction, register: CurrentPortNumber));
+            try
+            {
+                serverInteraction.SshServer.AcceptSessionsAsync(CurrentPortNumber).Wait();
+            }
+            catch (Exception ex)
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, ex));
+            }
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

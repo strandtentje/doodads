@@ -42,7 +42,7 @@ public class SshSessionPublicKeyAuthentic : IService
                 OnThen?.Invoke(this, authenticationTypeSink);
                 var determinedAuthenticationType = authenticationTypeSink.ReadAllText();
 
-                if (string.IsNullOrWhiteSpace(determinedAuthenticationType))
+                if (!string.IsNullOrWhiteSpace(determinedAuthenticationType))
                 {
                     var finalIdentity =
                         new ClaimsIdentity(existingClaimsInteraction.Claims, determinedAuthenticationType);

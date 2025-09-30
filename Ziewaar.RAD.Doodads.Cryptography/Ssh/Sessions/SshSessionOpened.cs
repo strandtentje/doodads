@@ -26,7 +26,8 @@ public class SshSessionOpened : IService
                 if (args.AuthenticationType != SshAuthenticationType.ClientPublicKey &&
                     args.AuthenticationType != SshAuthenticationType.ClientPublicKeyQuery)
                     args.AuthenticationTask =
-                        Task.FromException<ClaimsPrincipal?>(new UnauthorizedAccessException("Only publickey allowed"));
+                        Task.FromException<ClaimsPrincipal?>(
+                            new UnauthorizedAccessException("Only publickey allowed"));
             };
             OnThen?.Invoke(this, new SshSessionInteraction(interaction, session));
         };

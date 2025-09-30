@@ -39,7 +39,7 @@ public class SshReverseTcpOffer : IService
                 ushort.TryParse(alternativePortText, out var alternatvePortValue))
                 definitivePort = alternatvePortValue;
 
-            if (args.Request.WantReply && portForwardRequestMessage.Port == 0)
+            if (args.Request.WantReply)
                 args.ResponseTask = Task.FromResult<SshMessage>(new SshPfwOkMessage(definitivePort));
 
             OnThen?.Invoke(this, new CommonInteraction(claimsSourcingInteraction, new SwitchingDictionary(
