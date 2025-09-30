@@ -1,51 +1,32 @@
 ﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 #nullable enable
-public class ResurfacedSinkingInteraction(
-    IInteraction canonicalInteraction,
-    ISinkingInteraction sinkingInteraction)
-    : ISinkingInteraction
-{
-    public IInteraction Stack => canonicalInteraction;
-    public object Register => canonicalInteraction.Register;
-    public IReadOnlyDictionary<string, object> Memory => canonicalInteraction.Memory;
-    public Encoding TextEncoding => sinkingInteraction.TextEncoding;
-    public Stream SinkBuffer => sinkingInteraction.SinkBuffer;
-    public string[] SinkContentTypePattern => sinkingInteraction.SinkContentTypePattern;
-    public string? SinkTrueContentType
-    {
-        get => sinkingInteraction.SinkTrueContentType;
-        set => sinkingInteraction.SinkTrueContentType = value;
-    }
-    public long LastSinkChangeTimestamp
-    {
-        get => sinkingInteraction.LastSinkChangeTimestamp;
-        set => sinkingInteraction.LastSinkChangeTimestamp = value;
-    }
-    public string Delimiter => sinkingInteraction.Delimiter;
-    public void SetContentLength64(long contentLength) => sinkingInteraction.SetContentLength64(contentLength);
-}
+
 public static class InteractionExtensions
 {
     public static IInteraction ResurfaceToSink(
-        this IInteraction canonicalInteraction, 
+        this IInteraction canonicalInteraction,
         ISinkingInteraction? sinkingInteraction)
     {
         if (sinkingInteraction == null)
             return canonicalInteraction;
-        else 
-            return new ResurfacedSinkingInteraction(canonicalInteraction, sinkingInteraction);
+        else
+            return new ResurfacedSinkingInteraction(canonicalInteraction,
+                sinkingInteraction);
     }
+
     public static IEnumerable<TInteraction> FindInStack<TInteraction>(
         this IInteraction interaction)
         where TInteraction : IInteraction
     {
-        while(true)
+        while (true)
         {
             if (interaction is StopperInteraction) yield break;
-            else if (interaction is TInteraction tinteraction) yield return tinteraction;
+            else if (interaction is TInteraction tinteraction)
+                yield return tinteraction;
             interaction = interaction.Stack;
         }
     }
+
     public static bool TryGetClosest<TInteraction>(
         this IInteraction childInteraction,
         out TInteraction? candidateParentInteraction,
@@ -62,7 +43,8 @@ public static class InteractionExtensions
                 candidateParentInteraction = alreadySuitableInteraction;
                 return true;
             default:
-                return childInteraction.Stack.TryGetClosest(out candidateParentInteraction, predicate);
+                return childInteraction.Stack.TryGetClosest(
+                    out candidateParentInteraction, predicate);
         }
     }
 #nullable enable
@@ -83,9 +65,16 @@ public static class InteractionExtensions
                 candidateValue = foundResult;
                 return true;
             }
+
             previousVariables = interaction.Memory;
         }
+
         candidateValue = default;
         return false;
     }
+
+    public static IInteraction AppendRegister(
+        this IInteraction interaction,
+        object registerValue) =>
+        new CommonInteraction(interaction, register: registerValue);
 }
