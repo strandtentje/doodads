@@ -50,7 +50,7 @@ public class SshSessionPublicKeyQuery : IService
             [
                 new Claim("publickeypem", pem),
                 new Claim("publickeydigest",
-                    Convert.ToBase64String(
+                    Convert.ToHexString(
                         SHA256.HashData(
                             args.PublicKey.GetPublicKeyBytes().Array))),
                 new Claim(ClaimTypes.Name, args.Username ?? "")

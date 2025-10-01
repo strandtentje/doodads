@@ -22,14 +22,11 @@ public class Truncate : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, LengthConstant).IsRereadRequired(out string? candidateLengthText))
+        if ((constants, LengthConstant).IsRereadRequired(out object? candidateLengthText))
         {
-            CurrentTruncLength = -1;
-            if (candidateLengthText != null && decimal.TryParse(candidateLengthText,out var candidateLengthNumber))
-            {
-                this.CurrentTruncLength = candidateLengthNumber;
-            }
-        }
+            CurrentTruncLength = Convert.ToDecimal(candidateLengthText);
+        } 
+        
         if (CurrentTruncLength == -1)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "length required as primary param"));

@@ -38,11 +38,11 @@ public class SshReverseTcpOffer : IService
                 args.ResponseTask = Task.FromResult<SshMessage>(new SshPfwOkMessage(definitivePort));
 
             OnThen?.Invoke(this, new CommonInteraction(claimsSourcingInteraction, new SwitchingDictionary(
-                ["tcpip-forward-ip", "tcpip-forward-port", "definitive-port"], key => key switch
+                ["tcpipforwardip", "tcpipforwardport", "definitiveport"], key => key switch
                 {
-                    "tcpip-forward-ip" => portForwardRequestMessage.AddressToBind ?? "",
-                    "tcpip-forward-port" => portForwardRequestMessage.Port,
-                    "definitive-port" => definitivePort,
+                    "tcpipforwardip" => portForwardRequestMessage.AddressToBind ?? "",
+                    "tcpipforwardport" => portForwardRequestMessage.Port,
+                    "definitiveport" => definitivePort,
                     _ => throw new KeyNotFoundException(),
                 })));
         };

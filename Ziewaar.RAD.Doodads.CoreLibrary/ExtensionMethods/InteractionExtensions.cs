@@ -77,4 +77,14 @@ public static class InteractionExtensions
         this IInteraction interaction,
         object registerValue) =>
         new CommonInteraction(interaction, register: registerValue);
+
+    public static IInteraction AppendMemory(
+        this IInteraction interaction,
+        params (string key, object value)[] members) =>
+        interaction.AppendMemory(members.ToDictionary(x => x.key, x => x.value));
+
+    public static IInteraction AppendMemory(
+        this IInteraction interaction,
+        IReadOnlyDictionary<string, object> dict) => new CommonInteraction(
+        interaction, memory: dict, register: null);
 }

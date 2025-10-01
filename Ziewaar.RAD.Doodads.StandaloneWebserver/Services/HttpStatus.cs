@@ -7,15 +7,17 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
              """)]
 public class HttpStatus : IService
 {
-    [PrimarySetting("Status code number")]
-    private readonly UpdatingPrimaryValue HttpStatusCodeConstant = new();
+    [PrimarySetting("Status code number")] private readonly UpdatingPrimaryValue HttpStatusCodeConstant = new();
     private int CurrentStatusCode;
+
     [EventOccasion("When the status code was set")]
     public event CallForInteraction? OnThen;
-    [NeverHappens]
-    public event CallForInteraction? OnElse;
+
+    [NeverHappens] public event CallForInteraction? OnElse;
+
     [EventOccasion("Likely when we're trying to set status on something else than a webserver")]
     public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, HttpStatusCodeConstant).IsRereadRequired(out object? statusCode))
@@ -38,8 +40,10 @@ public class HttpStatus : IService
                     "Can only set status code on HTTP request; which is not available."));
             return;
         }
+
         OnThen?.Invoke(this, interaction);
         httpResponseInteraction.StatusCode = CurrentStatusCode;
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
