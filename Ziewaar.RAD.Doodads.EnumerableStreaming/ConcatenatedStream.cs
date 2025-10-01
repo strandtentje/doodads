@@ -16,14 +16,28 @@ public sealed class ConcatenatedStream(params Stream[] streams) : Stream, IFinis
         set => throw new NotSupportedException();
     }
 
+    public override int ReadTimeout
+    {
+        get => streams.Min(x => x.ReadTimeout);
+        set
+        {
+            foreach (Stream stream in streams)
+                stream.ReadTimeout = value;
+        }
+    }
+
     public override void Flush() => throw new NotSupportedException();
 
     public override int Read(byte[] buffer, int offset, int count)
     {
         while (CurrentStreamNumber < streams.Length)
         {
-            int r = streams[CurrentStreamNumber].Read(buffer, offset, count);
-            if (r > 0) return r;
+            if (streams[CurrentStreamNumber] is not IFinishSensingStream finishSenser ||
+                !finishSenser.IsFinished)
+            {
+                int r = streams[CurrentStreamNumber].Read(buffer, offset, count);
+                if (r > 0) return r;
+            }
             CurrentStreamNumber++;
         }
 

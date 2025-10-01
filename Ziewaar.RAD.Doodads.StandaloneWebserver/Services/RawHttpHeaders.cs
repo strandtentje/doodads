@@ -19,7 +19,13 @@ public class RawHttpHeaders : IService
             return;
         }
 
-        var afterMethodIndex = headersString.IndexOf(" ", 0, 10, StringComparison.OrdinalIgnoreCase);
+        var afterMethodIndex = headersString.IndexOf(" ", 0, Math.Min(10, headersString.Length),
+            StringComparison.OrdinalIgnoreCase);
+        if (afterMethodIndex < 0)
+        {
+            OnElse?.Invoke(this, interaction);
+            return;
+        }
         var supposedMethodWord = headersString.Substring(0, afterMethodIndex);
         if (System.Net.Http.HttpMethod.Parse(supposedMethodWord) is not { } foundMethod)
         {
@@ -38,9 +44,8 @@ public class RawHttpHeaders : IService
         var supposedRoute = headersString.Substring(afterMethodIndex, endOfRouteIndex - afterMethodIndex);
 
         OnThen?.Invoke(this,
-            interaction.
-                AppendMemory(("rawmethod", foundMethod), ("rawurl", supposedRoute)).
-                AppendMemory(new LazilyPrefixedCaseInsensitiveDictionary("rawheader_",
+            interaction.AppendMemory(("rawmethod", foundMethod), ("rawurl", supposedRoute)).AppendMemory(
+                new LazilyPrefixedCaseInsensitiveDictionary("rawheader_",
                     new HeaderReadingEnumerable(headersString, endOfRouteIndex, endOfHeadersIndex))));
     }
 

@@ -112,10 +112,9 @@ public class StreamSourceToSink : IService
                         OnThen?.Invoke(this, countInteraction);
                     }
                 }
-                catch (Exception ex)
+                catch (IOException ex)
                 {
-                    GlobalLog.Instance?.Warning(ex, "Stream copying stopped due to broken read stream");
-                    return;
+                    // it's fine.
                 }
                 finally
                 {
@@ -124,8 +123,17 @@ public class StreamSourceToSink : IService
                         sinkingInteraction.SinkBuffer.Write([], 0, 0);
                         sinkingInteraction.SinkBuffer.Flush();
                     }
+                    catch (ObjectDisposedException ex)
+                    {
+                        // figures.
+                    }
+                    catch (IOException ex)
+                    {
+                        // also figures
+                    }
                     catch (Exception ex)
                     {
+                        // exciting!
                         GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
                     }
                 }

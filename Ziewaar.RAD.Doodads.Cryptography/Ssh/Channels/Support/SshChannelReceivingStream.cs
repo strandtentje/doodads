@@ -33,7 +33,6 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
         this.SshChannel.DataReceived += SshChannelOnDataReceived;
         this.SshChannel.Closed += SshChannelOnClosed;
         
-        
         Task.Run(() =>
         {
             try
