@@ -5,7 +5,13 @@ public class StampedMap
 {
     private readonly SortedList<string, object> BackingStore;
     private readonly SortedList<string, long> BackingLog;
-    public SortedList<string, object> ToSortedList() => new SortedList<string, object>(BackingStore);
+    public SortedList<string, object> ToSortedList() =>
+        new SortedList<string, object>(BackingStore);
+    public void CopyNamedTo(IDictionary<string, object> target)
+    {
+        foreach (var item in BackingStore)
+            target[item.Key] = item.Value;
+    }
     public IReadOnlyDictionary<string, object> NamedItems => BackingStore;
     public IReadOnlyDictionary<string, long> ChangeLog => BackingLog;
     public object PrimaryConstant { get; private set; }
