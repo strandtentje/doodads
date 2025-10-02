@@ -19,34 +19,16 @@ public class RawHttpHeaders : IService
             return;
         }
 
-        var afterMethodIndex = headersString.IndexOf(" ", 0, Math.Min(10, headersString.Length),
-            StringComparison.OrdinalIgnoreCase);
-        if (afterMethodIndex < 0)
-        {
-            OnElse?.Invoke(this, interaction);
-            return;
-        }
-        var supposedMethodWord = headersString.Substring(0, afterMethodIndex);
-        if (System.Net.Http.HttpMethod.Parse(supposedMethodWord) is not { } foundMethod)
-        {
-            OnElse?.Invoke(this, interaction);
-            return;
-        }
+        var preBreakString = headersString.Split(["\r\n\r\n"], count: 2, options: StringSplitOptions.None)
+            .ElementAtOrDefault(0) ?? "";
+        var headerLines = preBreakString.Split(["\r\n"], StringSplitOptions.RemoveEmptyEntries);
+        var headerArrays = headerLines.Select(line => line.Split(':', count: 2)).Where(x => x.Length == 2);
+        var headerPairs = headerArrays.Select(array => (key: array[0], value: array[1]));
+        var distinctPairs = headerPairs.DistinctBy(x => x.key);
+        var headerDict = distinctPairs.ToDictionary(x => $"rawheader_{x.key}", x => x.value as object,
+            StringComparer.OrdinalIgnoreCase);
 
-        var endOfRouteIndex = headersString.IndexOf("\r\n", afterMethodIndex, StringComparison.OrdinalIgnoreCase);
-        if (endOfRouteIndex < 0)
-        {
-            OnElse?.Invoke(this, interaction);
-            return;
-        }
-
-        var endOfHeadersIndex = headersString.IndexOf("\r\n\r\n", endOfRouteIndex, StringComparison.OrdinalIgnoreCase);
-        var supposedRoute = headersString.Substring(afterMethodIndex, endOfRouteIndex - afterMethodIndex);
-
-        OnThen?.Invoke(this,
-            interaction.AppendMemory(("rawmethod", foundMethod), ("rawurl", supposedRoute)).AppendMemory(
-                new LazilyPrefixedCaseInsensitiveDictionary("rawheader_",
-                    new HeaderReadingEnumerable(headersString, endOfRouteIndex, endOfHeadersIndex))));
+        OnThen?.Invoke(this, interaction.AppendMemory(dict: headerDict));
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
