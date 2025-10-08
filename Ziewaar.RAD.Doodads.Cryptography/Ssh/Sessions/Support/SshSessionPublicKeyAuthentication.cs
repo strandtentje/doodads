@@ -2,12 +2,23 @@
 
 namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions.Support;
 
+[Category("Networking & Connections")]
+[Title("Authenticate an SSH session by Continue")]
+[Description("""
+             Seems to do the same as SshSessionPublicKeyAuthentic,
+             Except uses Continue to mark one of multiple keys as good,
+             and sets the Continue name as the Authentication Type 
+             """)]
 public class SshSessionPublicKeyAuthentication : IService
 {
+    [PrimarySetting("Name to Continue with and set as Authentication Type")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     private string? CurrentRepeatName;
+    [EventOccasion("Potential pubkeys come out here and must be accepted with Continue")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when there was no repat name or no SSH session")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

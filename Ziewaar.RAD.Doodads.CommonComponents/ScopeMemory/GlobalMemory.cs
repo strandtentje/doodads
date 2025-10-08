@@ -4,19 +4,22 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 [Category("Memory & Register")]
 [Title("Access Global Values")]
 [Description("""
-    Retrieve and update globals
+    Retrieve and update globals. All named settings will override the current
+    globals.
     """)]
 public class GlobalMemory : IService
 {
     private static
         SortedList<string,
             SortedList<string, object>> GroupedGlobals = new();
-
+    [PrimarySetting("Optionally specify a group name for the globals")]
     private readonly UpdatingPrimaryValue GlobalGroupConstant = new();
     private string CurrentGlobalGroupName = "";
-
+    [EventOccasion("Globals are available in memory, here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

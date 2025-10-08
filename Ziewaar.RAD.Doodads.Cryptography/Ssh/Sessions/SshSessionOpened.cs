@@ -9,8 +9,18 @@ namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Sessions;
              """)]
 public class SshSessionOpened : IService
 {
+    [EventOccasion("""
+                   When an SSH session was opened, ssh session info comes out here,
+                   along with the following information in memory:
+                    - remotehost
+                    - remoteversion
+                    - remoteprotocol
+                    - sshsessionstate (connected, dead) (changes)
+                   """)]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no active ssh server preceeded this")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
