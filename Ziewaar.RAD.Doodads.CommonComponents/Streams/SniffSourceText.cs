@@ -4,6 +4,9 @@ using Ziewaar.RAD.Doodads.EnumerableStreaming;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 
+[Category("Sourcing & Sinking")]
+[Title("Force sink encoding")]
+[Description()]
 public class SniffSourceText : IService
 {
     private readonly UpdatingPrimaryValue SniffSizeConstant = new();
