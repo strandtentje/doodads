@@ -1,12 +1,24 @@
 #pragma warning disable 67
 
 namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Server;
+
+[Category("Networking & Connections")]
+[Title("Start SSH server")]
+[Description("""
+             Provided a ssh server that's all setup and never started,
+             start it. This is typically done after anything else you'd
+             want to setup with an SSH server.
+             """)]
 public class SshServerStart : IService
 {
+    [PrimarySetting("Port number to listen on")]
     private readonly UpdatingPrimaryValue PortNumberConstant = new();
     private ushort CurrentPortNumber;
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no SSH server was setup, or listening for connections broke donwn.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

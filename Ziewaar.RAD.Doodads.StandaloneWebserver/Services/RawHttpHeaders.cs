@@ -7,8 +7,11 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 [Description("Provided raw text in the register, extract http headers.")]
 public class RawHttpHeaders : IService
 {
+    [EventOccasion("Parsed headers are in memory here prefixed with `rawheader_`")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when there was no headers block in register.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

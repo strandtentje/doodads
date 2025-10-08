@@ -8,10 +8,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 [Description("Overwrites the text encoding type of the sink; defaults to ascii")]
 public class ForceSinkEncoding : IService
 {
+    [PrimarySetting("Name of the encoding to use as recognized by .net")]
     private readonly UpdatingPrimaryValue EncodingNameConstant = new();
     private Encoding CurrentEncoding = Encoding.ASCII;
+    [EventOccasion("Here, we pretend we sink in the encoding")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely when there was no sink or the encoding was not known")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
