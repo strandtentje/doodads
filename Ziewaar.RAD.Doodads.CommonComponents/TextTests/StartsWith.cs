@@ -14,8 +14,11 @@ public class StartsWith : IService
         "Variable to write remainder of matching text into " +
         "(after the startswith string)")]
     private readonly UpdatingPrimaryValue TailVariableConstant = new();
+    [NamedSetting("trim", "true/false to indicate whether the tail must be trimmed")]
+    private readonly UpdatingKeyValue TrimTailConstant = new("trim");
 
     private string? CurrentlySavingTailTo;
+    private bool CurrentlyTrimming;
 
     [EventOccasion(
         "Sink an expression here that the register string should start with")]
@@ -36,6 +39,9 @@ public class StartsWith : IService
         if ((constants, TailVariableConstant).IsRereadRequired(
                 out string? tailVarCandidate))
             this.CurrentlySavingTailTo = tailVarCandidate;
+        if ((constants, TrimTailConstant).IsRereadRequired(
+            () => false, out bool trimTail))
+            this.CurrentlyTrimming = trimTail;
 
         var tsi = new TextSinkingInteraction(interaction);
         Expression?.Invoke(this, tsi);
@@ -45,13 +51,14 @@ public class StartsWith : IService
             OnThen?.Invoke(this, interaction);
         else if (CurrentlySavingTailTo != null &&
                  interaction.Register.ToString().StartsWith(sw))
-            OnThen?.Invoke(this,
-                new CommonInteraction(interaction,
-                    memory: new SortedList<string, object>()
-                    {
-                        [CurrentlySavingTailTo] = interaction.Register
-                            .ToString().Substring(sw.Length),
-                    }));
+        {
+            string tail = interaction.Register.ToString().Substring(sw.Length);
+            if (CurrentlyTrimming) tail = tail.Trim();
+            OnThen?.Invoke(this, new CommonInteraction(interaction,
+                memory: new SortedList<string, object>() {
+                    [CurrentlySavingTailTo] = tail,
+                }));
+        }
         else
             OnElse?.Invoke(this, interaction);
     }

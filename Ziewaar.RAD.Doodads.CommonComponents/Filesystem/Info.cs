@@ -54,9 +54,14 @@ public class Info : IService
                 OnElse?.Invoke(this, interaction);
                 return;
             }
+            var numberPrefix = info.Name.TakeWhile(char.IsDigit);
+            var afterNumberPrefix = info.Name.SkipWhile(char.IsDigit);
+
             var payload = new SortedList<string, object>()
             {
                 { "visibility", info.IsHidden() ? "visible" : "hidden" },
+                { "numberprefix", numberPrefix },
+                { "afternumber", afterNumberPrefix },
                 { "path", info.FullName },
                 { "name", info.Name },
                 { "write", info.LastWriteTimeUtc },
