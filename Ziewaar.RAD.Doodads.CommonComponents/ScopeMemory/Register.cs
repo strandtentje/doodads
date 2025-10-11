@@ -16,7 +16,9 @@ public class Register : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (constants.PrimaryConstant.ToString() is string newValue)
+        if (constants.PrimaryConstant is decimal newDecimal)
+            OnThen?.Invoke(this, new CommonInteraction(interaction, newDecimal));
+        else if (constants.PrimaryConstant.ToString() is string newValue)
             OnThen?.Invoke(this, new CommonInteraction(interaction, newValue));
         else
             OnException?.Invoke(this, new CommonInteraction(interaction, "no new register value"));
