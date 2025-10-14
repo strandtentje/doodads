@@ -5,17 +5,21 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 #pragma warning disable 67
 [Category("Sourcing & Sinking")]
 [Title("Force sink encoding")]
-[Description("Overwrites the text encoding type of the sink; defaults to ascii")]
+[Description("""
+             Overwrites the text encoding type of the sink; defaults to ascii
+             This is useful when working with sinks that are presumed to be binary,
+             ie the ones coming from a TCP connection or a SinkToFile
+             """)]
 public class ForceSinkEncoding : IService
 {
-    [PrimarySetting("Name of the encoding to use as recognized by .net")]
+    [PrimarySetting("Encoding name as accepted by .net (ie. ascii or utf-8)")]
     private readonly UpdatingPrimaryValue EncodingNameConstant = new();
     private Encoding CurrentEncoding = Encoding.ASCII;
-    [EventOccasion("Here, we pretend we sink in the encoding")]
+    [EventOccasion("Existing sink is propagated here, but signalling that text encoding is as configured here.")]
     public event CallForInteraction? OnThen;
     [NeverHappens]
     public event CallForInteraction? OnElse;
-    [EventOccasion("Likely when there was no sink or the encoding was not known")]
+    [EventOccasion("Likely happens when no sink was present to override encoding on.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
