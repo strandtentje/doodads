@@ -1,10 +1,20 @@
 namespace Ziewaar.RAD.Doodads.Cryptography.Ssh.Channels;
+[Category("Networking & Connections")]
+[Title("Engage TCP host offer")]
+[Description("""
+             Instruct the SSH client to accept a tcp client on its forwarded server 
+             """)]
 public class SshReverseTcpChannel : IService
 {
+    [EventOccasion("Network streams for remote TCP server connection come out here")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the tcp connection has died or never lived")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("The server on the client side we wish to connect to")]
     public event CallForInteraction? OnEndpoint;
+    [EventOccasion("The port on the client-side server")]
     public event CallForInteraction? OnDestination;
+    [EventOccasion("Likely happens when the endpoint/port were badly formatted or there was no SSH session.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

@@ -6,6 +6,10 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 [Description("""Sink data from file""")]
 public class SinkFromFile : IService
 {
+    [PrimarySetting("""
+                    Set this to binary in case we're not reading a text file, or we will not be
+                    reading the file like a text file. Otherwise, encoding will be deduced.
+                    """)]
     private readonly UpdatingPrimaryValue PipeStyleConstant = new();
     private bool IsCurrentlyBinary = false;
 

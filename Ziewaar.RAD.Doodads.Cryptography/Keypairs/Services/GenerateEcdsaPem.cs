@@ -9,8 +9,11 @@ namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;
 [Description("""Provided a filename to a new PEM in the Register, create an ECDSA keypair""")]
 public class GenerateEcdsaPem : IService
 {
+    [EventOccasion("After keypair has been written to disk, outputs filename here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When there was no filename in register, the file already exists, or the directory did not.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
