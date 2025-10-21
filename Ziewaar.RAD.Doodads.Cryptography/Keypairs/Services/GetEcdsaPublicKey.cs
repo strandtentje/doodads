@@ -6,8 +6,11 @@ namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;
 [Description("""Provided an ECDSA keypair, extract the public key PEM.""")]
 public class GetEcdsaPublicKey : IService
 {
+    [EventOccasion("Put the public component as a PEM into Register")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When there was no private key to find the pubkey of")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

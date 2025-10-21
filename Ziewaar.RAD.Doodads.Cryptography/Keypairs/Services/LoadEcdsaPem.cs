@@ -9,8 +9,11 @@ namespace Ziewaar.RAD.Doodads.Cryptography.Keypairs.Services;
 [Description("""Provided a filename to a PEM in the Register, recover an ECDSA keypair""")]
 public class LoadEcdsaPem : IService
 {
+    [EventOccasion("The loaded ECDSA pub/priv keypair is available here for the services that can use it.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when the file didn't exist.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
