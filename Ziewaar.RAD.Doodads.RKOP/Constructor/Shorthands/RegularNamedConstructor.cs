@@ -5,11 +5,11 @@ using Ziewaar.RAD.Doodads.RKOP.Text;
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 public class RegularNamedConstructor : ISerializableConstructor
 {
-    public string? ServiceTypeName { get; private set; }
+    public string? ServiceTypeName { get; set; }
     public object? PrimarySettingValue => PrimaryExpression.GetValue();
     public IReadOnlyDictionary<string, object> ConstantsList => Constants;
-    private ServiceConstantExpression PrimaryExpression = new();
-    private ServiceConstantsDescription Constants = new();
+    public readonly ServiceConstantExpression PrimaryExpression = new();
+    public readonly ServiceConstantsDescription Constants = new();
     public bool UpdateFrom(ref CursorText text)
     {
         text = text

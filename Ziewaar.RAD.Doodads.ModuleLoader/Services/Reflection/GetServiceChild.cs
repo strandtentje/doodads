@@ -20,7 +20,7 @@ public class GetServiceChild : IService
         ServiceDescription<ServiceBuilder> description;
         string branchName;
         if (interaction.Register is ServiceDescription<ServiceBuilder> descriptionFromRegister &&
-            interaction.TryFindVariable<string>("childname", out string? branchNameFromMemory) &&
+            interaction.TryFindVariable("childname", out string? branchNameFromMemory) &&
             branchNameFromMemory != null)
         {
             description = descriptionFromRegister;

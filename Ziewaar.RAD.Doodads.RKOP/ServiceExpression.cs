@@ -6,8 +6,11 @@ public abstract class ServiceExpression<TResultSink> where TResultSink : class, 
 {
     public string? CurrentNameInScope { get; private set; }
     public TResultSink? ResultSink { get; protected set; }
+    public CursorText? LastCursorText { get; private set; }
+
     public bool UpdateFrom(string givenScopeName, ref CursorText text, bool forceReload = false)
     {
+        this.LastCursorText = text;
         this.CurrentNameInScope = givenScopeName;
         if (ProtectedUpdateFrom(ref text))
         {
