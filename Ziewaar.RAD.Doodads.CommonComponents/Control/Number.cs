@@ -2,7 +2,7 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 #pragma warning disable 67
 
-[Category("Printing & Formattin")]
+[Category("Printing & Formatting")]
 [Title("Capture number in memory")]
 [Description("""
              Turns an in-memory number into a counter, or makes a new number in memory to count

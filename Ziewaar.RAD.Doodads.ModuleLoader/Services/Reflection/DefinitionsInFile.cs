@@ -1,41 +1,25 @@
 #nullable enable
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
+
 [Category("Reflection & Documentation")]
 [Title("Get all the definitions that exist in the file.")]
 [Description("""
              Provided with a full file path in Register, will enumerate the definitions that exist in it.
              Enumeration goes into memory at `names`, path to file will be kept in register, and memory, at `path`.
              """)]
-public class DefinitionsInFile : IService
+public class DefinitionsInFile : IteratingService
 {
-    [PrimarySetting("Optionally hardcoded rkop path")]
-    private readonly UpdatingPrimaryValue ServicePath = new();
-    [EventOccasion("with a list of definition names in register, and the path to the file in memory at `path`")]
-    public event CallForInteraction? OnThen;
-    [NeverHappens] public event CallForInteraction? OnElse;
-    [EventOccasion("likely happens when the path couldn't be determined")]
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
+    protected override IEnumerable<IInteraction> GetItems(StampedMap constants,
+        IInteraction repeater)
     {
-        (constants, ServicePath).IsRereadRequired<string>(out var hardcodedServicePath);
-        var requestedPath = hardcodedServicePath ?? interaction.Register as string;
-        if (interaction.TryFindVariable("path", out string? memoryPath))
-            requestedPath = memoryPath;
-        if (requestedPath == null)
-        {
-            OnException?.Invoke(this,
-                new CommonInteraction(interaction,
-                    "rkop path must be provided via memory, register or configuration."));
-            return;
-        }
-        var definitionNames = ProgramRepository.Instance.GetForFile(requestedPath).Definitions?.Select(x => x.Name)
-            ?.ToArray() ?? [];
-        OnThen?.Invoke(this, new CommonInteraction(interaction, requestedPath, new SortedList<string, object>()
-        {
-            { "names", definitionNames },
-            { "path", requestedPath }
-        }));
+        var definitions = ProgramRepository.Instance
+            .GetForFile(repeater.Register.ToString()).Definitions ?? [];
+        foreach (ProgramDefinition programDefinition in definitions)
+            yield return repeater.AppendRegister(programDefinition.Name)
+                .AppendMemory([
+                    (ReflectionKeys.ServiceExpression,
+                        programDefinition.CurrentSeries)
+                ]);
     }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
