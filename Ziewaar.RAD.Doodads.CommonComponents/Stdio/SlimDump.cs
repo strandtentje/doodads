@@ -19,27 +19,30 @@ public class SlimDump : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (!DumpSwitch.IsEnabled || interaction.TryGetClosest<DumpStopper>(out var _)) return;
-        if ((constants, DumpFormatConstant).IsRereadRequired(out string? formatCandidate))
+        if (DumpSwitch.IsEnabled && !interaction.TryGetClosest<DumpStopper>(out var _))
         {
-            DumpFormat = formatCandidate ?? "";
-            DumpVarNames = formatCandidate?.
-                Split(['{'], StringSplitOptions.RemoveEmptyEntries).
-                Select(tagCandidate => (startOfTag: tagCandidate, posOfEnd: tagCandidate.IndexOf('}'))).
-                Where(x => x.posOfEnd > -1).
-                Select(x => x.startOfTag.Substring(0, x.posOfEnd)).
-                ToList() ?? [];
+            if ((constants, DumpFormatConstant).IsRereadRequired(out string? formatCandidate))
+            {
+                DumpFormat = formatCandidate ?? "";
+                DumpVarNames = formatCandidate?.
+                    Split(['{'], StringSplitOptions.RemoveEmptyEntries).
+                    Select(tagCandidate => (startOfTag: tagCandidate, posOfEnd: tagCandidate.IndexOf('}'))).
+                    Where(x => x.posOfEnd > -1).
+                    Select(x => x.startOfTag.Substring(0, x.posOfEnd)).
+                    ToList() ?? [];
 
-            foreach (var item in DumpVarNames)
-                DumpFormat = DumpFormat.Replace(item, item.Replace(" ", ""));
+                foreach (var item in DumpVarNames)
+                    DumpFormat = DumpFormat.Replace(item, item.Replace(" ", ""));
+            }
+
+            object[] values = DumpVarNames.
+                Select(varName => interaction.TryFindVariable(varName, out object? cv) ? cv?.ToString() ?? "" : "").
+                OfType<object>().
+                ToArray();
+
+            GlobalLog.Instance?.Debug(messageTemplate: DumpFormat, propertyValues: values);
         }
-
-        object[] values = DumpVarNames.
-            Select(varName => interaction.TryFindVariable(varName, out object? cv) ? cv?.ToString() ?? "" : "").
-            OfType<object>().
-            ToArray();
-
-        GlobalLog.Instance?.Debug(messageTemplate: DumpFormat, propertyValues: values);
+        OnThen?.Invoke(this, interaction);
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

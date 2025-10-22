@@ -1,5 +1,7 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+using Ziewaar;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 
 [Category("System & IO")]
 [Title("Change line read from file")]

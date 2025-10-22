@@ -1,10 +1,12 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+using Ziewaar;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 
 [Category("System & IO")]
-[Title("Prepend line to line read from file")]
-[Description("From LinesFromFile, prepend a line.")]
-public class PrependLine : IService
+[Title("remove line read from file")]
+[Description("From LinesFromFile, remove a line.")]
+public class RemoveLine : IService
 {
     [EventOccasion("Sink changed line here")]
     public event CallForInteraction OnThen;
@@ -20,9 +22,7 @@ public class PrependLine : IService
             OnException?.Invoke(this, interaction.AppendRegister("no file line"));
             return;
         }
-        var tsi = new TextSinkingInteraction(interaction);
-        OnThen?.Invoke(this, tsi);
-        fli.LineBefore = tsi.ReadAllText();
+        fli.SkipLine = true;
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

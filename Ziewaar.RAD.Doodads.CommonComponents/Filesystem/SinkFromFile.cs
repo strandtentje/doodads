@@ -21,11 +21,14 @@ public class SinkFromFile : IService
     {
         if ((constants, PipeStyleConstant).IsRereadRequired(out string? pipeStyle))
             IsCurrentlyBinary = pipeStyle == "binary";
-
-        var tsi = new TextSinkingInteraction(interaction);
-        OnThen?.Invoke(this, tsi);
-        var filename = tsi.ReadAllText();
-        var fileInfo = new FileInfo(filename);
+        FileInfo? fileInfo = interaction.Register as FileInfo;
+        if (fileInfo == null)
+        {
+            var tsi = new TextSinkingInteraction(interaction);
+            OnThen?.Invoke(this, tsi);
+            var filename = tsi.ReadAllText();
+            fileInfo = new FileInfo(filename);
+        }
         if (fileInfo.Exists)
         {
             if (!interaction.TryGetClosest(out ISinkingInteraction? sinkingInteraction)

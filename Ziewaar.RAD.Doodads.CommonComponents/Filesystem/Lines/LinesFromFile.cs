@@ -1,7 +1,10 @@
 #nullable enable
+using Ziewaar;
+using Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
+using Ziewaar.RAD.Doodads.CommonComponents.Transform;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 
 [Category("System & IO")]
 [Title("Read Lines from File")]
@@ -21,7 +24,7 @@ public class LinesFromFile : IService
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, ContinueNameConstant).IsRereadRequired(out string? candidateRepeater))
-            this.CurrentRepeatName = candidateRepeater;
+            CurrentRepeatName = candidateRepeater;
         if (string.IsNullOrWhiteSpace(CurrentRepeatName) || CurrentRepeatName == null)
         {
             OnException?.Invoke(this, interaction.AppendRegister("Repeat name required"));
@@ -41,7 +44,7 @@ public class LinesFromFile : IService
 
         var linesInput = GetLinesFromFile(info.FullName).ToArray();
         List<string> linesOutput = new List<string>(linesInput.Length);
-        var ri = new RepeatInteraction(this.CurrentRepeatName, interaction);
+        var ri = new RepeatInteraction(CurrentRepeatName, interaction);
         var fli = new FileLineInteraction(ri, CurrentRepeatName);
         ri.IsRunning = true;
         bool changes = false;

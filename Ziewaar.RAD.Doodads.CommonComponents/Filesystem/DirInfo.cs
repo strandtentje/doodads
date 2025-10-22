@@ -3,13 +3,11 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
-[Title("Extra file and directory information reader")]
+[Title("Extra directory information")]
 [Description("""
-             Commonly used in conjunction with Dir. Provided a path in the register,
-             Info reads the full path, just the name and some dates.
-             It will also query the hidden-attribute and reject files and folders starting with a period '.'
+             Determines if a path in register is a dir, and produces dir info.
              """)]
-public class Info : IService
+public class DirInfo : IService
 {
     [PrimarySetting("Memory name to get info from")]
     private readonly UpdatingPrimaryValue MemoryNameConstant = new();
@@ -17,19 +15,10 @@ public class Info : IService
     private readonly UpdatingKeyValue Hidden = new UpdatingKeyValue("hidden");
     private string? CurrentMemoryName;
 
-    [EventOccasion("""
-                   Occurs when the file or directory existed, and information is available. Information is not 
-                   put in the Register, but into Memory directly, such that: 
-                    - `path` contains the full path to this filesystem entry
-                    - `name` contains only the name of this entry itself. this may include extensions
-                    - `write` contains the last time the file was written to
-                    - `read` contains the last time the file was read from
-                   """)]
     public event CallForInteraction? OnThen;
-    [EventOccasion("Occurs when the file or directory did not exist. Register and Memory are not altered.")]
     public event CallForInteraction? OnElse;
-    [EventOccasion("Occurs when the contents of the Register was not something that could be queried in the filesystem.")]
     public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, MemoryNameConstant).IsRereadRequired(out string? memoryName))
@@ -67,7 +56,7 @@ public class Info : IService
                 return;
             }
         }
-        if (infoToWorkWith is FileSystemInfo info)
+        if (infoToWorkWith is DirectoryInfo info)
         {
             if (!info.Exists)
             {
@@ -94,26 +83,15 @@ public class Info : IService
                 else
                     return Uri.HexEscape(x);
             }));
-            if (info is FileInfo fileInfo)
-            {
-                payload["extension"] = fileInfo.Extension;
-                payload["cleanext"] = fileInfo.Extension.TrimStart('.').ToLower();
-                payload["cleanname"] = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-                payload["size"] = fileInfo.Length;
-                payload["cleansize"] = ByteSizeFormatter.ToHumanReadable(fileInfo.Length);
-                payload["type"] = "dir";
-            }
-            else if (info is DirectoryInfo directoryInfo)
-            {
-                payload["count"] = directoryInfo.GetFiles().Length;
-                payload["type"] = "file";
-            }
+            payload["count"] = info.GetFiles().Length;
+            payload["type"] = "file";
             if (showHidden == true || !info.Attributes.HasFlag(FileAttributes.Hidden) && !info.Name.StartsWith("."))
                 OnThen?.Invoke(this, new CommonInteraction(interaction, register: info, memory: payload));
         }
         else
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "this is not a file or directory"));
+            OnElse?.Invoke(this, interaction);
+            return;
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

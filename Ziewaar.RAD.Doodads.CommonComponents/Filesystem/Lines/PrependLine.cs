@@ -1,10 +1,12 @@
 #nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+using Ziewaar;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 
 [Category("System & IO")]
-[Title("Append line to line read from file")]
-[Description("From LinesFromFile, append a line.")]
-public class AppendLine : IService
+[Title("Prepend line to line read from file")]
+[Description("From LinesFromFile, prepend a line.")]
+public class PrependLine : IService
 {
     [EventOccasion("Sink changed line here")]
     public event CallForInteraction OnThen;
@@ -22,7 +24,7 @@ public class AppendLine : IService
         }
         var tsi = new TextSinkingInteraction(interaction);
         OnThen?.Invoke(this, tsi);
-        fli.LineAfter = tsi.ReadAllText();
+        fli.LineBefore = tsi.ReadAllText();
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
