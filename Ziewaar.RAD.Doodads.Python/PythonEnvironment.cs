@@ -24,9 +24,13 @@ public class PythonEnvironment : IService, IDisposable
     [NamedSetting("requirements", "Path to requirements.txt file")]
     private readonly UpdatingKeyValue RequirementsFileConstant = new("requirements");
 
+    [NamedSetting("offline", "Offline mode")]
+    private readonly UpdatingKeyValue OfflineModeConstant = new("offline");
+
     private PythonEnvironmentParameters CurrentEnvironmentParameters = new(), NewEnvironmentParameters = new();
     private Guid CurrentEnvironmentGuid = Guid.Empty;
     private ServiceProvider? CurrentEnvironment;
+    private bool CurrentlyOffline;
 
     [EventOccasion("Python environment is available here.")]
     public event CallForInteraction? OnThen;
@@ -49,6 +53,8 @@ public class PythonEnvironment : IService, IDisposable
             this.NewEnvironmentParameters.VersionString = versionCandidate?.ToString();
         if ((constants, RequirementsFileConstant).IsRereadRequired(out object? requirementsCandidate))
             this.NewEnvironmentParameters.RequirementsFile = requirementsCandidate?.ToString();
+        if ((constants, OfflineModeConstant).IsRereadRequired(out bool isOfflineCandidate))
+            this.CurrentlyOffline = isOfflineCandidate == true;
 
         if (!this.NewEnvironmentParameters.Equals(this.CurrentEnvironmentParameters) &&
             !this.NewEnvironmentParameters.TryValidate(out string wd, out string venv, out string ver, out string req))
@@ -65,7 +71,8 @@ public class PythonEnvironment : IService, IDisposable
             GlobalLog.Instance?.Information(
                 "No python environment or environment expired; disposing and rebuilding...");
             (this.CurrentEnvironmentGuid, this.CurrentEnvironment) =
-                Environments.Take(this.CurrentEnvironmentParameters, EnvironmentFactory);
+                Environments.Take(this.CurrentEnvironmentParameters,
+                    CurrentlyOffline ? OfflineEnvironmentFactory : EnvironmentFactory);
             GlobalLog.Instance?.Information("Rebuilt.");
         }
 
@@ -92,7 +99,19 @@ public class PythonEnvironment : IService, IDisposable
     private ServiceProvider EnvironmentFactory(PythonEnvironmentParameters arg)
     {
         return new ServiceCollection().WithPython().WithHome(arg.WorkingDirectory!)
-            .WithVirtualEnvironment(arg.VenvDirectory!).WithPipInstaller(arg.RequirementsFile!)
+            .WithVirtualEnvironment(arg.VenvDirectory!)
+            .WithPipInstaller(arg.RequirementsFile!)
+            .FromNuGet(arg.VersionString!)
+            .FromRedistributable(arg.VersionString!)
+            .FromMacOSInstallerLocator(arg.VersionString!)
+            .FromWindowsInstaller(arg.VersionString!)
+            .Services.BuildServiceProvider();
+    }
+
+    private ServiceProvider OfflineEnvironmentFactory(PythonEnvironmentParameters arg)
+    {
+        return new ServiceCollection().WithPython().WithHome(arg.WorkingDirectory!)
+            .WithVirtualEnvironment(arg.VenvDirectory!)
             .FromNuGet(arg.VersionString!)
             .FromRedistributable(arg.VersionString!)
             .FromMacOSInstallerLocator(arg.VersionString!)
