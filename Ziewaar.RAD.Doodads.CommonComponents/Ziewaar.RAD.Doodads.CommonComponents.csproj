@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Ziewaar.Common.Aardvargs\Ziewaar.Common.Aardvargs.csproj" />
       <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
       <ProjectReference Include="..\Ziewaar.RAD.Doodads.EnumerableStreaming\Ziewaar.RAD.Doodads.EnumerableStreaming.csproj" />
     </ItemGroup>

@@ -58,7 +58,8 @@ public class HtmlForm : IService
             {
                 using (var reader = new StreamReader(bodySource.SourceBuffer, bodySource.TextEncoding))
                 {
-                    parsedForm = new FormDataDictionary(reader.ReadToEnd());
+                    string urlEncoded = reader.ReadToEnd();
+                    parsedForm = new FormDataDictionary(urlEncoded);
                 }
             }
             else if (fieldset.Method == HttpMethod.Get

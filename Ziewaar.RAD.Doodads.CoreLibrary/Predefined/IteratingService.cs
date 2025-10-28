@@ -26,7 +26,7 @@ public abstract class IteratingService : IService
 
         var repeatInteraction =
             new RepeatInteraction(this.CurrentRepeatName, interaction);
-        var items = GetItems(constants, interaction);
+        var items = GetItems(constants, repeatInteraction);
         repeatInteraction.IsRunning = true;
         var enumerator = items.GetEnumerator();
         try
