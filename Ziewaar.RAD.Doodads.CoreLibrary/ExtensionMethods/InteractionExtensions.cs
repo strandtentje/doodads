@@ -87,4 +87,25 @@ public static class InteractionExtensions
         this IInteraction interaction,
         IReadOnlyDictionary<string, object> dict) => new CommonInteraction(
         interaction, memory: dict, register: null);
+
+    public static void SinkText(
+        this (IService service, IInteraction interaction) offset,
+        CallForInteraction? invoke,
+        out string sunkText)
+    {
+        TextSinkingInteraction sinker = new TextSinkingInteraction(offset.interaction);
+        invoke?.Invoke(offset.service, sinker);
+        sunkText = sinker.ReadAllText();
+    }
+    public static void SinkEnum<TEnum>(
+        this (IService service, IInteraction interaction) offset,
+        CallForInteraction? invoke,
+        out TEnum result) where TEnum : struct, IConvertible
+    {
+        TextSinkingInteraction sinker = new TextSinkingInteraction(offset.interaction);
+        invoke?.Invoke(offset.service, sinker);
+        var sunkText = sinker.ReadAllText();
+        result = (TEnum)Enum.Parse(typeof(TEnum), sunkText);
+    }   
+
 }
