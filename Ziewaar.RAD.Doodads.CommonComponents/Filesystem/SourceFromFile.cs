@@ -9,11 +9,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 [Description("""Provided a filename, make its (binary) contents the source stream""")]
 public class SourceFromFile : IService
 {
+    [NamedSetting("binary", "Set this to true if we're sourcing a binary stream")]
     private readonly UpdatingKeyValue IsBinaryConst = new UpdatingKeyValue("binary");
     private bool IsCurrentlyBinary = true;
-
+    [EventOccasion("Sink file path here")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("Sourcing file contents here")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("File didn't exist.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

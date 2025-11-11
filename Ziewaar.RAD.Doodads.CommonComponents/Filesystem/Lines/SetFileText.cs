@@ -7,12 +7,15 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 [Description("Overwrites contents of file with single line of text from variable. Attempts to create whole path.")]
 public class SetFileText : IService
 {
-    [PrimarySetting("Line Text Variable")]
-    private readonly UpdatingPrimaryValue LineVariableConstant = new();
+    [PrimarySetting("Line Text Variable")] private readonly UpdatingPrimaryValue LineVariableConstant = new();
     private string? CurrentLineVariableName;
 
+    [EventOccasion("Sink file text here.")]
     public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
+
+    [NeverHappens] public event CallForInteraction? OnElse;
+
+    [EventOccasion("In case we didn't have a file or its contents, or writing went wrong.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -30,8 +33,9 @@ public class SetFileText : IService
             {
                 OnException?.Invoke(this, interaction.AppendRegister("nothing in variable"));
                 return;
-            }                
-        } else 
+            }
+        }
+        else
         {
             var tsi = new TextSinkingInteraction(interaction);
             OnThen?.Invoke(this, tsi);
@@ -44,6 +48,7 @@ public class SetFileText : IService
             OnException?.Invoke(this, interaction.AppendRegister("file expected in register"));
             return;
         }
+
         var info = new FileInfo(file);
         if (!Directory.Exists(info.Directory.FullName))
             Directory.CreateDirectory(info.Directory.FullName);
@@ -53,10 +58,12 @@ public class SetFileText : IService
             {
                 writer.Write(textToWrite);
             }
-        } catch(Exception ex)
+        }
+        catch (Exception ex)
         {
             OnException?.Invoke(this, interaction.AppendRegister(ex));
         }
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

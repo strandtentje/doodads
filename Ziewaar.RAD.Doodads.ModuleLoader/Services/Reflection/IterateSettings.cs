@@ -1,6 +1,9 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #pragma warning disable 67
+[Category("Reflection & Documentation")]
+[Title("Iterate through service settings")]
+[Description("If a service has some settings, iterate through them or subsettings")]
 public class IterateSettings : IteratingService
 {
     public override event CallForInteraction? OnException;

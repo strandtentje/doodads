@@ -9,9 +9,11 @@ public class LineOrDefault : IService
     [PrimarySetting("Default Line Text")]
     private readonly UpdatingPrimaryValue DefaultLineConstant = new();
     private string? CurrentDefaultText;
-
+    [EventOccasion("In case the file existed an a line was readable, line will be register here.")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the file didn't exist or didn't contain a line")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When there wasn't a path in register")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
