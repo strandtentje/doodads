@@ -1,5 +1,6 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #nullable  enable
+#pragma warning disable 67
 public class ChangeServiceSignature : IService
 {
     public event CallForInteraction? OnThen;

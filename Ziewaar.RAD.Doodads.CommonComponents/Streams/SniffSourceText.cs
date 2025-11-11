@@ -1,4 +1,5 @@
 #nullable enable
+#pragma warning disable 67
 using System.Text;
 using Ziewaar.RAD.Doodads.EnumerableStreaming;
 

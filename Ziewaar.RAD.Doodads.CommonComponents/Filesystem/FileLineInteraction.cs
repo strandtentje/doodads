@@ -8,6 +8,7 @@ public class FileLineInteraction : IInteraction
     public FileLineInteraction(IInteraction interaction, string lineName)
     {
         this.interaction = interaction;
+        this.Register = "";
         Memory = new SwitchingDictionary(
         [lineName], key => key == lineName ? LineNumber : throw new KeyNotFoundException());
     }

@@ -1,4 +1,5 @@
 #nullable enable
+#pragma warning disable 67
 using Ziewaar;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
@@ -9,11 +10,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 public class RemoveLine : IService
 {
     [EventOccasion("Sink changed line here")]
-    public event CallForInteraction OnThen;
+    public event CallForInteraction? OnThen;
     [NeverHappens]
-    public event CallForInteraction OnElse;
+    public event CallForInteraction? OnElse;
     [EventOccasion("Likely when no lines were read from file.")]
-    public event CallForInteraction OnException;
+    public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<FileLineInteraction>(out var fli) ||

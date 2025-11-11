@@ -76,7 +76,7 @@ public class StreamSourceToSink : IService
 
         var arrayPool = ByteArrayPoolFactory.Instance.GetOrCreate(128, BufferSize, TimeSpan.FromSeconds(60));
 
-        ThreadPool.QueueUserWorkItem(_ =>
+        _ = ThreadPool.QueueUserWorkItem(_ =>
         {
             byte[] buffer = arrayPool.Rent();
             long totalCopyCount = 0;
@@ -112,7 +112,7 @@ public class StreamSourceToSink : IService
                         OnThen?.Invoke(this, countInteraction);
                     }
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
                     // it's fine.
                 }
@@ -123,11 +123,11 @@ public class StreamSourceToSink : IService
                         sinkingInteraction.SinkBuffer.Write([], 0, 0);
                         sinkingInteraction.SinkBuffer.Flush();
                     }
-                    catch (ObjectDisposedException ex)
+                    catch (ObjectDisposedException)
                     {
                         // figures.
                     }
-                    catch (IOException ex)
+                    catch (IOException)
                     {
                         // also figures
                     }

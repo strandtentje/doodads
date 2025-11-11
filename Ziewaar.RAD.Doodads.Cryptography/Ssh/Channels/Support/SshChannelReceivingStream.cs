@@ -94,7 +94,7 @@ public class SshChannelReceivingStream : Stream, IDisposable, IFinishSensingStre
         LastReadSize = count;
         TriggerToIncreaseWindow.Set();
 
-        HolderOf<Buffer> wrapper;
+        HolderOf<Buffer>? wrapper;
         while (!ReceivedBuffers.TryPeek(out wrapper))
         {
             if (!BlockUntilItems.WaitOne(Moment))

@@ -4,6 +4,7 @@ using Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #nullable enable
+#pragma warning disable 67
 public class Discriminate : IService
 {
     public event CallForInteraction? OnThen;

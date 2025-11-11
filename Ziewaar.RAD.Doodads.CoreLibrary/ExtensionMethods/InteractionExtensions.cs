@@ -100,12 +100,14 @@ public static class InteractionExtensions
     public static void SinkEnum<TEnum>(
         this (IService service, IInteraction interaction) offset,
         CallForInteraction? invoke,
+        TEnum fallbackValue,
         out TEnum result) where TEnum : struct, IConvertible
     {
         TextSinkingInteraction sinker = new TextSinkingInteraction(offset.interaction);
         invoke?.Invoke(offset.service, sinker);
         var sunkText = sinker.ReadAllText();
-        result = (TEnum)Enum.Parse(typeof(TEnum), sunkText);
+        if (!Enum.TryParse<TEnum>(sunkText, out result))
+            result = fallbackValue;
     }   
 
 }

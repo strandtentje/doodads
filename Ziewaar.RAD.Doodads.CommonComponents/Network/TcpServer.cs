@@ -105,7 +105,7 @@ public class TcpServer : IService, IDisposable
                 ingestAnother.Dispose();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // ignored
             }
@@ -156,7 +156,7 @@ public class TcpServer : IService, IDisposable
         {
             asyncResult.IngestAnother.Release();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // whatever
         }
