@@ -6,7 +6,3 @@ public interface IInteraction
     object Register { get; }
     IReadOnlyDictionary<string, object> Memory { get; }
 }
-public interface ICsrfTokenSourceInteraction : IInteraction
-{
-    public ICsrfFields Fields { get; }
-}

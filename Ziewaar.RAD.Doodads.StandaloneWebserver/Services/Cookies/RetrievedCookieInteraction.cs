@@ -4,7 +4,7 @@ public class RetrievedCookieInteraction(
     HttpHeadInteraction head,
     CookieRealmInteraction realm,
     ComponentCookie serverCookie,
-    Cookie clientCookie) : IInteraction
+    Cookie clientCookie) : IInteraction, ICookieInteraction
 {
     public IInteraction Stack => interaction;
     public string CookieName => clientCookie.Name;
