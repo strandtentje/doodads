@@ -35,12 +35,28 @@ public class PrintFile : IService
         (constants, SetContentLength).IsRereadRequired<bool>(out var setContentLength);
 
         FileInfo? selectedInfo = null;
-        FileInfo constantInfo = new FileInfo(constantFilename?.ToString());
-        FileInfo registerInfo = new FileInfo(interaction.Register.ToString());
+        FileInfo? constantInfo = null;
+        FileInfo? registerInfo = null;
+        try
+        {
+            constantInfo = new FileInfo(constantFilename?.ToString());
+        }
+        catch (Exception ex)
+        {
 
-        if (constantInfo.Exists)
+        }
+        try
+        {
+            registerInfo = new FileInfo(interaction.Register.ToString());
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+        if (constantInfo?.Exists == true)
             selectedInfo = constantInfo;
-        else if (registerInfo.Exists)
+        else if (registerInfo?.Exists == true)
             selectedInfo = registerInfo;
         else
         {
