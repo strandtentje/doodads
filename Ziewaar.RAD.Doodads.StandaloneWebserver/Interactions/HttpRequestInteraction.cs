@@ -3,7 +3,7 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpRequestInteraction(
     IInteraction parent,
     HttpListenerContext context) :
-    ISourcingInteraction, IContentTypePropertiesInteraction
+    IHttpIncomingRequestInteraction
 {
     public CookieCollection IncomingCookies => context.Request.Cookies;
     public Stream SourceBuffer => new ProtectedStream(context.Request.InputStream, context);

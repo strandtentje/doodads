@@ -1,10 +1,16 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #nullable  enable
 #pragma warning disable 67
+[Category("Reflection & Documentation")]
+[Title("Add a named branch to a service")]
+[Description("Provided a service is in scope, to its block of branches, add one. This will just contain an empty set of series and won't save too interrestingly.")]
 public class AddServiceBranch : IService
 {
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when the file was still new, or we had no service to work on.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

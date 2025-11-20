@@ -1,10 +1,17 @@
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #nullable  enable
 #pragma warning disable 67
+[Category("Reflection & Documentation")]
+[Title("Change Service(Signature=1)")]
+[Description("Provided a service signature, will change it for the" +
+             "currently scoped service.")]
 public class ChangeServiceSignature : IService
 {
+    [EventOccasion("Sink new service signature here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When there's no service in scope, or we're not working in an existing file.")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

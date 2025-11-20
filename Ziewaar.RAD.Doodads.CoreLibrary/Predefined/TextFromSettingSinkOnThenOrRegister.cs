@@ -5,9 +5,11 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public abstract class TextFromSettingSinkOnThenOrRegister : IService
 {
     private string? TextFromSetting;
-
+    [EventOccasion("Sink value that may also be expected in register, here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public virtual event CallForInteraction? OnElse;
+    [NeverHappens]
     public virtual event CallForInteraction? OnException;
 
     protected abstract IUpdatingValue SettingToCheckFirst { get; }

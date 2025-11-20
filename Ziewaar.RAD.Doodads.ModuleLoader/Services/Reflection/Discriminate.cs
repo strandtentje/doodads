@@ -5,20 +5,40 @@ using Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #nullable enable
 #pragma warning disable 67
+[Category("Reflection & Documentation")]
+[Title("Determine on what kind of part of the program we're working")]
+[Description("""
+             We recurse through syntax members. The stack is generally but not guaranteed to be
+             1. Unconditional Sequence (& ampersand coupled)
+             2. Alternative Sequence (| pipe coupled to catch all OnElse)
+             3. Conditional Sequence (: colon coupled to catch the closest OnThen)
+             4. Regular Service ( `ForExample(asignature="likethis")` )
+             5. OnContextValueManipulator ( like `^!"variablename" = "something"` )
+             6. OnPrefixShorthand ( like `~"case"` )
+             7. OnCapturedShorthand ( like `["Continue"]` )
+             """)]
 public class Discriminate : IService
 {
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("when we encountered something indiscriminable")]
     public event CallForInteraction? OnException;
-
-    public event CallForInteraction?
-        OnUnconditional,
-        OnAlternative,
-        OnConditional,
-        OnRegularService,
-        OnContextValueManipulator,
-        OnPrefixShorthand,
-        OnCapturedShorthand;
+    [EventOccasion("In case of an unconditional coupling series")]
+    public event CallForInteraction? OnUnconditional;
+    [EventOccasion("In case of an alternative coupling series")]
+    public event CallForInteraction? OnAlternative;
+    [EventOccasion("In case of an conditional coupling series")]
+    public event CallForInteraction? OnConditional;
+    [EventOccasion("In case of a regular service")]
+    public event CallForInteraction? OnRegularService;
+    [EventOccasion("In case of context value manipulator service")]
+    public event CallForInteraction? OnContextValueManipulator;
+    [EventOccasion("In case of a prefix shorthand service")]
+    public event CallForInteraction? OnPrefixShorthand;
+    [EventOccasion("In case of a captured shorthand service")]
+    public event CallForInteraction? OnCapturedShorthand;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {

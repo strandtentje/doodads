@@ -1,8 +1,12 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #pragma warning disable 67
+[Category("Reflection & Documentation")]
+[Title("Iterate through named child branches of a service")]
+[Description("Services between there accolades may have 0..n other series with sequences, assigned to a name like->so. This will iterate those.")]
 public class IterateChildren : IteratingService
 {
+    [EventOccasion("Likely happens when there wasn't a service in scope")]
     public override event CallForInteraction? OnException;
 
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants,

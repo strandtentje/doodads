@@ -1,7 +1,15 @@
 ﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
-public class HttpHeadInteraction : IInteraction
+public class HttpHeadInteraction : IInteraction, IHttpHeadInteraction
 {
-    public readonly string RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort, RequestLocale;
+    string IHttpHeadInteraction.RouteString => RouteString;
+    string IHttpHeadInteraction.QueryString => QueryString;
+    string IHttpHeadInteraction.Method => Method;
+    string IHttpHeadInteraction.RemoteIp => RemoteIp;
+    string IHttpHeadInteraction.RemotePort => RemotePort;
+    string IHttpHeadInteraction.RequestTime => RequestTime;
+    string IHttpHeadInteraction.RequestLocale => RequestLocale;
+    public readonly string 
+        RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort, RequestLocale;
     public HttpHeadInteraction(IInteraction parent, HttpListenerContext context,
         Services.ExpandedPrefixes expandedPrefixes)
     {

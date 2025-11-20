@@ -1,7 +1,7 @@
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpResponseInteraction(
     IInteraction parent,
-    HttpListenerContext context) : ISinkingInteraction
+    HttpListenerContext context) : IHttpOutgoingResponseInteraction
 {
     public string[] SinkContentTypePattern => context.Request.AcceptTypes ?? ["*/*"];
     public Encoding TextEncoding => context.Request.ContentEncoding ?? Encoding.UTF8;
@@ -16,9 +16,9 @@ public class HttpResponseInteraction(
     public string Delimiter { get; } = "";
     public void SetContentLength64(long contentLength) => context.Response.ContentLength64 = contentLength;
 
-    internal void RedirectTo(string url)
+    public void RedirectTo(string url, bool preservePost = false)
     {
-        context.Response.StatusCode = (int)HttpStatusCode.SeeOther;
+        context.Response.StatusCode = preservePost ? (int)HttpStatusCode.TemporaryRedirect : (int)HttpStatusCode.SeeOther;
         context.Response.RedirectLocation = url;
     }
     public int StatusCode

@@ -14,9 +14,11 @@ public class DirInfo : IService
     [NamedSetting("hidden", "Set this to True, if it is not desired Info filters out hidden files.")]
     private readonly UpdatingKeyValue Hidden = new UpdatingKeyValue("hidden");
     private string? CurrentMemoryName;
-
+    [EventOccasion("Directory information comes out here")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the directory didn't exist.")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("Likely happens when there was no path in memory")]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

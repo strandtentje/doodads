@@ -9,6 +9,7 @@ public abstract class IteratingService : IService
     private string? CurrentRepeatName;
     [EventOccasion("Next item")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public virtual event CallForInteraction? OnElse;
     [EventOccasion("Likely happens when there was no repeat name")]
     public virtual event CallForInteraction? OnException;
