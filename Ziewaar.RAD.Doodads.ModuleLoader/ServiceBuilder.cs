@@ -57,6 +57,12 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
         CurrentService = wrapper;
     }
+    public void SetCoalescingSequence<TResult>(ServiceExpression<TResult>[] sequence)
+        where TResult : class, IInstanceWrapper, new()
+    {
+        throw new NotSupportedException("Cant use the coalescing operator in series yet.");
+    }
+
     [DebuggerHidden]
     public void Run(object sender, IInteraction interaction)
     {

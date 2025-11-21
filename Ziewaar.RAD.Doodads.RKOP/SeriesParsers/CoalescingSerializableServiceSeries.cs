@@ -1,17 +1,17 @@
 #nullable enable
-using Ziewaar;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
-public class AlternativeSerializableServiceSeries<TResultSink> :
-    SerializableServiceSeries<TResultSink>
-    where TResultSink : class, IInstanceWrapper, new()
+
+public class CoalescingSerializableServiceSeries<TResultSink> : 
+    SerializableServiceSeries<TResultSink> where TResultSink : class, IInstanceWrapper, new ()
 {
+
     protected override ServiceExpression<TResultSink> CreateChild() =>
-        new CoalescingSerializableServiceSeries<TResultSink>();
-    protected override TokenDescription CouplerToken => TokenDescription.Pipe;
+        new ConditionalSerializableServiceSeries<TResultSink>();
+    protected override TokenDescription CouplerToken => TokenDescription.Obelus;
     protected override void SetChildren(TResultSink sink, ServiceExpression<TResultSink>[] children) => 
-        sink.SetAlternativeSequence(children);
+        sink.SetCoalescingSequence(children);
     public override void WriteTo(StreamWriter writer, int indentation = 0)
     {
         if (Children == null || Children.Count < 1)
@@ -25,7 +25,7 @@ public class AlternativeSerializableServiceSeries<TResultSink> :
             var child = Children.ElementAt(i);
             writer.WriteLine();
             writer.Write(new string(' ', indentation + nameIndentation));
-            writer.Write("| ");
+            writer.Write("÷ ");
             child.WriteTo(writer, indentation + nameIndentation + 2);
         }
     }

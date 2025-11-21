@@ -47,6 +47,11 @@ public class TokenDescription(
             0 => chr == ',' || chr == '|',
             _ => false
         }, str => str == "," || str == "|", "Comma or pipe in block to indicate OnElse"),
+        OnAnythingShorthand = new TokenDescription((pos, chr) => pos switch
+        {
+            0 => chr == '÷',
+            _ => false
+        }, str => str == "÷", "Obelus character to indicate any branch"),
         Wiggly =  DescribeSingleCharacter('~', "Case Shorthand (~)"),
         LoadShorthand = DescribeSingleCharacter('?', "Load variable question"),
         HatShorthand = DescribeSingleCharacter('^', "Hat sign"),
@@ -76,6 +81,7 @@ public class TokenDescription(
         BeakClose = DescribeSingleCharacter('>', "End with closed beak"),
         AmpersandP = DescribeSingleCharacter('&', "Et sign"),
         Pipe = DescribeSingleCharacter('|', "Or pipe"),
+        Obelus = DescribeSingleCharacter('÷', "Or/And Obelus"),
         TrueOrFalse = new TokenDescription(
             (pos, chr) =>
             {

@@ -15,5 +15,6 @@ public interface IInstanceWrapper
         where TResult : class, IInstanceWrapper, new();
     void SetUnconditionalSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new();
     void SetAlternativeSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new();
+    void SetCoalescingSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new();
     void SetContinueSequence<TResult>(ServiceExpression<TResult>[] sequence) where TResult : class, IInstanceWrapper, new();
 }

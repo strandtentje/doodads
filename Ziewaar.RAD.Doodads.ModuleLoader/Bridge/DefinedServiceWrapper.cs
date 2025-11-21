@@ -78,6 +78,16 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                 var newEvent = EventHandlers[item.Name] = child.Run;
                 item.AddEventHandler(this.Instance, newEvent);
                 CleanupPropagation.Add(() => item.RemoveEventHandler(this.Instance, newEvent));
+            } else if ((item.Name == "OnThen" || item.Name == "OnElse") && 
+                branches.TryGetValue("OnAnything", out var onAnything))
+            {
+                var onThenEvent = EventHandlers["OnThen"] = child.Run;
+                item.AddEventHandler(this.Instance, onThenEvent);
+                CleanupPropagation.Add(() => item.RemoveEventHandler(this.Instance, onThenEvent));
+
+                var onElseEvent = EventHandlers["OnElse"] = child.Run;
+                item.AddEventHandler(this.Instance, onElseEvent);
+                CleanupPropagation.Add(() => item.RemoveEventHandler(this.Instance, onElseEvent));
             }
         }
 
