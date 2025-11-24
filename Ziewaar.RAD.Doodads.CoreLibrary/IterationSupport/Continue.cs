@@ -18,9 +18,9 @@ public class Continue : IService
     // TODO: Introduce a better design pattern to split the validations a service does from the actual work
     [PrimarySetting("Name of the Repeat block to fall back to.")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
-    [EventOccasion("Is never invoked; Continue is terminating for a block.")]
+    [EventOccasion("Passes on after marking good for repeating")]
     public event CallForInteraction? OnThen;
-    [EventOccasion("Is never invoked; Continue is terminating for a block.")]
+    [NeverHappens]
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely happens if the Repeat name was missing, or no Repeat with the configured name could be found.")]
     public event CallForInteraction? OnException;
@@ -47,6 +47,7 @@ public class Continue : IService
         if (ri.IsDeep)
             ri.ContinueFrom = interaction;
         ri.IsRunning = true;
+        OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

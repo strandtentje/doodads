@@ -13,6 +13,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
              """)]
 public class PathJoin : IService
 {
+    private string? SendToVariable = null;
     [PrimarySetting("Members to join")]
     private readonly UpdatingPrimaryValue JoinMembersConstant = new();
     private string[] CurrentPathMembers = [];
@@ -27,6 +28,13 @@ public class PathJoin : IService
     {
         if ((constants, JoinMembersConstant).IsRereadRequired(out IEnumerable? members))
             this.CurrentPathMembers = members?.OfType<object>().Select(x => x.ToString()).ToArray() ?? [];
+        if (this.CurrentPathMembers.Length == 0 
+            && constants.NamedItems.SingleOrDefault() is { } singleItem
+            && singleItem.Value is IEnumerable namedMembers)
+        {
+            SendToVariable = singleItem.Key;
+            this.CurrentPathMembers = [.. namedMembers.OfType<object>().Select(x => x.ToString())];            
+        }
         if (CurrentPathMembers.Length == 0)
         {
             OnException?.Invoke(this, interaction.AppendRegister("Path members required"));
@@ -37,10 +45,14 @@ public class PathJoin : IService
         if (Directory.Exists(finalPath))
         {
             var dirInfo = new DirectoryInfo(finalPath);
+            if (SendToVariable is string targetVar)
+                interaction = interaction.AppendMemory((targetVar, dirInfo));
             OnThen?.Invoke(this, interaction.AppendRegister(dirInfo));
         } else
         {
             var fileInfo = new FileInfo(finalPath);
+            if (SendToVariable is string targetVar)
+                interaction = interaction.AppendMemory((targetVar, fileInfo));
             OnThen?.Invoke(this, interaction.AppendRegister(fileInfo));
         }
     }
