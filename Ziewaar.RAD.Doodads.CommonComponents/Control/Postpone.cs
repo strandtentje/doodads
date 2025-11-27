@@ -39,3 +39,28 @@ public class Postpone : IService
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
+
+public class IntervalLimit : IService
+{
+    private readonly UpdatingPrimaryValue BlockConstant = new();
+    private int CurrentBlockTime;
+
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        if ((constants, BlockConstant).IsRereadRequired(out decimal newBlockTime))
+            this.CurrentBlockTime = (int)newBlockTime;
+
+        var startTime = GlobalStopwatch.Instance.ElapsedMilliseconds;
+        OnThen?.Invoke(this, interaction);
+        var spentTime = GlobalStopwatch.Instance.ElapsedMilliseconds - startTime;
+        var compensationTime = Math.Max(1, Math.Min(1000000, CurrentBlockTime - spentTime)) ;
+        GlobalLog.Instance?.Information("Job was done in {spenttime}ms so wasting {compensation}ms", spentTime, compensationTime);
+        Thread.Sleep((int)compensationTime);
+    }
+
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+}

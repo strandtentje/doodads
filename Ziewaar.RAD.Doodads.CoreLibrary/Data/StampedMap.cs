@@ -1,10 +1,14 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.Data;
+﻿using System.Collections.Concurrent;
+
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Data;
 #nullable enable
 
 public class StampedMap
 {
-    private readonly SortedList<string, object> BackingStore;
-    private readonly SortedList<string, long> BackingLog;
+    private readonly ConcurrentDictionary<string, object> BackingStore;
+    private readonly ConcurrentDictionary<string, long> BackingLog;
+    private readonly object LockObject = new();
+
     public SortedList<string, object> ToSortedList() =>
         new SortedList<string, object>(BackingStore);
     public void CopyNamedTo(IDictionary<string, object> target)
@@ -21,8 +25,8 @@ public class StampedMap
     {
         this.PrimaryConstant = primaryConstant;
         this.PrimaryLog = GlobalStopwatch.Instance.ElapsedTicks;
-        this.BackingStore = new(0);
-        this.BackingLog = new(0);
+        this.BackingStore = new();
+        this.BackingLog = new();
     }
 
     public StampedMap(object primaryConstant, IReadOnlyDictionary<string, object> origin)
@@ -34,8 +38,13 @@ public class StampedMap
         this.BackingLog = new();
         foreach (var o in origin)
         {
-            this.BackingLog.Add(o.Key, age);
-            this.BackingStore.Add(o.Key, o.Value);
+            lock (LockObject)
+            {
+                if (!(this.BackingLog.TryAdd(o.Key, age) && this.BackingStore.TryAdd(o.Key, o.Value)))
+                {
+                    GlobalLog.Instance?.Warning("failed to add {key} to settings map", o.Key);
+                }
+            }
         }
     }
 
@@ -50,16 +59,28 @@ public class StampedMap
 
     public void SetValue(string key, object value)
     {
-        if (!this.BackingStore.TryGetValue(key, out var preExisting) || preExisting != value)
+        lock (LockObject)
         {
-            BackingStore[key] = value;
-            BackingLog[key] = GlobalStopwatch.Instance.ElapsedTicks;
+            if (!this.BackingStore.TryGetValue(key, out var preExisting) || preExisting != value)
+            {
+                BackingStore[key] = value;
+            }
+            if (!this.BackingLog.ContainsKey(key))
+            {
+                BackingLog[key] = GlobalStopwatch.Instance.ElapsedTicks;
+            }
         }
     }
 
     public void DeleteValue(string key)
     {
-        BackingLog[key] = GlobalStopwatch.Instance.ElapsedTicks;
-        BackingStore.Remove(key);
+        lock (LockObject)
+        {
+            BackingLog[key] = GlobalStopwatch.Instance.ElapsedTicks;
+            if (!BackingStore.TryRemove(key, out var _))
+            {
+                GlobalLog.Instance?.Warning("failed to remove {key} from settings map", key);
+            }
+        }
     }
 }

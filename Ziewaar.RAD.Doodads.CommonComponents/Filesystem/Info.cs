@@ -37,7 +37,8 @@ public class Info : IService
         if ((constants, MemoryNameConstant).IsRereadRequired(out string? memoryName))
             this.CurrentMemoryName = memoryName;
         if (this.CurrentMemoryName == null &&
-            (constants, MemoryNameConstant).IsRereadRequired(out object[]? outputNames))
+            ((constants, MemoryNameConstant).IsRereadRequired(out object[]? outputNames) ||
+            outputNames != null))
         {
             this.OutputMemoryNames = outputNames?.OfType<string>().ToArray();
             NameVariable = this.OutputMemoryNames?.FirstOrDefault(x => x.EndsWith("name", StringComparison.OrdinalIgnoreCase)) ?? "name";

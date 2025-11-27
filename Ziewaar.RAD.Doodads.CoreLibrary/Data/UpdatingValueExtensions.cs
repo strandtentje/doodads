@@ -45,4 +45,6 @@ public static class UpdatingValueExtensions
             return false;
         }
     }
+    public static bool HasPrimary(this StampedMap map) =>
+        map.PrimaryConstant is string str && !string.IsNullOrWhiteSpace(str);
 }

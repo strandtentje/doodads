@@ -81,7 +81,8 @@ public class Template : IService
             OnThen?.Invoke(this, updateChecker);
             if (updateChecker.IsRequired)
             {
-                OnException?.Invoke(this, new CommonInteraction(interaction, "Template Cache Miss"));
+                // OnException?.Invoke(this, new CommonInteraction(interaction, "Template Cache Miss"));
+                GlobalLog.Instance?.Warning("Template Cache Miss; {file}", templatefile);
                 templatefile.SinkBuffer.Dispose();
                 templatefile = null;
             }

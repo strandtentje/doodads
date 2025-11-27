@@ -26,7 +26,7 @@ public class PathJoin : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, JoinMembersConstant).IsRereadRequired(out IEnumerable? members))
+        if ((constants, JoinMembersConstant).IsRereadRequired(out IEnumerable? members) || members != null)
             this.CurrentPathMembers = members?.OfType<object>().Select(x => x.ToString()).ToArray() ?? [];
         if (this.CurrentPathMembers.Length == 0 
             && constants.NamedItems.SingleOrDefault() is { } singleItem
