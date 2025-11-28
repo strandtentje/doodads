@@ -37,7 +37,7 @@ public class CapturedShorthandConstructor : ISerializableConstructor
     public bool UpdateFrom(ref CursorText text)
     {
         var temporaryCursorPosition = text
-            .SkipWhile(char.IsWhiteSpace)
+            .SkipWhitespace()
             .TakeToken(TokenDescription.BeakOpen, out var firstBeak)
             .TakeToken(TokenDescription.BeakOpen, out var secondBeak)
             .TakeToken(TokenDescription.ArrayOpen, out var firstBlock)
@@ -69,16 +69,16 @@ public class CapturedShorthandConstructor : ISerializableConstructor
             case ShorthandType.ReturnThen:
             case ShorthandType.ReturnElse:
             case ShorthandType.Continue:
-                text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(TokenDescription.ArrayClose,
+                text = text.SkipWhitespace().ValidateToken(TokenDescription.ArrayClose,
                     "likely forgot to match case close with ]", out var _);
                 break;
             case ShorthandType.Definition:
-                text = text.SkipWhile(char.IsWhiteSpace)
+                text = text.SkipWhitespace()
                     .ValidateToken(TokenDescription.BeakClose, "close definition with double >>", out var _)
                     .ValidateToken(TokenDescription.BeakClose, "close definition with double >>", out var _);
                 break;
             case ShorthandType.Call:
-                text = text.SkipWhile(char.IsWhiteSpace)
+                text = text.SkipWhitespace()
                     .ValidateToken(TokenDescription.BeakClose, "close definition with single >", out var _);
                 break;
             default:

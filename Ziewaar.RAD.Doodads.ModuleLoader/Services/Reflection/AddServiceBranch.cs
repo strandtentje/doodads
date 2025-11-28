@@ -37,7 +37,7 @@ public class AddServiceBranch : IService
         var branchName = interaction.Register.ToString();
         if (service.Children.Branches != null)
         {
-            if (service.Children.Branches.Any(x => x.key == branchName))
+            if (service.Children.Branches.Any(x => x.Item1.Members.Contains(branchName)))
             {
                 OnException?.Invoke(this, interaction.AppendRegister("branch already exists"));
                 return;
@@ -49,7 +49,7 @@ public class AddServiceBranch : IService
                 new UnconditionalSerializableServiceSeries<ServiceBuilder>();
             series.UpdateFrom(branchName, ref newCursor);
 
-            service.Children.Branches.Add((branchName, series));
+            service.Children.Branches.Add((new CompoundKey([branchName]), series));
         }
         else
         {

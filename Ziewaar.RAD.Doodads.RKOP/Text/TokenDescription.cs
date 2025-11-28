@@ -47,6 +47,11 @@ public class TokenDescription(
             0 => chr == ',' || chr == '|',
             _ => false
         }, str => str == "," || str == "|", "Comma or pipe in block to indicate OnElse"),
+        OnEitherShorthand = new TokenDescription((pos, chr) => pos switch
+        {
+            0 => chr == '÷', 
+            _ => false
+        }, str => str == "÷", "Obelus in block to indicate OnThen AND OnElse"),
         Wiggly =  DescribeSingleCharacter('~', "Case Shorthand (~)"),
         LoadShorthand = DescribeSingleCharacter('?', "Load variable question"),
         HatShorthand = DescribeSingleCharacter('^', "Hat sign"),
@@ -56,6 +61,7 @@ public class TokenDescription(
         AssignmentOperator = DescribeSingleCharacter('=', "Assignment operator (equals, '=')"),
         Terminator = DescribeSingleCharacter(';', "Terminator char (semicol, ';')"),
         DefaultBranchCoupler = DescribeSingleCharacter(':', "Coupler char (col, ':')"),
+        ObelusCoupler = DescribeSingleCharacter('÷', "Omni coupler char (obelus, '÷')"),
         TermOrAmpP = new TokenDescription(
             (pos, chr) => pos switch
             {
@@ -132,10 +138,18 @@ public class TokenDescription(
                 _ => false,
             }, x => x.Length == 2, "Announcement of filename string with [p\"] which evaluates to the current user profile dir ie. `%HOMEDRIVE%%HOMEPATH%` or `~`"),
 
+        CompoundBranchAnnouncement = new TokenDescription(
+            (pos, chr) => pos switch
+            {
+                0 => chr == '<',
+                1 => chr == '-',
+                _ => false,
+            }, x => x.Length == 2, "Announcement of multiple branch identifiers using <-, closed with ->"),
+
         BranchAnnouncement = new TokenDescription(
             (pos, chr) => pos switch
             {
-        0 => chr == '-',
+                0 => chr == '-',
                 1 => chr == '>',
                 _ => false,
             }, x => x.Length == 2, "Announcement of branch after identifier using ->"),

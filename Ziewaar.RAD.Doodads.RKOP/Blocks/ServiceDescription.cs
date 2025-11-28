@@ -47,7 +47,7 @@ public class ServiceDescription<TResultSink> : ServiceExpression<TResultSink>
             CurrentConstructor.ServiceTypeName,
             CurrentConstructor.PrimarySettingValue,
             CurrentConstructor.ConstantsList,
-            new SortedList<string, ServiceExpression<TResultSink>>((Children.Branches ?? []).ToDictionary(x => x.key, x => x.value)));
+            Children.Convert());
     }
     public override void Purge()
     {

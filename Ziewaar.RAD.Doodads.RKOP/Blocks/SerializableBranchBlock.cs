@@ -1,53 +1,98 @@
 #nullable enable
+using System.Runtime.CompilerServices;
 using Ziewaar;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.RKOP.SeriesParsers;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Blocks;
+
+public class CompoundKey : IComparable, IComparable<CompoundKey>, IEquatable<CompoundKey>
+{
+    public readonly string[] Members;
+    public CompoundKey(string[] members) => this.Members = [.. members.OrderBy(x => x)];
+    public int CompareTo(CompoundKey other) =>
+        string.CompareOrdinal(string.Join(", ", Members), string.Join(", ", other.Members));
+    public int CompareTo(object obj) =>
+        obj is CompoundKey ck ?
+        CompareTo(ck) :
+        throw new InvalidCastException("may only compare compound keys to other compound keys");
+    public bool Equals(CompoundKey other) =>
+        Enumerable.SequenceEqual(Members, other.Members);
+
+}
+
 public class SerializableBranchBlock<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
 {
-    public List<(string key, ServiceExpression<TResultSink> value)>? Branches;
+    public SortedList<string, ServiceExpression<TResultSink>> Convert()
+    {
+        SortedList<string, ServiceExpression<TResultSink>> result = new();
+        if (Branches == null) return result;
+        foreach (var item in Branches)
+        {
+            foreach (var key in item.Item1.Members)
+            {
+                if (result.ContainsKey(key))
+                    GlobalLog.Instance?.Warning("Duplicate branch definition for {name}; using last.", key);
+                result[key] = item.value;
+            }
+        }
+        return result;
+    }
+    public List<(CompoundKey, ServiceExpression<TResultSink> value)>? Branches;
     private void GetWorkingSet(
-        out List<(string key, ServiceExpression<TResultSink> value)> set,
-        out SortedSet<string> keys)
+        out List<(CompoundKey key, ServiceExpression<TResultSink> value)> set,
+        out SortedSet<CompoundKey> key)
     {
         if (Branches == null)
         {
             set = Branches = new();
-            keys = [.. set.Select(x => x.key)];
+            key = [.. set.Select(x => x.key)];
         }
         else
         {
             set = Branches;
-            keys = [.. set.Select(x => x.key)];;
+            key = [.. set.Select(x => x.key)]; ;
         }
     }
     private CursorText RecurseThroughBranches(
         CursorText text,
-        List<(string key, ServiceExpression<TResultSink> value)> branches,
-        SortedSet<string> toRemove)
+        List<(CompoundKey key, ServiceExpression<TResultSink> value)> branches,
+        SortedSet<CompoundKey> toRemove)
     {
         var seenKey = new SerializableBranchName();
         if (seenKey.UpdateFrom(ref text) == ParityParsingState.Void)
         {
+            // we couldnt parse a key so that means we'll be removing the remainder of the items
+            // we previously worked on.
             foreach (var key in toRemove)
             {
-                branches.Single(x => x.key == key).value.Purge();
-                branches.RemoveAll(x => x.key == key);
+                branches.Single(x => x.key.Equals(key)).value.Purge();
+                branches.RemoveAll(x => x.key.Equals(key));
             }
             return text;
         }
-        if (branches.SingleOrDefault(x => x.key == seenKey.BranchName).value is ServiceExpression<TResultSink> serviceExpression)
+        var detectedCompound = new CompoundKey(seenKey.BranchNames);
+        if (branches.SingleOrDefault(x => x.key.Equals(detectedCompound)).value
+            is ServiceExpression<TResultSink> serviceExpression)
         {
-            toRemove.Remove(seenKey.BranchName);
+            // the branch key we detected corresponds to a branch compound we've parsed previously
+            // and is still working. as such, we stop scheduling it for disposal and re-use what exists.
+            toRemove.Remove(detectedCompound);
         }
         else
         {
+            // we did not parse a branch with this name previously so we need to lay the groundwork
+            // for a new servicve branch
             serviceExpression = new UnconditionalSerializableServiceSeries<TResultSink>();
-            branches.Add((seenKey.BranchName, serviceExpression));
+            branches.Add((detectedCompound, serviceExpression));
         }
-        serviceExpression.UpdateFrom(seenKey.BranchName, ref text);
+        var scopeName = seenKey.BranchNames.Length == 1 ?
+            seenKey.BranchNames[0] :
+            $"<-{string.Join(", ", seenKey.BranchNames)}->";
+        serviceExpression.UpdateFrom(scopeName, ref text);
+
         text = text.TakeToken(TokenDescription.Terminator, out var terminator);
         if (terminator.IsValid)
             // The alternative approach is a while(true) loop. 
@@ -58,13 +103,13 @@ public class SerializableBranchBlock<TResultSink>
     }
     public bool UpdateFrom(ref CursorText text)
     {
-        text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.BlockOpen, out var openBlock);
+        text = text.SkipWhitespace().TakeToken(TokenDescription.BlockOpen, out var openBlock);
 
         if (openBlock.IsValid)
         {
             GetWorkingSet(out var workingSet, out var purgeKeys);
             text = RecurseThroughBranches(text.EnterScope(), workingSet, purgeKeys);
-            text = text.SkipWhile(char.IsWhiteSpace);
+            text = text.SkipWhitespace();
             text = text.ValidateToken(
                 TokenDescription.BlockClose,
                 "This may also happen if for example a semicolon was forgotten, or shorthands like :? were accidentally typed as ?:",
@@ -84,7 +129,16 @@ public class SerializableBranchBlock<TResultSink>
             foreach (var branch in Branches)
             {
                 writer.Write(new string(' ', indentation));
-                writer.Write(branch.key);
+
+                if (branch.Item1.Equals(new CompoundKey(["OnThen", "OnElse"])))
+                    writer.Write("÷ ");
+                else if (branch.Item1.Equals(new CompoundKey(["OnThen"])))
+                    writer.Write(": ");
+                else if (branch.Item1.Equals(new CompoundKey(["OnElse"])))
+                    writer.Write("| ");
+                else if (branch.Item1.Members.Length > 1)
+                    writer.Write("<-");                
+                writer.Write(string.Join(" ",branch.Item1.Members));
                 writer.Write("->");
                 branch.value.WriteTo(writer, indentation);
                 writer.WriteLine(";");

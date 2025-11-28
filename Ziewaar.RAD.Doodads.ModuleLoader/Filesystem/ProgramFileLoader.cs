@@ -31,7 +31,7 @@ public class ProgramFileLoader : IDisposable
             Token terminator;
             do
             {
-                text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.Terminator, out terminator);
+                text = text.SkipWhitespace().TakeToken(TokenDescription.Terminator, out terminator);
                 seenTerminator |= terminator.IsValid;
             } while (terminator.IsValid);
         }

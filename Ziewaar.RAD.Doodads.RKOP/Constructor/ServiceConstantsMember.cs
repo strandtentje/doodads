@@ -9,14 +9,14 @@ public class ServiceConstantsMember : IParityParser
     public ParityParsingState UpdateFrom(ref CursorText inText)
     {
         var text = inText.
-            SkipWhile(char.IsWhiteSpace).
+            SkipWhitespace().
             TakeToken(TokenDescription.IdentifierWithoutUnderscore, out var identifier);
 
         if (!identifier.IsValid)
             return ParityParsingState.Void;
 
         text = text.
-            SkipWhile(char.IsWhiteSpace).
+            SkipWhitespace().
             ValidateToken(
             TokenDescription.AssignmentOperator, 
             "this may also happen if the primary constant of this service couldn't be processed",

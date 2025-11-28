@@ -35,12 +35,22 @@ public class DoNextOnThenWrapper : IAmbiguousServiceWrapper
     {
         this.ElseDelegate?.DynamicInvoke(sender, interaction);
     }
-    public void SetTarget(ServiceBuilder[] toArray)
+    public void SetTarget((bool claimElse, ServiceBuilder service)[] toArray)
     {
-        this.ServiceSequence = toArray.Select(x => x.CurrentService!).ToArray();
+        this.ServiceSequence = toArray.Select(x => x.service.CurrentService!).ToArray();
         for (var i = 0; i < toArray.Length; i++)
-            toArray[i].CurrentService!.OnElse(HandleElse);
+        {
+            if (toArray[i].claimElse && i < toArray.Length - 1)
+            {
+                toArray[i].service.CurrentService!.OnElse(toArray[i + 1].service.Run);
+            } else
+            {
+                toArray[i].service.CurrentService!.OnElse(HandleElse);
+            }
+        }
         for (var i = 0; i < toArray.Length - 1; i++)
-            toArray[i].CurrentService!.OnThen(toArray[i + 1].Run);
+        {
+            toArray[i].service.CurrentService!.OnThen(toArray[i + 1].service.Run);
+        }
     }
 }
