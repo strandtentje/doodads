@@ -4,7 +4,7 @@ public class RelativeRouteInteraction(
     HttpHeadInteraction httpHead,
     SortedList<string, object> routeVars,
     string currentLocation,
-    IEnumerable<string> remainingUrl) : IInteraction
+    IEnumerable<string> remainingUrl) : IInteraction, IRelativeRouteInteraction
 {
     private const string CURRENT_LOCATION = "currentlocation";
     public IInteraction Stack => parent;
@@ -13,6 +13,6 @@ public class RelativeRouteInteraction(
         routeVars.Keys.Append(CURRENT_LOCATION).ToArray(),
         x => x == CURRENT_LOCATION ? currentLocation : routeVars[x]);
     public string CurrentLocation => currentLocation; 
-    public IEnumerable<string> Remaining = remainingUrl;
+    public IEnumerable<string> Remaining => remainingUrl;
     public HttpHeadInteraction HttpHead => httpHead;
 }
