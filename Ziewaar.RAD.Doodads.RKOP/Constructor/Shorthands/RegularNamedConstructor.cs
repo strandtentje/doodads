@@ -13,7 +13,7 @@ public class RegularNamedConstructor : ISerializableConstructor
     public bool UpdateFrom(ref CursorText text)
     {
         text = text
-            .SkipWhile(char.IsWhiteSpace)
+            .SkipWhitespace()
             .TakeToken(TokenDescription.IdentifierWithoutUnderscore,
                 out var typeIdentifier);
 
@@ -21,14 +21,14 @@ public class RegularNamedConstructor : ISerializableConstructor
             return false;
 
         text = text
-            .SkipWhile(char.IsWhiteSpace)
+            .SkipWhitespace()
             .ValidateToken(TokenDescription.StartOfArguments,
                 "even when a service has no arguments, it still needs a coconut () at the end",
                 out var _);
 
         var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
 
-        text = text.SkipWhile(char.IsWhiteSpace).ValidateToken(
+        text = text.SkipWhitespace().ValidateToken(
             TokenDescription.EndOfArguments,
             "this may also happen because the value at this position wasn't recognized",
             out var _);

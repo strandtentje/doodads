@@ -24,7 +24,7 @@ public class ServiceConstantExpression : IParityParser
 
     public ParityParsingState UpdateFrom(ref CursorText inText)
     {
-        var text = inText.SkipWhile(char.IsWhiteSpace);
+        var text = inText.SkipWhitespace();
 
         text = text.TakeToken(TokenDescription.TrueOrFalse, out var bln);
         if (bln.IsValid)
@@ -141,7 +141,7 @@ public class ServiceConstantExpression : IParityParser
         List<ServiceConstantExpression> newArrayExpressions = new();
         while (true)
         {
-            text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.ArrayClose, out var closer);
+            text = text.SkipWhitespace().TakeToken(TokenDescription.ArrayClose, out var closer);
             if (closer.IsValid)
                 break;
             var newItem = new ServiceConstantExpression();
@@ -150,7 +150,7 @@ public class ServiceConstantExpression : IParityParser
             Token comma;
             do
             {
-                text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.ArgumentSeparator, out comma);
+                text = text.SkipWhitespace().TakeToken(TokenDescription.ArgumentSeparator, out comma);
             } while (comma.IsValid);
         }
         ParityParsingState state = ParityParsingState.Unchanged;

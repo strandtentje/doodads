@@ -50,11 +50,11 @@ public class ServiceBuilder : IInstanceWrapper, IEntryPoint
         wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
         CurrentService = wrapper;
     }
-    public void SetContinueSequence<TResult>(ServiceExpression<TResult>[] sequence)
+    public void SetContinueSequence<TResult>((bool isOmni, ServiceExpression<TResult> service)[] sequence)
         where TResult : class, IInstanceWrapper, new()
     {
         var wrapper = EnsureCurrent<DoNextOnThenWrapper>();
-        wrapper.SetTarget(sequence.Select(x => Cast(x.ResultSink)).ToArray());
+        wrapper.SetTarget(sequence.Select(x => (x.isOmni, Cast(x.service.ResultSink))).ToArray());
         CurrentService = wrapper;
     }
     [DebuggerHidden]

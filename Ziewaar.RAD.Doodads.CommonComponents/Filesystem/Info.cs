@@ -16,6 +16,8 @@ public class Info : IService
     [NamedSetting("hidden", "Set this to True, if it is not desired Info filters out hidden files.")]
     private readonly UpdatingKeyValue Hidden = new UpdatingKeyValue("hidden");
     private string? CurrentMemoryName;
+    private string[]? OutputMemoryNames;
+    private string? NameVariable, PathVariable;
 
     [EventOccasion("""
                    Occurs when the file or directory existed, and information is available. Information is not 
@@ -34,6 +36,16 @@ public class Info : IService
     {
         if ((constants, MemoryNameConstant).IsRereadRequired(out string? memoryName))
             this.CurrentMemoryName = memoryName;
+        if (this.CurrentMemoryName == null &&
+            ((constants, MemoryNameConstant).IsRereadRequired(out object[]? outputNames) ||
+            outputNames != null))
+        {
+            this.OutputMemoryNames = outputNames?.OfType<string>().ToArray();
+            NameVariable = this.OutputMemoryNames?.FirstOrDefault(x => x.EndsWith("name", StringComparison.OrdinalIgnoreCase)) ?? "name";
+            PathVariable = this.OutputMemoryNames?.FirstOrDefault(x => x.EndsWith("path", StringComparison.OrdinalIgnoreCase)) ?? "path";
+        }
+
+
         (constants, Hidden).IsRereadRequired(() => false, out bool? showHidden);
         FileSystemInfo? infoToWorkWith = null;
         var requestedFile = interaction.Register;
@@ -82,8 +94,8 @@ public class Info : IService
                 { "visibility", info.IsHidden() ? "visible" : "hidden" },
                 { "numberprefix", numberPrefix },
                 { "afternumber", afterNumberPrefix },
-                { "path", info.FullName },
-                { "name", info.Name },
+                { PathVariable ?? "path", info.FullName },
+                { NameVariable ?? "name", info.Name },
                 { "write", info.LastWriteTimeUtc },
                 { "read", info.LastAccessTimeUtc },
             };

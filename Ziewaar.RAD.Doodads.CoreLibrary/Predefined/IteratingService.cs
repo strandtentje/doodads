@@ -13,12 +13,13 @@ public abstract class IteratingService : IService
     public virtual event CallForInteraction? OnElse;
     [EventOccasion("Likely happens when there was no repeat name")]
     public virtual event CallForInteraction? OnException;
+    protected virtual bool IsRepeatNameRequired => true;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, RepeatNameConstant).IsRereadRequired(
                 out string? repeatNameCandidate))
             this.CurrentRepeatName = repeatNameCandidate;
-        if (this.CurrentRepeatName == null)
+        if (IsRepeatNameRequired && this.CurrentRepeatName == null)
         {
             OnException?.Invoke(this,
                 interaction.AppendRegister("repeat name required"));
@@ -26,7 +27,7 @@ public abstract class IteratingService : IService
         }
 
         var repeatInteraction =
-            new RepeatInteraction(this.CurrentRepeatName, interaction);
+            new RepeatInteraction(this.CurrentRepeatName ?? Guid.NewGuid().ToString(), interaction);
         var items = GetItems(constants, repeatInteraction);
         repeatInteraction.IsRunning = true;
         var enumerator = items.GetEnumerator();

@@ -43,7 +43,7 @@ namespace Ziewaar.RAD.Doodads.RKOP.Constructor
 
         public bool UpdateFrom(ref CursorText text)
         {
-            var tempCurPos = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.Wiggly, out var wiggly)
+            var tempCurPos = text.SkipWhitespace().TakeToken(TokenDescription.Wiggly, out var wiggly)
                 .TakeToken(TokenDescription.HatShorthand, out var hat)
                 .TakeToken(TokenDescription.StoreShorthand, out var store);
 
@@ -57,14 +57,14 @@ namespace Ziewaar.RAD.Doodads.RKOP.Constructor
             if (this.CurrentShorthandType == ShorthandType.NoShorthand)
                 return false;
 
-            text = tempCurPos.SkipWhile(char.IsWhiteSpace);
+            text = tempCurPos.SkipWhitespace();
             PrimaryExpression.UpdateFrom(ref text);
 
-            text = text.SkipWhile(char.IsWhiteSpace).TakeToken(TokenDescription.AssignmentOperator, out var assignment);
+            text = text.SkipWhitespace().TakeToken(TokenDescription.AssignmentOperator, out var assignment);
             SetExpression = new();
             if (assignment.IsValid)
             {
-                text = text.SkipWhile(char.IsWhiteSpace);
+                text = text.SkipWhitespace();
                 SetExpression.UpdateFrom(ref text);
             }
 

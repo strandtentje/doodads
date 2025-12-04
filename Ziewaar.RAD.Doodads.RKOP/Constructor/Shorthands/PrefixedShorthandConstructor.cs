@@ -36,7 +36,7 @@ public class PrefixedShorthandConstructor : ISerializableConstructor
     {
         
         var temporaryCursorPosition = text
-            .SkipWhile(char.IsWhiteSpace)
+            .SkipWhitespace()
             .TakeToken(TokenDescription.StoreShorthand, out var exclamation)
             .TakeToken(TokenDescription.LoadShorthand, out var question)
             .TakeToken(TokenDescription.FormatShorthand, out var dollar)

@@ -1,4 +1,7 @@
-﻿namespace Ziewaar.RAD.Doodads.RKOP.Text;
+﻿using System.Collections.Concurrent;
+using System.Threading;
+
+namespace Ziewaar.RAD.Doodads.RKOP.Text;
 
 public class CursorText(
     DirectoryInfo workingDirectory,
@@ -8,12 +11,65 @@ public class CursorText(
     SortedList<string, object> localScope,
     int position = 0)
 {
+    public bool LogFileExists { get; } = File.Exists($"{bareFileName}.log");
+    public string LogFilePath { get; } = $"{bareFileName}.log";
+
+    private readonly object FileLock = new();
+    private Timer LogFlusher = null;
+    private Queue<string> Messages = null;
+    private int LogCounter = 0;
+    public void EnqueueLogMessage(string message)
+    {
+        if (LogFileExists)
+            File.AppendAllLines(LogFilePath, [message]);
+    }
+
     private static readonly CursorText FixedEmpty = Create(
         new DirectoryInfo(Environment.CurrentDirectory),
         "deleted", "");
     public static CursorText Empty = FixedEmpty.AdvanceTo(0);
+    List<string> localStack = new List<string>();
+    public List<string> Stack
+    {
+        get
+        {
+            if (scopeAbove != null && scopeAbove != this)
+                return scopeAbove.Stack;
+            else
+                return localStack;
+        }
+    }
+
+    public int Depth
+    {
+        get
+        {
+            if (scopeAbove == null || scopeAbove == this) return 0;
+            else return scopeAbove.Depth + 1;
+        }
+    }
+
+    string lifield = "Root";
+    public string LastIdentifier
+    {
+        get
+        {
+            if (scopeAbove != null && scopeAbove != this)
+                return scopeAbove.LastIdentifier;
+            else
+                return lifield;
+        }
+        set
+        {
+            if (scopeAbove != null && scopeAbove != this)
+                scopeAbove.LastIdentifier = value;
+            else
+                lifield = value;
+        }
+    }
+
     public DirectoryInfo WorkingDirectory => workingDirectory;
-    public char[] Text => text;    
+    public char[] Text => text;
     public int Position => position;
     public CursorText ScopeAbove => scopeAbove;
     public SortedList<string, object> LocalScope => localScope;

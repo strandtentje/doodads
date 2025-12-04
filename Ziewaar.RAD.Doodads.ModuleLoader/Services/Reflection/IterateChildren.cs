@@ -17,7 +17,7 @@ public class IterateChildren : IteratingService
             description != null)
             return description.Children.Branches?.Select(x =>
                 repeater.AppendMemory([
-                    (ReflectionKeys.ServiceBranchName, x.key),
+                    (ReflectionKeys.ServiceBranchName, string.Join(", ",  x.Item1.Members.ToArray())),
                     (ReflectionKeys.ServiceExpression, x.value)
                 ])) ?? [];
         OnException?.Invoke(this,
