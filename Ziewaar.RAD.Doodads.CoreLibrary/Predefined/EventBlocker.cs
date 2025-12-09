@@ -7,7 +7,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public abstract class EventBlocker<TArgs> : IDisposable
 {
     public EventBlocker() => BindEvent();
-    private readonly EventWaitHandle Blocker = new(false, EventResetMode.AutoReset);
+    private readonly EventWaitHandle Blocker = new(false, EventResetMode.ManualReset);
     private readonly ConcurrentQueue<TArgs> argQueue = new ConcurrentQueue<TArgs>();
     private readonly object LockObject = new();
     public bool IsRunning { get; private set; } = true;
@@ -33,11 +33,19 @@ public abstract class EventBlocker<TArgs> : IDisposable
             return false;
         }
         if (!IsRunning) return false;
+        bool didTake = false;
         lock (LockObject)
         {
-            argQueue.TryDequeue(out args);
+            didTake = argQueue.TryDequeue(out args);
         }
-        return true;
+        if (!didTake)
+        {
+            Blocker.Reset();
+            return TryTake(out args);
+        } else
+        {
+            return true;
+        }
     }
     protected abstract void UnbindEvent();
     public void Dispose()
