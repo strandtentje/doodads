@@ -9,20 +9,30 @@ public class ScopeEvent : IService
     public static readonly SingletonResourceRepository<string, EventWaitHandle> EwhRepo =
         SingletonResourceRepository<string, EventWaitHandle>.Get();
     private bool _disposed;
-    private EventResetMode CurrentResetMode = EventResetMode.ManualReset;
+    private EventResetMode CurrentResetMode = EventResetMode.AutoReset;
 
+    public event CallForInteraction? Name;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, ResetModeConstant).IsRereadRequired(out string? resetModeCandidate) &&
-            resetModeCandidate != null)
-            this.CurrentResetMode = (EventResetMode)Enum.Parse(typeof(EventResetMode), resetModeCandidate);
+            resetModeCandidate != null && Enum.TryParse<EventResetMode>(resetModeCandidate, out var resetMode))
+            this.CurrentResetMode = resetMode;
 
         var tsi = new TextSinkingInteraction(interaction);
-        OnThen?.Invoke(this, tsi);
+        Name?.Invoke(this, tsi);
         var ewhName = tsi.ReadAllText();
+
+        if (string.IsNullOrWhiteSpace(ewhName))
+            ewhName = interaction.Register.ToString();
+        if (ewhName == null || string.IsNullOrWhiteSpace(ewhName))
+        {
+            OnException?.Invoke(this, interaction.AppendRegister("no name for event given"));
+            return;
+        }
+
         var ewh = EwhRepo.Take(ewhName, x => new EventWaitHandle(false, CurrentResetMode));        
         try
         {
