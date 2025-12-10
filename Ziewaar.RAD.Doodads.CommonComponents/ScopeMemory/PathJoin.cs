@@ -14,13 +14,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 public class PathJoin : IService
 {
     private string? SendToVariable = null;
-    [PrimarySetting("Members to join")]
-    private readonly UpdatingPrimaryValue JoinMembersConstant = new();
+    [PrimarySetting("Members to join")] private readonly UpdatingPrimaryValue JoinMembersConstant = new();
     private string[] CurrentPathMembers = [];
+
     [EventOccasion("Joined path comes out here.")]
     public event CallForInteraction? OnThen;
-    [NeverHappens]
-    public event CallForInteraction? OnElse;
+
+    [NeverHappens] public event CallForInteraction? OnElse;
+
     [EventOccasion("When there were no path members")]
     public event CallForInteraction? OnException;
 
@@ -28,19 +29,22 @@ public class PathJoin : IService
     {
         if ((constants, JoinMembersConstant).IsRereadRequired(out IEnumerable? members) || members != null)
             this.CurrentPathMembers = members?.OfType<object>().Select(x => x.ToString()).ToArray() ?? [];
-        if (this.CurrentPathMembers.Length == 0 
+        if (this.CurrentPathMembers.Length == 0
             && constants.NamedItems.SingleOrDefault() is { } singleItem
             && singleItem.Value is IEnumerable namedMembers)
         {
             SendToVariable = singleItem.Key;
-            this.CurrentPathMembers = [.. namedMembers.OfType<object>().Select(x => x.ToString())];            
+            this.CurrentPathMembers = [.. namedMembers.OfType<object>().Select(x => x.ToString())];
         }
+
         if (CurrentPathMembers.Length == 0)
         {
             OnException?.Invoke(this, interaction.AppendRegister("Path members required"));
             return;
         }
-        var formattedPathMembers = CurrentPathMembers.Select(FormatMember(interaction)).ToArray();
+
+        var formattedPathMembers = CurrentPathMembers.Select(FormatMember(interaction))
+            .Zip(Enumerable.Range(0, CurrentPathMembers.Length), SanitizePath).ToArray();
         var finalPath = string.Join(Path.DirectorySeparatorChar.ToString(), formattedPathMembers);
         if (Directory.Exists(finalPath))
         {
@@ -48,7 +52,8 @@ public class PathJoin : IService
             if (SendToVariable is string targetVar)
                 interaction = interaction.AppendMemory((targetVar, dirInfo));
             OnThen?.Invoke(this, interaction.AppendRegister(dirInfo));
-        } else
+        }
+        else
         {
             var fileInfo = new FileInfo(finalPath);
             if (SendToVariable is string targetVar)
@@ -56,6 +61,15 @@ public class PathJoin : IService
             OnThen?.Invoke(this, interaction.AppendRegister(fileInfo));
         }
     }
+
+    private string SanitizePath(string candidate, int positionInPath) =>
+        (expectsRoot: positionInPath == 0, isRooted: Path.IsPathRooted(candidate)) switch
+        {
+            (false, false) => candidate.Trim(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            (true, false) => candidate.Trim(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+            (false, true) => throw new Exception("Cannot append rooted path midpay a path join"),
+            (true, true) => candidate.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+        };
 
     private Func<string, string> FormatMember(IInteraction interaction)
     {
@@ -68,14 +82,15 @@ public class PathJoin : IService
                 var part = parts[i];
                 if (i % 2 == 0)
                 {
-                    partBuilder.Append(part.Trim());                    
+                    partBuilder.Append(part.Trim());
                 }
                 else if (interaction.TryFindVariable(part.Trim(), out object? candidate) && candidate != null)
                 {
                     partBuilder.Append(candidate.ToString());
                 }
             }
-            return partBuilder.ToString().Trim(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            return partBuilder.ToString();
         };
     }
 
