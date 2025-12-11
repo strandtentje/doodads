@@ -43,6 +43,13 @@ public class LinesFromFile : IService
         }
 
         var linesInput = GetLinesFromFile(info.FullName).ToArray();
+
+        if (linesInput.Length == 0 || (linesInput.Length == 1 && string.IsNullOrWhiteSpace(linesInput[0])))
+        {
+            OnElse?.Invoke(this, interaction);
+            return;
+        }
+
         List<string> linesOutput = new List<string>(linesInput.Length);
         var ri = new RepeatInteraction(CurrentRepeatName, interaction);
         var fli = new FileLineInteraction(ri, CurrentRepeatName);
