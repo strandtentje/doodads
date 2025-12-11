@@ -14,6 +14,9 @@ public class WebServer : IService, IDisposable
     [PrimarySetting(@"Set a whitelist array of prefixes here ie [""http://*:8008/""]")]
     private readonly UpdatingPrimaryValue PrimaryPrefixesConstant = new();
 
+    private readonly UpdatingKeyValue ThreadCountConstant = new UpdatingKeyValue("threadcount");
+    private decimal CurrentThreadCount = 8;
+
     private string[] ActivePrefixStrings = [];
     private IInteraction? StartingInteraction;
 
@@ -36,6 +39,12 @@ public class WebServer : IService, IDisposable
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if ((constants, ThreadCountConstant).IsRereadRequired(() => 8M, out decimal threadCountCandidate) &&
+            threadCountCandidate > 0)
+        {
+            this.CurrentThreadCount = threadCountCandidate;
+        }
+        
         switch (Prefixes.TryHandlePrefixChanges(constants, PrimaryPrefixesConstant, out string[]? strings))
         {
             case PrefixProcessor.ChangeState.Empty:
@@ -101,7 +110,7 @@ public class WebServer : IService, IDisposable
 
     private IControlCommandReceiver<ServerCommand> ListenerWrapperFactory()
     {
-        return new ResilientHttpListenerWrapper(prefixes: ActivePrefixStrings, threadCount: 8);
+        return new ResilientHttpListenerWrapper(prefixes: ActivePrefixStrings, threadCount: (int)this.CurrentThreadCount);
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
