@@ -17,6 +17,7 @@ public class QuerySymlinks : IService
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     private string? CurrentRepeatName;
 
+    [EventOccasion("Sink parent dir here")]
     public event CallForInteraction? LinkParentDir;
     [EventOccasion("When a file link was found")]
     public event CallForInteraction? OnThen;
