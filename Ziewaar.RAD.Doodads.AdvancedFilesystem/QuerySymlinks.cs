@@ -1,20 +1,28 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
-using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.AdvancedFilesystem;
-
+[Category("System & IO")]
+[Title("Get list of symlinks in a directory")]
+[Description("""
+             Provided a directory, gets symlinks in there and stuffs it in memory with from-to pairs.
+             """)]
 public class QuerySymlinks : IService
 {
+    [PrimarySetting("Repeat name to use with continue")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     private string? CurrentRepeatName;
 
     public event CallForInteraction? LinkParentDir;
-
+    [EventOccasion("When a file link was found")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When a directory link was found")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the directory didn't exist or the repeat name wasn't right")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

@@ -20,11 +20,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 public class ChokingHopper : IService
 {
     private SemaphoreSlim? CurrentChoke = null;
+    [PrimarySetting("Number of tasks before choke occures")]
     private readonly UpdatingPrimaryValue ChokeConstant = new();
+    [NamedSetting("timeout", "Timeout before we start doing work anyways")]
     private readonly UpdatingKeyValue TimeOutConstant = new("timeout");
     private readonly object ChokeLock = new();
     private int CurrentChokeCount = 5;
     private TimeSpan CurrentTimeout = TimeSpan.FromSeconds(3);
+    [EventOccasion("The works done here")]
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
