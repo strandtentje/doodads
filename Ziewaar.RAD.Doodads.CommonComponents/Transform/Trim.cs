@@ -9,6 +9,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
     """)]
 public class Trim : IService
 {
+    [PrimarySetting("Characters to trim off of the register string. Leave blank for default whitespace behaviour")]
     private readonly UpdatingPrimaryValue TrimCharactersConstant = new();
     private Func<char, bool> CurrentTrimCondition = char.IsWhiteSpace;
     [EventOccasion("Register string trimmed of spaces on both ends")]

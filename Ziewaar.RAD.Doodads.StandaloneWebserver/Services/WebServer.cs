@@ -14,6 +14,7 @@ public class WebServer : IService, IDisposable
     [PrimarySetting(@"Set a whitelist array of prefixes here ie [""http://*:8008/""]")]
     private readonly UpdatingPrimaryValue PrimaryPrefixesConstant = new();
 
+    [NamedSetting("threadcount", "Amount of simultaneous threads ready to work on http requests")]
     private readonly UpdatingKeyValue ThreadCountConstant = new UpdatingKeyValue("threadcount");
     private decimal CurrentThreadCount = 8;
 

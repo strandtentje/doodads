@@ -3,17 +3,26 @@ using System.Threading;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Scheduling & Flow")]
+[Title("Block the scoped event")]
+[Description("""
+    Brings a named event in scope. Use with BlockEvent, SignalEvent and WaitForEvent.
+    """)]
 public class ScopeEvent : IService
 {
+    [PrimarySetting("Reset style. Auto for letting one branch through, Manual for multiple until reset.")]
     private static readonly UpdatingPrimaryValue ResetModeConstant = new();
     public static readonly SingletonResourceRepository<string, EventWaitHandle> EwhRepo =
         SingletonResourceRepository<string, EventWaitHandle>.Get();
     private bool _disposed;
     private EventResetMode CurrentResetMode = EventResetMode.AutoReset;
-
+    [EventOccasion("Sink name of event here.")]
     public event CallForInteraction? Name;
+    [EventOccasion("Event is in scope here.")]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the name for the event wasn't complete or empty")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

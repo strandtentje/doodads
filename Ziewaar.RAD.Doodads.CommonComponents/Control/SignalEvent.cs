@@ -1,10 +1,18 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Scheduling & Flow")]
+[Title("Block the scoped event")]
+[Description("""
+    Use with ScopeEvent, Block and WaitForEvent to signal branches elsewhere can begin their work
+    """)]
 public class SignalEvent : IService
 {
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

@@ -1,6 +1,11 @@
 #nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
+[Category("Scheduling & Flow")]
+[Title("Block the scoped event")]
+[Description("""
+    Use with ScopeEvent, Block and SignalEvent to postpone doing work until a signal is received
+    """)]
 public class WaitForEvent : IteratingService, IDisposable
 {
     private bool _disposed;
