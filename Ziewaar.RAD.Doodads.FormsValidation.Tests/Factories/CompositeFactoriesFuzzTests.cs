@@ -6,6 +6,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Tests.Factories;
 public class CompositeFactoriesFuzzTests
 {
     // ---------- TypeValidatingCollectionFactory unhappy paths ----------
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 
     [TestMethod]
     public void TypeFactory_NullArguments_ThrowOrFallback()
@@ -101,23 +102,23 @@ public class CompositeFactoriesFuzzTests
     public void BoundsWrapper_FieldTypeMismatch_ThrowsOnConstruction()
     {
         // number factory uses decimal.Parse; should throw on non-numeric
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("number", new[] { "NaN" }, new[] { "10" }));
 
         // date factory uses DateOnly.Parse; should throw bad format
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("date", new[] { "2020-13-01" }, new[] { "2020-12-31" }));
 
         // datetime-local factory uses DateTime.Parse; "nope" should throw
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("datetime-local", new[] { "nope" }, new[] { "2020-01-01T00:00:00" }));
 
         // time factory uses TimeOnly.Parse; wrong separator
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("time", new[] { "08-00" }, new[] { "17:30" }));
 
         // week factory: bounds must be ISO week strings; wrong format should throw in WeekOnly.Parse inside factory
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("week", new[] { "2020-25" }, new[] { "2020-W53" }));
 
     }
@@ -125,14 +126,14 @@ public class CompositeFactoriesFuzzTests
     [TestMethod]
     public void BoundsWrapper_Constructors_NullOrWhitespaceBounds_Throw()
     {
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
             new BoundsValidatingCollectionFactory("number", null, new[] { "10" }));
 
-        Assert.ThrowsException<ArgumentNullException>(() =>
+        Assert.ThrowsExactly<ArgumentNullException>(() =>
             new BoundsValidatingCollectionFactory("date", new[] { "2020-01-01" }, null));
 
         // Whitespace strings should bubble into Parse and throw FormatException
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("time", new[] { "   " }, new[] { "17:00" }));
     }
 
@@ -192,6 +193,7 @@ public class CompositeFactoriesFuzzTests
     [TestMethod]
     public void TypeFactory_FuzzValues_AcrossTypes_ManyUnhappy()
     {
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
         var cases = new (string tag, string type, object value, bool expectOk, Type expectStoredType, object expectValue)[]
         {
             ("input","color", "#abc", true, typeof(string), "#abc"),
@@ -209,6 +211,7 @@ public class CompositeFactoriesFuzzTests
             ("input","week","2020-W00", false, null, null),                   // invalid week 0
             ("input","week","2020-W01", true, typeof(DateOnly), new DateOnly(2019,12,30)),
         };
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
         foreach (var (tag,type,value,ok,storedType,storedValue) in cases)
         {

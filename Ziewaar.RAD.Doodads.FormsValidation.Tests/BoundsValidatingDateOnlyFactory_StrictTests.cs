@@ -35,13 +35,13 @@ public class BoundsValidatingDateOnlyFactoryStrictTests
     public void Rejects_BadBoundFormats_AtConstruction()
     {
         // Not zero-padded, wrong separators, or impossible dates should throw.
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateOnlyCollectionFactory(new[] { "2020-7-01" }, new[] { "2020-12-31" }));
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateOnlyCollectionFactory(new[] { "2020/07/01" }, new[] { "2020-12-31" }));
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateOnlyCollectionFactory(new[] { "2020-02-30" }, new[] { "2020-12-31" }));
     }
 

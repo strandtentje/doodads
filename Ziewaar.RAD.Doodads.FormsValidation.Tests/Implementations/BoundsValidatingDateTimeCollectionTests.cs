@@ -78,7 +78,7 @@ public class BoundsValidatingDateTimeCollectionTests
 
         Assert.IsFalse(c.IsSatisfied);
         var items = c.ValidItems.Cast<DateTime>().ToList();
-        Assert.AreEqual(1, items.Count);
+        Assert.HasCount(1, items);
         Assert.AreEqual(new DateTime(2020, 4, 1), items[0]);
     }
 

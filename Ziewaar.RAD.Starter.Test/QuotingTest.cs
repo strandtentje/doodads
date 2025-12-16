@@ -66,20 +66,20 @@ public class BootstrapperBuilderTest
         if (File.Exists(Path.Combine(dir, testfilename)))
             File.Delete(Path.Combine(dir, testfilename));
         var sut = BootstrappedStartBuilder.Create(dir);
-        var ex = Assert.ThrowsException<ArgumentException>(sut.Build);
+        var ex = Assert.ThrowsExactly<ArgumentException>(sut.Build);
         Assert.AreEqual("StarterFile", ex.ParamName);
-        ex = Assert.ThrowsException<ArgumentException>(() => sut.SetStarter(testfilename));
+        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.SetStarter(testfilename));
         Assert.AreEqual("name", ex.ParamName);
-        ex = Assert.ThrowsException<ArgumentException>(() => sut.AddFile(testfilename));
+        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.AddFile(testfilename));
         Assert.AreEqual("definitionText", ex.ParamName);
         sut.AddFile(testfilename, "");
         sut.SetStarter(testfilename);
         var output = sut.Build();
         Assert.AreEqual(dir, output.WorkingDirectory);
-        Assert.AreEqual(0, output.PopulateAssemblies.Length);
-        Assert.AreEqual(1, output.LoadFiles.Count);
+        Assert.IsEmpty(output.PopulateAssemblies);
+        Assert.HasCount(1, output.LoadFiles);
         Assert.AreEqual(testfilename, output.StartFile);
-        Assert.AreEqual(0, output.RootInteractionMemory.Count);
+        Assert.IsEmpty(output.RootInteractionMemory);
     }
     [TestMethod]
     public void TestWithAssemblies()
@@ -89,22 +89,22 @@ public class BootstrapperBuilderTest
         if (File.Exists(Path.Combine(dir, testfilename)))
             File.Delete(Path.Combine(dir, testfilename));
         var sut = BootstrappedStartBuilder.Create(dir);
-        var ex = Assert.ThrowsException<ArgumentException>(sut.Build);
+        var ex = Assert.ThrowsExactly<ArgumentException>(sut.Build);
         Assert.AreEqual("StarterFile", ex.ParamName);
-        ex = Assert.ThrowsException<ArgumentException>(() => sut.SetStarter(testfilename));
+        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.SetStarter(testfilename));
         Assert.AreEqual("name", ex.ParamName);
-        ex = Assert.ThrowsException<ArgumentException>(() => sut.AddFile(testfilename));
+        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.AddFile(testfilename));
         Assert.AreEqual("definitionText", ex.ParamName);
         sut.AddFile(testfilename, "");
         sut.SetStarter(testfilename);
         sut.AddAssemblyBy<ExceptionCauser>();
         var output = sut.Build();
         Assert.AreEqual(dir, output.WorkingDirectory);
-        Assert.AreEqual(1, output.PopulateAssemblies.Length);
+        Assert.HasCount(1, output.PopulateAssemblies);
         Assert.AreEqual(typeof(BootstrapperBuilderTest).Assembly, output.PopulateAssemblies[0]);
-        Assert.AreEqual(1, output.LoadFiles.Count);
+        Assert.HasCount(1, output.LoadFiles);
         Assert.AreEqual(testfilename, output.StartFile);
-        Assert.AreEqual(0, output.RootInteractionMemory.Count);
+        Assert.IsEmpty(output.RootInteractionMemory);
     }
     [TestMethod]
     public void TestWithAssembliesAndRuntime()
@@ -114,11 +114,11 @@ public class BootstrapperBuilderTest
         if (File.Exists(Path.Combine(dir, testfilename)))
             File.Delete(Path.Combine(dir, testfilename));
         var sut = BootstrappedStartBuilder.Create(dir);
-        var ex = Assert.ThrowsException<ArgumentException>(sut.Build);
+        var ex = Assert.ThrowsExactly<ArgumentException>(sut.Build);
         Assert.AreEqual("StarterFile", ex.ParamName);
-        ex = Assert.ThrowsException<ArgumentException>(() => sut.SetStarter(testfilename));
+        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.SetStarter(testfilename));
         Assert.AreEqual("name", ex.ParamName);
-        ex = Assert.ThrowsException<ArgumentException>(() => sut.AddFile(testfilename));
+        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.AddFile(testfilename));
         Assert.AreEqual("definitionText", ex.ParamName);
         sut.AddFile(testfilename, "");
         sut.SetStarter(testfilename);
@@ -126,8 +126,8 @@ public class BootstrapperBuilderTest
         sut.AddAssemblyBy<ExceptionCauser>();
         var output = sut.BuildProcessStart(true);
         Assert.AreEqual(dir, output.WorkingDirectory);
-        Assert.IsTrue(output.FileName.Contains("RuntimeForDotnetCore"));
-        Assert.IsTrue(output.Arguments.Contains("Starter.Test"));
-        Assert.IsTrue(output.Arguments.Contains((new FileInfo(testfilename)).Name));
+        Assert.Contains("RuntimeForDotnetCore", output.FileName);
+        Assert.Contains("Starter.Test", output.Arguments);
+        Assert.Contains((new FileInfo(testfilename)).Name, output.Arguments);
     }
 }

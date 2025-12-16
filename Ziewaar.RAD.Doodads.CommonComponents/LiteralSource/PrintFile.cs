@@ -41,7 +41,7 @@ public class PrintFile : IService
         {
             constantInfo = new FileInfo(constantFilename?.ToString());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }
@@ -49,7 +49,7 @@ public class PrintFile : IService
         {
             registerInfo = new FileInfo(interaction.Register.ToString());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }

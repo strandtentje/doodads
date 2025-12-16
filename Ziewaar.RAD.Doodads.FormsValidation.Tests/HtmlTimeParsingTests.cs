@@ -45,7 +45,7 @@ public class HtmlTimeParsingTests
         c.Add("08:59");
         Assert.IsFalse(c.IsSatisfied);
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingTimeCollectionFactory(new[] { "9:00" }, new[] { "17:30" })); // not zero-padded
     }
 }

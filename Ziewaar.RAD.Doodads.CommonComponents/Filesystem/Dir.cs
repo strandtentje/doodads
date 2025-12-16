@@ -20,17 +20,17 @@ public class Dir : IteratingService
     protected override bool OnElseRunningOverride => true;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
-        DirectoryInfo info = GetDirectoryInfo(constants, repeater, out string dirSearchPattern, out string _);
+        DirectoryInfo info = GetDirectoryInfo(constants, repeater, out var dirSearchPattern, out var _);
         DirectoryInfo[] subDirectories = info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly);
         return subDirectories.Select(repeater.AppendRegister);
     }
     protected override IEnumerable<IInteraction> GetElseItems(StampedMap constants, IInteraction repeater)
     {
-        DirectoryInfo info = GetDirectoryInfo(constants, repeater, out string _, out string fileSearchPattern);
+        DirectoryInfo info = GetDirectoryInfo(constants, repeater, out var _, out var fileSearchPattern);
         FileInfo[] subFiles = info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly);
         return subFiles.Select(repeater.AppendRegister);
     }
-    private DirectoryInfo GetDirectoryInfo(StampedMap constants, IInteraction repeater, out string dirSearchPattern, out string fileSearchPattern)
+    private DirectoryInfo GetDirectoryInfo(StampedMap constants, IInteraction repeater, out string? dirSearchPattern, out string? fileSearchPattern)
     {
         (constants, FileSearchPatternConstant).IsRereadRequired(() => "*", out  fileSearchPattern);
         (constants, DirSearchPattern).IsRereadRequired(() => "*", out  dirSearchPattern);

@@ -78,7 +78,7 @@ public class BoundsValidatingMonthCollectionTests
 
         Assert.IsFalse(c.IsSatisfied);
         var items = c.ValidItems.Cast<DateOnly>().ToList();
-        Assert.AreEqual(1, items.Count);
+        Assert.HasCount(1, items);
         Assert.AreEqual(new DateOnly(2020, 3, 10), items[0]);
     }
 

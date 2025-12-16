@@ -17,8 +17,8 @@ namespace Ziewaar.Common.Aardvargs.Tests
         {
             var args = new[] { "-v", "-x" };
             var parsed = ArgParser.Parse(args);
-            Assert.AreEqual(true, parsed.Options["v"]);
-            Assert.AreEqual(true, parsed.Options["x"]);
+            Assert.IsTrue((bool?)parsed.Options["v"]);
+            Assert.IsTrue((bool?)parsed.Options["x"]);
         }
 
         [TestMethod]
@@ -26,9 +26,9 @@ namespace Ziewaar.Common.Aardvargs.Tests
         {
             var args = new[] { "-abc" };
             var parsed = ArgParser.Parse(args);
-            Assert.AreEqual(true, parsed.Options["a"]);
-            Assert.AreEqual(true, parsed.Options["b"]);
-            Assert.AreEqual(true, parsed.Options["c"]);
+            Assert.IsTrue((bool?)parsed.Options["a"]);
+            Assert.IsTrue((bool?)parsed.Options["b"]);
+            Assert.IsTrue((bool?)parsed.Options["c"]);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace Ziewaar.Common.Aardvargs.Tests
         {
             var args = new[] { "--debug=True", "--max=42", "--scale", "3.14" };
             var parsed = ArgParser.Parse(args);
-            Assert.AreEqual(true, parsed.Options.Get<bool>("debug"));
+            Assert.IsTrue(parsed.Options.Get<bool>("debug"));
             Assert.AreEqual(42, parsed.Options.Get<int>("max"));
             Assert.AreEqual(3.14m, parsed.Options.Get<decimal>("scale"));
         }
@@ -96,7 +96,7 @@ namespace Ziewaar.Common.Aardvargs.Tests
         {
             var args = new[] { "--flag" };
             var parsed = ArgParser.Parse(args);
-            Assert.AreEqual(true, parsed.Options["flag"]);
+            Assert.IsTrue((bool?)parsed.Options["flag"]);
         }
 
         [TestMethod]

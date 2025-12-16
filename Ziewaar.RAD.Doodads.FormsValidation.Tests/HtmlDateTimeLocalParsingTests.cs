@@ -54,7 +54,7 @@ public class HtmlDateTimeLocalParsingTests
         Assert.IsFalse(c.IsSatisfied);
 
         // Bad bounds should throw
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateTimeCollectionFactory(new[] { "2024-01-01 00:00" }, new[] { "2024-12-31T23:59" }));
     }
 }

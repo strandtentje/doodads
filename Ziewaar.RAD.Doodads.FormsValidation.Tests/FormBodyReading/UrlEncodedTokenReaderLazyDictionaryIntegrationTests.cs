@@ -21,7 +21,7 @@ public class UrlEncodedTokenReaderLazyDictionaryIntegrationTests
 
         var groups = Explode(dict);
 
-        Assert.AreEqual(2, groups.Count);
+        Assert.HasCount(2, groups);
         Assert.AreEqual("a", groups[0].Key);
         CollectionAssert.AreEqual(new[] { "1", "2" }, groups[0].Value);
         Assert.AreEqual("b", groups[1].Key);
@@ -29,7 +29,7 @@ public class UrlEncodedTokenReaderLazyDictionaryIntegrationTests
 
         // non-consecutive duplicate key should throw
         var bad = new StreamingFormDataEnumerable(new UrlEncodedTokenReader(FromAscii("a=1&b=2&a=3")));
-        Assert.ThrowsException<ConsecutiveKeyException>(() => Explode(bad));
+        Assert.ThrowsExactly<ConsecutiveKeyException>(() => Explode(bad));
     }
     private static List<KeyValuePair<string, string[]>> Explode(StreamingFormDataEnumerable dict)
     {

@@ -13,7 +13,7 @@ public class PatternValidationCollectionFactoryTests
         coll.Add("123");
         Assert.IsTrue(coll.IsSatisfied);
         var items = coll.ValidItems.Cast<object>().ToList();
-        Assert.AreEqual(1, items.Count);
+        Assert.HasCount(1, items);
         Assert.AreEqual("123", items[0]);
 
         coll = factory.Create();

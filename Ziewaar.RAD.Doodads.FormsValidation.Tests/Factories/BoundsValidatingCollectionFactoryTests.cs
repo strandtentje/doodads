@@ -34,9 +34,9 @@ public class BoundsValidatingCollectionFactoryTests
     [TestMethod]
     public void Date_InvalidBounds_Throws()
     {
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateOnlyCollectionFactory(new[] { "2020-13-01" }, new[] { "2020-12-31" }));
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("date", new[] { "bad" }, new[] { "2020-12-31" }));
     }
 
@@ -59,9 +59,9 @@ public class BoundsValidatingCollectionFactoryTests
     [TestMethod]
     public void DateTimeLocal_InvalidBounds_Throws()
     {
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateTimeCollectionFactory(new[] { "2020-01-01T99:00:00" }, new[] { "2020-12-31T23:59:59" }));
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("datetime-local", new[] { "nope" }, new[] { "2020-12-31T23:59:59" }));
     }
 
@@ -84,7 +84,7 @@ public class BoundsValidatingCollectionFactoryTests
     [TestMethod]
     public void Month_InvalidBounds_Throws()
     {
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingMonthCollectionFactory(new[] { "2020-13-01" }, new[] { "2020-12-31" }));
         // Passing "yyyy-MM" (without day) will also throw because DateOnly.Parse expects a date:
     }
@@ -107,9 +107,9 @@ public class BoundsValidatingCollectionFactoryTests
     [TestMethod]
     public void Number_InvalidBounds_Throws()
     {
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingNumberCollectionFactory(new[] { "abc" }, new[] { "5" }));
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("number", new[] { "-5" }, new[] { "oops" }));
     }
 
@@ -131,9 +131,9 @@ public class BoundsValidatingCollectionFactoryTests
     [TestMethod]
     public void Time_InvalidBounds_Throws()
     {
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingTimeCollectionFactory(new[] { "25:00" }, new[] { "17:30" }));
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("time", new[] { "08-00" }, new[] { "17:30" }));
     }
 
@@ -155,9 +155,9 @@ public class BoundsValidatingCollectionFactoryTests
     [TestMethod]
     public void Week_InvalidBounds_Throws()
     {
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingWeekCollectionFactory(new[] { "2020-25" }, new[] { "2020-W53" })); // wrong format
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingCollectionFactory("week", new[] { "bad" }, new[] { "2020-W53" }));
     }
 

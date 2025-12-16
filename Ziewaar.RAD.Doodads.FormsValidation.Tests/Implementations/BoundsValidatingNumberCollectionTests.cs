@@ -76,7 +76,7 @@ public class BoundsValidatingNumberCollectionTests
 
         Assert.IsFalse(c.IsSatisfied);
         var items = c.ValidItems.Cast<decimal>().ToList();
-        Assert.AreEqual(1, items.Count);
+        Assert.HasCount(1, items);
         Assert.AreEqual(0m, items[0]);
     }
 }

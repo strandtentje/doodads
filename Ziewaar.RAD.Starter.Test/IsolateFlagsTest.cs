@@ -8,7 +8,7 @@ public class IsolateFlagsTest
     {
         SortedList<string, object> input = new SortedList<string, object>();
         var result = input.GetValuesStartingWith<string>("c");
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
     [TestMethod]
     public void NoValuesStartWithMismatchedInput()
@@ -19,7 +19,7 @@ public class IsolateFlagsTest
             { "e0000", "pie" }
         };
         var result = input.GetValuesStartingWith<string>("c");
-        Assert.AreEqual(0, result.Length);
+        Assert.IsEmpty(result);
     }
     [TestMethod]
     public void SomeValuesStartWith()
@@ -30,7 +30,7 @@ public class IsolateFlagsTest
             { "e0000", "pie" }
         };
         var result = input.GetValuesStartingWith<string>("c");
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("cake", result[0]);
     }
     [TestMethod]
@@ -42,7 +42,7 @@ public class IsolateFlagsTest
             { "c0001", "pie" }
         };
         var result = input.GetValuesStartingWith<string>("c");
-        Assert.AreEqual(2, result.Length);
+        Assert.HasCount(2, result);
         Assert.AreEqual("cake", result[0]);
         Assert.AreEqual("pie", result[1]);
     }
@@ -52,7 +52,7 @@ public class IsolateFlagsTest
     {
         SortedList<string, object> input = new SortedList<string, object>();
         var result = input.RemoveValuesStartingWith("c");
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
     [TestMethod]
     public void RemoveNoValuesStartWithMismatchedInput()
@@ -63,7 +63,7 @@ public class IsolateFlagsTest
             { "e0000", "pie" }
         };
         var result = input.RemoveValuesStartingWith("f");
-        Assert.AreEqual(2, result.Count);
+        Assert.HasCount(2, result);
     }
     [TestMethod]
     public void RemoveSomeValuesStartWith()
@@ -74,7 +74,7 @@ public class IsolateFlagsTest
             { "e0000", "pie" }
         };
         var result = input.RemoveValuesStartingWith("c");
-        Assert.AreEqual(1, result.Count);
+        Assert.HasCount(1, result);
         Assert.AreEqual("pie", result["e0000"]);
     }
     [TestMethod]
@@ -86,7 +86,7 @@ public class IsolateFlagsTest
             { "f0001", "pie" }
         };
         var result = input.RemoveValuesStartingWithAny("c", "f");
-        Assert.AreEqual(0, result.Count);
+        Assert.HasCount(0, result);
     }
 
 }

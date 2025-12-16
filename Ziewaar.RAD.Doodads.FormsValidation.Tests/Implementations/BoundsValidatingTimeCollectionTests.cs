@@ -76,7 +76,7 @@ public class BoundsValidatingTimeCollectionTests
 
         Assert.IsFalse(c.IsSatisfied);
         var items = c.ValidItems.Cast<TimeOnly>().ToList();
-        Assert.AreEqual(1, items.Count);
+        Assert.HasCount(1, items);
         Assert.AreEqual(new TimeOnly(10, 0), items[0]);
     }
 }

@@ -13,8 +13,7 @@ public class ScopeEvent : IService
     [PrimarySetting("Reset style. Auto for letting one branch through, Manual for multiple until reset.")]
     private static readonly UpdatingPrimaryValue ResetModeConstant = new();
     public static readonly SingletonResourceRepository<string, EventWaitHandle> EwhRepo =
-        SingletonResourceRepository<string, EventWaitHandle>.Get();
-    private bool _disposed;
+        SingletonResourceRepository<string, EventWaitHandle>.Get();    
     private EventResetMode CurrentResetMode = EventResetMode.AutoReset;
     [EventOccasion("Sink name of event here.")]
     public event CallForInteraction? Name;

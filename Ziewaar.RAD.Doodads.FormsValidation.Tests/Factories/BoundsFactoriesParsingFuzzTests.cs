@@ -40,10 +40,11 @@ public class BoundsFactoriesParsingFuzzTests
     {
         // decimal.Parse without culture specified may accept commas based on current culture;
         // but "abc" should definitely throw.
-        Assert.ThrowsException<FormatException>(() =>
+        
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingNumberCollectionFactory(new[] { "abc" }, new[] { "5" }));
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingNumberCollectionFactory(new[] { "-1" }, new[] { "5x" }));
     }
 
@@ -68,7 +69,7 @@ public class BoundsFactoriesParsingFuzzTests
         c.Add("2020-11-01"); // above upper
         Assert.IsFalse(c.IsSatisfied);
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateOnlyCollectionFactory(new[] { "2020-02-30" }, new[] { "2020-12-31" }));
     }
 
@@ -114,7 +115,7 @@ public class BoundsFactoriesParsingFuzzTests
         c.Add("08:59");
         Assert.IsFalse(c.IsSatisfied);
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingTimeCollectionFactory(new[] { "9-00" }, new[] { "17:30" }));
     }
 
@@ -140,7 +141,7 @@ public class BoundsFactoriesParsingFuzzTests
         c.Add("2020-W21"); // above upper
         Assert.IsFalse(c.IsSatisfied);
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingWeekCollectionFactory(new[] { "2020-15" }, new[] { "2020-W20" }));
     }
 
@@ -193,10 +194,10 @@ public class BoundsFactoriesParsingFuzzTests
     public void BoundsFactories_WhitespaceOrEmptyStrings_InBounds_ShouldThrow()
     {
         // Even if arrays are non-null, whitespace elements should fail parsing
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingDateTimeCollectionFactory(new[] { "   " }, new[] { "2020-01-01T00:00:00" }));
 
-        Assert.ThrowsException<FormatException>(() =>
+        Assert.ThrowsExactly<FormatException>(() =>
             new BoundsValidatingNumberCollectionFactory(new[] { "" }, new[] { "1" }));
     }
 }
