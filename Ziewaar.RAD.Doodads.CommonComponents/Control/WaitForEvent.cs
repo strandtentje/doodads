@@ -9,6 +9,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 public class WaitForEvent : IteratingService, IDisposable
 {
     private bool _disposed;
+
+    protected override bool RunElse { get; }
+
     public void Dispose() => this._disposed = true;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {

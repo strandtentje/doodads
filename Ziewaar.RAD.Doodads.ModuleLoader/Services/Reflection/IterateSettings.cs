@@ -6,6 +6,8 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 [Description("If a service has some settings, iterate through them or subsettings")]
 public class IterateSettings : IteratingService
 {
+    protected override bool RunElse { get; }
+
     public override event CallForInteraction? OnException;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants,
         IInteraction repeater)

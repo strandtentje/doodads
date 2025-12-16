@@ -8,6 +8,8 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 [Description("Iterate through some subsetting in register")]
 public class IterateSetting : IteratingService
 {
+    protected override bool RunElse { get; }
+
     [EventOccasion("In case there's no suitable settings in the register")]
     public override event CallForInteraction? OnException;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants,

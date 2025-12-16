@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Globalization;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
@@ -10,61 +11,35 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
     Provided an interval in seconds, will run a task until its done, wait the specified time, and do it again so long as the Continue.
     Works like a combination of Postpone and Repeat
     """)]
-public class Maintain : IService, IDisposable
+public class Maintain: IteratingService
 {
-    private readonly HashSet<Thread> Timers = new();
-    [PrimarySetting("Use this name to explain what is being repeated. Use in conjunction with Continue to make sure Repeating happens")]
-    private readonly UpdatingPrimaryValue RepeatNameConstant = new();
-    private string? CurrentRepeatName = null;
-    private bool IsDisposing;
-    [EventOccasion("The job to maintain")]
-    public event CallForInteraction? OnThen;
-    [EventOccasion("Dynamic source of timespan string")]
-    public event CallForInteraction? OnElse;
-    [EventOccasion("Likely happens when the repeat name was not set.")]
-    public event CallForInteraction? OnException;
-
-    public void Enter(StampedMap constants, IInteraction interaction)
+    [NamedSetting("ms", "ms to delay with")]
+    private readonly UpdatingKeyValue DelayInMsConstant = new("ms");
+    private decimal CurrentDelay;
+    protected override bool RunElse => false;
+    [EventOccasion("Sink interval string here")]
+    public override event CallForInteraction? OnElse;
+    protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
-        if ((constants, RepeatNameConstant).IsRereadRequired(out string? newRepeatName) && newRepeatName != null)
-            this.CurrentRepeatName = newRepeatName;
-        if (this.CurrentRepeatName == null)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "repeat name is required"));
-            return;
-        }
-        var tsi = new TextSinkingInteraction(interaction);
+        var tsi = new TextSinkingInteraction(repeater);
         OnElse?.Invoke(this, tsi);
-        if (TimeSpan.TryParse(tsi.ReadAllText(), out var timespanResult))
-        {
-            Timers.Clear();
-            StartMaintaining(new RepeatInteraction(this.CurrentRepeatName, interaction), timespanResult);
-        }
-    }
+        var timeText = tsi.ReadAllText();
 
-    private void StartMaintaining(RepeatInteraction interaction, TimeSpan interval)
-    {
-        int time = (int)(Math.Min(int.MaxValue, interval.TotalMilliseconds));
-        Thread? nt = null;
-        nt = new Thread(_ =>
+        if (TimeSpan.TryParse(timeText, CultureInfo.InvariantCulture, out var ts))
+            this.CurrentDelay = (decimal)ts.TotalMilliseconds;
+        else if ((constants, DelayInMsConstant).IsRereadRequired(out decimal number))
+            this.CurrentDelay = number;
+        if ((constants, DelayInMsConstant).IsRereadRequired(out string? reallyDude) && decimal.TryParse(reallyDude, out decimal actualDelay))
+            this.CurrentDelay = actualDelay;
+
+        using var semaphore = new SemaphoreSlim(0, 1);
+        var ct = ((RepeatInteraction)repeater).CancellationToken;
+        while (!ct.IsCancellationRequested)
         {
-            while (interaction.IsRunning && Timers.Contains(nt!))
-            {
-                interaction.IsRunning = false;
-                OnThen?.Invoke(this, interaction);
-                Thread.Sleep(time);
-            }
-        });
-        Timers.Add(nt);
-        nt.Start();
-    }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-    public void Dispose()
-    {
-        if (!IsDisposing)
-        {
-            IsDisposing = true;
-            Timers.Clear();
+            var waitingTask = semaphore.WaitAsync((int)this.CurrentDelay);
+            waitingTask.Wait(ct);
+            if (!ct.IsCancellationRequested)
+                yield return repeater;
         }
     }
 }

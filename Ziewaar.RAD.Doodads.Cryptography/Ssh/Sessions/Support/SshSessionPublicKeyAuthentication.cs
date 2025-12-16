@@ -44,20 +44,22 @@ public class SshSessionPublicKeyAuthentication : IService
             if (args.AuthenticationType != SshAuthenticationType.ClientPublicKey || args.PublicKey == null)
                 return;
             var pem = formatter.Export(args.PublicKey, includePrivate: false).EncodePem();
-            var repeatInteraction = new RepeatInteraction(this.CurrentRepeatName, interaction) { IsRunning = false };
-            var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction, [new Claim("publickeypem", pem)]);
-            OnThen?.Invoke(this, pemInteraction);
-            if (repeatInteraction.IsRunning)
+            (interaction, CurrentRepeatName).RunCancellable(repeatInteraction =>
             {
-                var claimsIdentity = new ClaimsIdentity(pemInteraction.Claims, CurrentRepeatName);
-                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-                args.AuthenticationTask = Task.FromResult<ClaimsPrincipal?>(claimsPrincipal);
-            }
-            else
-            {
-                args.AuthenticationTask =
-                    Task.FromException<ClaimsPrincipal?>(new UnauthorizedAccessException("Public key not recognized."));
-            }
+                var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction, [new Claim("publickeypem", pem)]);
+                OnThen?.Invoke(this, pemInteraction);
+                if (repeatInteraction.IsRunning)
+                {
+                    var claimsIdentity = new ClaimsIdentity(pemInteraction.Claims, CurrentRepeatName);
+                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+                    args.AuthenticationTask = Task.FromResult<ClaimsPrincipal?>(claimsPrincipal);
+                }
+                else
+                {
+                    args.AuthenticationTask =
+                        Task.FromException<ClaimsPrincipal?>(new UnauthorizedAccessException("Public key not recognized."));
+                }
+            });
         };
     }
 

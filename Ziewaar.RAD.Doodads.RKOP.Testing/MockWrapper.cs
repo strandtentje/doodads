@@ -39,4 +39,9 @@ public class MockWrapper : IInstanceWrapper
     {
                 
     }
+
+    void IInstanceWrapper.SetContinueSequence<TResult>((bool isOmni, ServiceExpression<TResult> service)[] sequence)
+    {
+
+    }
 }

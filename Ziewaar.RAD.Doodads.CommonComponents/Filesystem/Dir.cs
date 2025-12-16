@@ -8,68 +8,41 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 [Description("""
              Dir will query filesystem for the directory path provided in the Register.
              The events are intended for finding out if the Directory exists, what its 
-             subdirectories are, and what its files are.
+             subdirectories are, and what its files are. Dirs come out at OnThen, Files come out at OnElse
              """)]
-public class Dir : IService
+public class Dir : IteratingService
 {
-    [PrimarySetting("Repeat name constant")]
-    private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     [NamedSetting("pattern", "Wildcard-enabled pattern to filter the files to be shown, ie *.txt or cheese.*")]
     private readonly UpdatingKeyValue FileSearchPatternConstant = new("pattern");
     [NamedSetting("filterdirs", "Wildcard-enabled pattern specifically to filter the directories")]
     private readonly UpdatingKeyValue DirSearchPattern = new("filterdirs");
-    private string? CurrentRepeatName;
-
-    [EventOccasion("This puts a list of subdirectory paths in the register")]
-    public event CallForInteraction? OnThen;
-    [EventOccasion("This will happen after OnThen, and puts a list of file paths in the register")]
-    public event CallForInteraction? OnElse;
-    [EventOccasion("This will happen instead of OnThen/OnElse, in case the directory in the Register did not exist")]
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
+    protected override bool RunElse => true;
+    protected override bool OnElseRunningOverride => true;
+    protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
-        if ((constants, RepeatNameConstant).IsRereadRequired(out string? repeatName))
-            this.CurrentRepeatName = repeatName;
-
-        if (string.IsNullOrWhiteSpace(this.CurrentRepeatName) || this.CurrentRepeatName == null)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "Repeat name required"));
-            return;
-        }
-
-        (constants, FileSearchPatternConstant).IsRereadRequired(() => "*", out var fileSearchPattern);
-        (constants, DirSearchPattern).IsRereadRequired(() => "*", out var dirSearchPattern);
+        DirectoryInfo info = GetDirectoryInfo(constants, repeater, out string dirSearchPattern, out string _);
+        DirectoryInfo[] subDirectories = info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly);
+        return subDirectories.Select(repeater.AppendRegister);
+    }
+    protected override IEnumerable<IInteraction> GetElseItems(StampedMap constants, IInteraction repeater)
+    {
+        DirectoryInfo info = GetDirectoryInfo(constants, repeater, out string _, out string fileSearchPattern);
+        FileInfo[] subFiles = info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly);
+        return subFiles.Select(repeater.AppendRegister);
+    }
+    private DirectoryInfo GetDirectoryInfo(StampedMap constants, IInteraction repeater, out string dirSearchPattern, out string fileSearchPattern)
+    {
+        (constants, FileSearchPatternConstant).IsRereadRequired(() => "*", out  fileSearchPattern);
+        (constants, DirSearchPattern).IsRereadRequired(() => "*", out  dirSearchPattern);
         fileSearchPattern ??= "*";
         dirSearchPattern ??= "*";
 
-        var dirPath = interaction.Register.ToString();
+        var dirPath = repeater.Register.ToString();
         DirectoryInfo info = new DirectoryInfo(dirPath);
 
         if (!info.Exists)
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "directory not found"));
-            return;
-        }
-        
-        DirectoryInfo[] subDirectories = info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly);
-        FileInfo[] subFiles = info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly);
+            throw new Exception("directory not found");
 
-        var repeater = new RepeatInteraction(CurrentRepeatName, interaction);        
-        foreach (var item in subDirectories)
-        {
-            repeater.IsRunning = false;
-            var infoInteraction = new CommonInteraction(repeater, item);
-            OnThen?.Invoke(this, infoInteraction);
-            if (!repeater.IsRunning) break;
-        }
-
-        foreach (var item in subFiles)
-        {
-            repeater.IsRunning = false;
-            var infoInteraction = new CommonInteraction(repeater, item);
-            OnElse?.Invoke(this, infoInteraction);
-            if (!repeater.IsRunning) break;
-        }
+        return info;
     }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

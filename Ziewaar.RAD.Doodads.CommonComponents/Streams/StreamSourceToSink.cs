@@ -39,7 +39,7 @@ public class StreamSourceToSink : IService
 
     [EventOccasion("Likely happens when the copy name is missing, or sources/sinks were missing.")]
     public event CallForInteraction? OnException;
-    
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, CopyNameConstant).IsRereadRequired(out string? copyNameCandidate))
@@ -78,78 +78,80 @@ public class StreamSourceToSink : IService
 
         _ = ThreadPool.QueueUserWorkItem(_ =>
         {
-            byte[] buffer = arrayPool.Rent();
-            long totalCopyCount = 0;
-            int trueReadCount = 0;
-            try
+            (interaction, this.CurrentCopyName).RunCancellable(repeatInteraction =>
             {
-                var repeatInteraction = new RepeatInteraction(this.CurrentCopyName, interaction);
-                var countInteraction = new CommonInteraction(repeatInteraction, register: 0,
-                    memory: new SwitchingDictionary(["currentcount", "totalcount"], key => key switch
-                    {
-                        "currentcount" => trueReadCount,
-                        "totalcount" => totalCopyCount,
-                        _ => throw new KeyNotFoundException(),
-                    }));
-                repeatInteraction.IsRunning = true;
-                var sensingStream = sourcingInteraction.SourceBuffer as IFinishSensingStream;
-                bool isFinishSensing = sensingStream != null;
-
+                byte[] buffer = arrayPool.Rent();
+                long totalCopyCount = 0;
+                int trueReadCount = 0;
                 try
                 {
-                    while (repeatInteraction.IsRunning && (!isFinishSensing || !sensingStream!.IsFinished))
-                    {
-                        trueReadCount = sourcingInteraction.SourceBuffer.Read(buffer, 0, this.BufferSize);
+                    var countInteraction = new CommonInteraction(repeatInteraction, register: 0,
+                        memory: new SwitchingDictionary(["currentcount", "totalcount"], key => key switch
+                        {
+                            "currentcount" => trueReadCount,
+                            "totalcount" => totalCopyCount,
+                            _ => throw new KeyNotFoundException(),
+                        }));
+                    repeatInteraction.IsRunning = true;
+                    var sensingStream = sourcingInteraction.SourceBuffer as IFinishSensingStream;
+                    bool isFinishSensing = sensingStream != null;
 
-                        if (trueReadCount == 0 && IsZeroEof)
-                            break;
-
-                        sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
-                        sinkingInteraction.SinkBuffer.Flush();
-
-                        totalCopyCount += trueReadCount;
-                        repeatInteraction.IsRunning = false;
-                        OnThen?.Invoke(this, countInteraction);
-                    }
-                }
-                catch (IOException)
-                {
-                    // it's fine.
-                }
-                finally
-                {
                     try
                     {
-                        sinkingInteraction.SinkBuffer.Write([], 0, 0);
-                        sinkingInteraction.SinkBuffer.Flush();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // figures.
+                        while (repeatInteraction.IsRunning && (!isFinishSensing || !sensingStream!.IsFinished))
+                        {
+                            trueReadCount = sourcingInteraction.SourceBuffer.Read(buffer, 0, this.BufferSize);
+
+                            if (trueReadCount == 0 && IsZeroEof)
+                                break;
+
+                            sinkingInteraction.SinkBuffer.Write(buffer, 0, trueReadCount);
+                            sinkingInteraction.SinkBuffer.Flush();
+
+                            totalCopyCount += trueReadCount;
+                            repeatInteraction.IsRunning = false;
+                            OnThen?.Invoke(this, countInteraction);
+                        }
                     }
                     catch (IOException)
                     {
-                        // also figures
+                        // it's fine.
                     }
-                    catch (Exception ex)
+                    finally
                     {
-                        // exciting!
-                        GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
+                        try
+                        {
+                            sinkingInteraction.SinkBuffer.Write([], 0, 0);
+                            sinkingInteraction.SinkBuffer.Flush();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // figures.
+                        }
+                        catch (IOException)
+                        {
+                            // also figures
+                        }
+                        catch (Exception ex)
+                        {
+                            // exciting!
+                            GlobalLog.Instance?.Warning(ex, "Stream EOF couldn't be forwarded anymore.");
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                OnException?.Invoke(this, new CommonInteraction(interaction, ex));
-            }
-            finally
-            {
-                Task.Run(() =>
+                catch (Exception ex)
                 {
-                    arrayPool.Return(buffer);
-                    OnElse?.Invoke(this, new CommonInteraction(interaction, totalCopyCount));
-                });
-            }
+                    OnException?.Invoke(this, new CommonInteraction(interaction, ex));
+                }
+                finally
+                {
+                    Task.Run(() =>
+                    {
+                        arrayPool.Return(buffer);
+                        OnElse?.Invoke(this, new CommonInteraction(interaction, totalCopyCount));
+                    });
+                }
+            });
         }, null);
     }
 

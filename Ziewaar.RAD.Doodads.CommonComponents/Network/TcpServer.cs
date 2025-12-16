@@ -66,50 +66,54 @@ public class TcpServer : IService, IDisposable
             listenEndpoint = new IPEndPoint(ipAddress, portNumber);
         }
 
-        var repeater = new RepeatInteraction(CurrentRepeatName, interaction);
-        repeater.IsRunning = true;
-        using var ingestAnother = new Semaphore(5, 10);
-        TcpListener listener = new(listenEndpoint);
-
-        Disposing += OnDisposing;
-        listener.Start();
-        try
+        (interaction, CurrentRepeatName).RunCancellable(repeater =>
         {
-            while (repeater.IsRunning)
-            {
-                ingestAnother.WaitOne();
-                repeater.IsRunning = false;
-                listener.BeginAcceptTcpClient(NewTcpClientHandler,
-                    new TcpServerClientAcquired(listener, interaction, ingestAnother, repeater));
-                OnThen?.Invoke(this, repeater);
-            }
-        }
-        finally
-        {
-            listener.Stop();
-        }
+            repeater.IsRunning = true;
+            using var ingestAnother = new Semaphore(5, 10);
+            TcpListener listener = new(listenEndpoint);
 
-        return;
-
-        void OnDisposing(object sender, EventArgs args)
-        {
-            repeater.IsRunning = false;
+            Disposing += OnDisposing;
+            listener.Start();
             try
             {
-                listener.Stop();
-                // ReSharper disable once AccessToDisposedClosure
-                ingestAnother?.Release();
-                // ReSharper disable once AccessToDisposedClosure
-                // ReSharper disable once DisposeOnUsingVariable
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                ingestAnother.Dispose();
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                while (repeater.IsRunning && !repeater.IsCancelled())
+                {
+                    if (ingestAnother.WaitOne(1000))
+                    {
+                        repeater.IsRunning = false;
+                        listener.BeginAcceptTcpClient(NewTcpClientHandler,
+                            new TcpServerClientAcquired(listener, interaction, ingestAnother, repeater));
+                        OnThen?.Invoke(this, repeater);
+                    }
+                }
             }
-            catch (Exception)
+            finally
             {
-                // ignored
+                listener.Stop();
             }
-        }
+
+            return;
+
+            void OnDisposing(object sender, EventArgs args)
+            {
+                repeater.IsRunning = false;
+                try
+                {
+                    listener.Stop();
+                    // ReSharper disable once AccessToDisposedClosure
+                    ingestAnother?.Release();
+                    // ReSharper disable once AccessToDisposedClosure
+                    // ReSharper disable once DisposeOnUsingVariable
+    #pragma warning disable CS8602 // Dereference of a possibly null reference.
+                    ingestAnother.Dispose();
+    #pragma warning restore CS8602 // Dereference of a possibly null reference.
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+            }
+        });
     }
 
     private void NewTcpClientHandler(IAsyncResult ar)

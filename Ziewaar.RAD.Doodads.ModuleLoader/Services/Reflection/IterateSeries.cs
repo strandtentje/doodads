@@ -6,6 +6,8 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 [Description("Outputs discriminable services in order of the series")]
 public class IterateSeries : IteratingService
 {
+    protected override bool RunElse { get; }
+
     [EventOccasion("In case there wasn't a series in scope")]
     public override event CallForInteraction? OnException;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants,

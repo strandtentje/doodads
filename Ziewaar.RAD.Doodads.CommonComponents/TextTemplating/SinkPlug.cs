@@ -38,18 +38,17 @@ public class SinkPlug : IService
             return;
         }
         var bsi = new BufferSinkInteraction(interaction, trueSink);
-        var ri = new RepeatInteraction(ContinueName ?? "", bsi)
+        (interaction, ContinueName ?? "").RunCancellable(ri =>
         {
-            IsRunning = false
-        };
-        try
-        {
-            OnThen?.Invoke(this, ri);
-        }
-        finally
-        {
-            if (ri.IsRunning || ri.RepeatName == "") bsi.Flush();
-        }
+            try
+            {
+                OnThen?.Invoke(this, ri);
+            }
+            finally
+            {
+                if (ri.IsRunning || ri.RepeatName == "") bsi.Flush();
+            }
+        });
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

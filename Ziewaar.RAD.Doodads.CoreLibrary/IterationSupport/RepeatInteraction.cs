@@ -1,9 +1,12 @@
 ﻿#nullable enable
 
 
+using System.Collections.Concurrent;
+using System.Threading;
+
 namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-public class RepeatInteraction(string repeatName, IInteraction parent)
+public class RepeatInteraction(string repeatName, IInteraction parent, CancellationToken cancellationToken)
     : IInteraction
 {
     public string RepeatName => repeatName;
@@ -15,13 +18,14 @@ public class RepeatInteraction(string repeatName, IInteraction parent)
         [$"Number of {repeatName}"] = 0
     };
     public IReadOnlyDictionary<string, object> Memory => _sorted;
+    public CancellationToken CancellationToken => cancellationToken;
     private bool LastRunningState = true;
     private int Counter = 0;
     public bool IsRunning
     {
         get
         {
-            return LastRunningState;
+            return LastRunningState && !CancellationToken.IsCancellationRequested;
         }
         set
         {

@@ -1,8 +1,10 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary;
+﻿using Microsoft.VisualBasic;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.AdvancedFilesystem;
@@ -11,58 +13,39 @@ namespace Ziewaar.RAD.Doodads.AdvancedFilesystem;
 [Description("""
              Provided a directory, gets symlinks in there and stuffs it in memory with from-to pairs.
              """)]
-public class QuerySymlinks : IService
+public class QuerySymlinks : IteratingService
 {
-    [PrimarySetting("Repeat name to use with continue")]
-    private readonly UpdatingPrimaryValue RepeatNameConstant = new();
-    private string? CurrentRepeatName;
+    protected override bool RunElse => false;
 
     [EventOccasion("Sink parent dir here")]
     public event CallForInteraction? LinkParentDir;
-    [EventOccasion("When a file link was found")]
-    public event CallForInteraction? OnThen;
-    [EventOccasion("When a directory link was found")]
-    public event CallForInteraction? OnElse;
-    [EventOccasion("When the directory didn't exist or the repeat name wasn't right")]
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction)
+    protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
-        if ((constants, RepeatNameConstant).IsRereadRequired(out string? repeatName))
-            this.CurrentRepeatName = repeatName;
-        var tsi = new TextSinkingInteraction(interaction);
+        var tsi = new TextSinkingInteraction(repeater);
         LinkParentDir?.Invoke(this, tsi);
         var candidateDirPath = tsi.ReadAllText();
         var dirInfo = new DirectoryInfo(candidateDirPath);
-        if (!dirInfo.Exists
-            || string.IsNullOrWhiteSpace(CurrentRepeatName))
-        {
-            OnException?.Invoke(this, new CommonInteraction(interaction,
-                "Existing directory path required for this"));
-            return;
-        }
+        if (!dirInfo.Exists)
+            throw new Exception("Existing directory path required for this");
 
-        var links = SymlinkRepository.Instance.ListSymlinks(dirInfo.FullName);
-        var repeater = new RepeatInteraction(this.CurrentRepeatName, interaction);
-        foreach (var item in links)
-        {
-            repeater.IsRunning = false;
-            var linkInformation = new SwitchingDictionary(["from", "to"], key => key switch
-            {
-                "from" => item.LinkPath,
-                "to" => item.TargetPath,
-                _ => throw new KeyNotFoundException(),
-            });
-            if (item.IsDirectory)
-            {
-                OnElse?.Invoke(this, new CommonInteraction(repeater, register: item.LinkPath, memory: linkInformation));
-            }
-            else
-            {
-                OnThen?.Invoke(this, new CommonInteraction(repeater, register: item.LinkPath, memory: linkInformation));
-            }
-            if (!repeater.IsRunning)
-                return;
-        }
+        return SymlinkRepository.Instance.
+            ListSymlinks(dirInfo.FullName).
+            Where(x => x.IsDirectory == false).
+            Select(x => repeater.AppendMemory(("from", x.LinkPath), ("to", x.TargetPath)));
     }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+
+    protected override IEnumerable<IInteraction> GetElseItems(StampedMap constants, IInteraction repeater)
+    {
+        var tsi = new TextSinkingInteraction(repeater);
+        LinkParentDir?.Invoke(this, tsi);
+        var candidateDirPath = tsi.ReadAllText();
+        var dirInfo = new DirectoryInfo(candidateDirPath);
+        if (!dirInfo.Exists)
+            throw new Exception("Existing directory path required for this");
+
+        return SymlinkRepository.Instance.
+            ListSymlinks(dirInfo.FullName).
+            Where(x => x.IsDirectory == true).
+            Select(x => repeater.AppendMemory(("from", x.LinkPath), ("to", x.TargetPath)));
+    }
 }

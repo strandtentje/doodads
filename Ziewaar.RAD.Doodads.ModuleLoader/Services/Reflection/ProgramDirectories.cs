@@ -9,6 +9,8 @@
              """)]
 public class ProgramDirectories : IteratingService
 {
+    protected override bool RunElse { get; }
+
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants,
         IInteraction repeater)
     {

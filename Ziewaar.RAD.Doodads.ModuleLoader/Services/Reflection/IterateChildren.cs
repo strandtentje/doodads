@@ -6,6 +6,8 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 [Description("Services between there accolades may have 0..n other series with sequences, assigned to a name like->so. This will iterate those.")]
 public class IterateChildren : IteratingService
 {
+    protected override bool RunElse { get; }
+
     [EventOccasion("Likely happens when there wasn't a service in scope")]
     public override event CallForInteraction? OnException;
 

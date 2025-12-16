@@ -64,20 +64,23 @@ public class StdioExecute : IService
         newProcess.BeginErrorReadLine();
         var binarySourceInteraction = new StandardOutputInteraction(interaction, newProcess.StandardOutput.BaseStream);
         var binarySinkInteraction = new StandardInputInteraction(binarySourceInteraction, newProcess.StandardInput.BaseStream);
-        var repeatInteraction = new RepeatInteraction(this.ContinueName, binarySinkInteraction);
-        repeatInteraction.IsRunning = true;
 
-        while (repeatInteraction.IsRunning)
+        (binarySinkInteraction, this.ContinueName).RunCancellable(repeatInteraction =>
         {
-            repeatInteraction.IsRunning = false;
-            OnThen?.Invoke(this, repeatInteraction);
-            if (!newProcess.HasExited) continue;
-            repeatInteraction.Cancel();
-        }
+            repeatInteraction.IsRunning = true;
 
-        OnElse?.Invoke(this, repeatInteraction);
-        if (repeatInteraction.IsRunning && !newProcess.HasExited)
-            newProcess.Kill();
+            while (repeatInteraction.IsRunning && !repeatInteraction.IsCancelled())
+            {
+                repeatInteraction.IsRunning = false;
+                OnThen?.Invoke(this, repeatInteraction);
+                if (!newProcess.HasExited) continue;
+                repeatInteraction.Cancel();
+            }
+
+            OnElse?.Invoke(this, repeatInteraction);
+            if (repeatInteraction.IsRunning && !newProcess.HasExited)
+                newProcess.Kill();
+        });
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

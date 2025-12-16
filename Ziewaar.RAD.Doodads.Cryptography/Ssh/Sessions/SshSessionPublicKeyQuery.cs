@@ -60,27 +60,28 @@ public class SshSessionPublicKeyQuery : IService
                 || args.PublicKey == null) return;
             var pem = formatter.Export(args.PublicKey, includePrivate: false)
                 .EncodePem();
-            var repeatInteraction =
-                new RepeatInteraction(this.CurrentRepeatName, interaction) { IsRunning = false };
-            var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction,
-            [
-                new Claim("publickeypem", pem),
+            (interaction, this.CurrentRepeatName).RunCancellable(repeatInteraction =>
+            {
+                var pemInteraction = new ClaimsSinkingInteraction(repeatInteraction,
+                [
+                    new Claim("publickeypem", pem),
                 new Claim("publickeydigest",
                     Convert.ToHexString(
                         SHA256.HashData(
                             args.PublicKey.GetPublicKeyBytes().Array))),
                 new Claim(ClaimTypes.Name, args.Username ?? "")
-            ]);
-            OnThen?.Invoke(this, pemInteraction);
-            if (repeatInteraction.IsRunning)
-            {
-                var claimsIdentity = new ClaimsIdentity(pemInteraction.Claims);
-                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-                args.AuthenticationTask =
-                    Task.FromResult<ClaimsPrincipal?>(claimsPrincipal);
-                sessionInteraction.Session.Authenticating -=
-                    CurrentSessionPublicKeyQueryIncoming;
-            }
+                ]);
+                OnThen?.Invoke(this, pemInteraction);
+                if (repeatInteraction.IsRunning)
+                {
+                    var claimsIdentity = new ClaimsIdentity(pemInteraction.Claims);
+                    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+                    args.AuthenticationTask =
+                        Task.FromResult<ClaimsPrincipal?>(claimsPrincipal);
+                    sessionInteraction.Session.Authenticating -=
+                        CurrentSessionPublicKeyQueryIncoming;
+                }
+            });
         }
 
         sessionInteraction.Session.Authenticating +=

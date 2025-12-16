@@ -1,4 +1,8 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+﻿using System.Runtime.CompilerServices;
+using System.Threading;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+
+namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 #nullable enable
 
 public static class InteractionExtensions
@@ -47,6 +51,46 @@ public static class InteractionExtensions
                     out candidateParentInteraction, predicate);
         }
     }
+
+    public static IEnumerable<TInteraction> GetAllOf<TInteraction>(
+        this IInteraction offset,
+        Func<TInteraction, bool>? predicate = null) where TInteraction : IInteraction
+    {
+        switch (offset)
+        {
+            case StopperInteraction _:
+                return [];
+            case TInteraction suitable
+                when predicate == null || predicate(suitable):
+                return offset.Stack.GetAllOf(predicate).Concat([suitable]);
+            default:
+                return offset.Stack.GetAllOf(predicate);
+        }
+    }
+
+    public static void RunCancellable(this (IInteraction interaction, string? name) offset,
+        Action<RepeatInteraction> run)
+    {
+        using CancellationTokenSource cts = new();
+        var cancellers = offset.interaction.GetAllOf<CancellationInteraction>(
+            x => string.IsNullOrWhiteSpace(x.Name) || x.Name == offset.name);
+        void Cancelled(object? o, EventArgs e) => cts.Cancel();
+        foreach (var canceller in cancellers)
+            canceller.Cancelled += Cancelled;
+        var ri = new RepeatInteraction(offset.name ?? Guid.NewGuid().ToString(), offset.interaction, cts.Token);
+        try
+        {
+            run(ri);
+        }
+        finally
+        {
+            foreach (var canceller in cancellers)
+                canceller.Cancelled -= Cancelled;
+        }
+    }
+
+    public static bool IsCancelled(this IInteraction interaction) => ((RepeatInteraction)interaction).CancellationToken.IsCancellationRequested;
+    public static CancellationToken GetCancellationToken(this IInteraction interaction) => ((RepeatInteraction)interaction).CancellationToken;
 #nullable enable
     public static bool TryFindVariable<TType>(
         this IInteraction interaction,
@@ -108,6 +152,6 @@ public static class InteractionExtensions
         var sunkText = sinker.ReadAllText();
         if (!Enum.TryParse<TEnum>(sunkText, out result))
             result = fallbackValue;
-    }   
+    }
 
 }

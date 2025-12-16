@@ -10,6 +10,7 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
              """)]
 public class DefinitionsInFile : IteratingService
 {
+    protected override bool RunElse { get; }
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants,
         IInteraction repeater)
     {

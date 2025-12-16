@@ -46,14 +46,16 @@ public class SshServerSetup : IService
 
         SshSessionConfiguration config = new() { AuthenticationMethods = { "publickey" } };
 
-        var ri = new RepeatInteraction(this.CurrentDaemonName, interaction) { IsRunning = true };
-
-        do
+        (interaction, this.CurrentDaemonName).RunCancellable(ri =>
         {
-            using var server = new SshServer(config, new TraceSource("ssh", SourceLevels.Information));
-            server.Credentials = new SshServerCredentials([serverIdentityInteraction.PrivateKey]);
-            OnThen?.Invoke(this, new SshServerInteraction(ri, server));
-        } while (ri.IsRunning);
+            ri.IsRunning = true;
+            do
+            {
+                using var server = new SshServer(config, new TraceSource("ssh", SourceLevels.Information));
+                server.Credentials = new SshServerCredentials([serverIdentityInteraction.PrivateKey]);
+                OnThen?.Invoke(this, new SshServerInteraction(ri, server));
+            } while (ri.IsRunning);
+        });
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
