@@ -16,9 +16,9 @@ public class Maintain : IService
     private readonly Recurring Recurring = new();
     public Maintain()
     {
-        Recurring.OnThen += OnThen;
-        Recurring.OnElse += OnElse;
-        Recurring.OnException += OnException;
+        Recurring.OnThen += (s,e) => OnThen?.Invoke(s,e);
+        Recurring.OnElse += (s, e) => OnElse?.Invoke(s,e);
+        Recurring.OnException += (s, e) => OnException?.Invoke(s,e);
     }
     [EventOccasion("Tick")]
     public event CallForInteraction? OnThen;
