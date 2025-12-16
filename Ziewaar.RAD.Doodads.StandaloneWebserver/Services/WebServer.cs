@@ -45,6 +45,8 @@ public class WebServer : IService, IDisposable
         {
             this.CurrentThreadCount = threadCountCandidate;
         }
+
+        bool wasReset = false;
         
         switch (Prefixes.TryHandlePrefixChanges(constants, PrimaryPrefixesConstant, out string[]? strings))
         {
@@ -54,6 +56,7 @@ public class WebServer : IService, IDisposable
             case PrefixProcessor.ChangeState.Changed:
                 this.ActivePrefixStrings = strings!;
                 Server.Reset();
+                wasReset = true;
                 break;
             case PrefixProcessor.ChangeState.NotChanged:
             default: break;
@@ -62,11 +65,9 @@ public class WebServer : IService, IDisposable
         if (Server.TryHandleCommand<ResilientHttpListenerWrapper>(interaction, ServerCommand.Stop, null,
                 out var stoppable))
         {
-            OnStopping?.Invoke(this, StartingInteraction ?? StopperInteraction.Instance);
+            OnStopping?.Invoke(this, interaction);
             Server.Reset();
-        }
-
-        if (Server.TryHandleCommand<ResilientHttpListenerWrapper>(interaction, ServerCommand.Start,
+        } else if (Server.TryHandleCommand<ResilientHttpListenerWrapper>(interaction, ServerCommand.Start,
                 ListenerWrapperFactory, out var startable))
         {
             try
@@ -106,6 +107,9 @@ public class WebServer : IService, IDisposable
             // GlobalLog.Instance?.Information("Server started {prefixes}",
             // JsonConvert.SerializeObject(Prefixes.ActiveExpandedPrefixes, Formatting.Indented));
             OnStarted?.Invoke(this, StartingInteraction);
+        } else if (wasReset)
+        {
+            OnStopping?.Invoke(this, interaction);
         }
     }
 

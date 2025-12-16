@@ -13,10 +13,13 @@ public class HtmlFormTemplate : IService
     private readonly HtmlForm form = new HtmlForm();
     private readonly FileTemplate template = new FileTemplate();
     private StampedMap CurrentConstants = new(new object());
-
+    [EventOccasion("When the form was valid")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the form wasn't valid")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When the template calls for a branch placeholder")]
     public event CallForInteraction? OnPlaceholder;
+    [NeverHappens]
     public event CallForInteraction? OnException;
     public HtmlFormTemplate()
     {
