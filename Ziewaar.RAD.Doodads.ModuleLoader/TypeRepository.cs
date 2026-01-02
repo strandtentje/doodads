@@ -84,6 +84,21 @@ public class TypeRepository : IDisposable
         return this;
     }
     List<IDisposable> disposables = new();
+
+    public bool TryTestName(string name, out string closest)
+    {
+        if (!NamedServiceTypes.TryGetValue(name, out var type) || type == null)
+        {
+            Names ??= new NameSuggestions(NamedServiceTypes.Keys);
+            closest = Names.GetMostSimilar(name);
+            return false;
+        }
+        else
+        {
+            closest = name;
+            return true;
+        }
+    }
     public IService CreateInstanceFor(string name, out Type foundType)
     {
         if (NamedServiceTypes.TryGetValue(name, out var type))

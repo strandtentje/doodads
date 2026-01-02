@@ -7,7 +7,7 @@ public class UnconditionalSerializableServiceSeries<TResultSink> :
     SerializableServiceSeries<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
 {
-    protected override ServiceExpression<TResultSink> CreateChild() =>
+    public override ServiceExpression<TResultSink> CreateChild() =>
         new AlternativeSerializableServiceSeries<TResultSink>();
     protected override TokenDescription CouplerToken => TokenDescription.AmpersandP;
     protected override void SetChildren(TResultSink sink, ServiceExpression<TResultSink>[] children) => 

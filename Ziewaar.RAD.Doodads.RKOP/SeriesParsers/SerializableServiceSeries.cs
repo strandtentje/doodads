@@ -8,7 +8,7 @@ public abstract class SerializableServiceSeries<TResultSink> :
     where TResultSink : class, IInstanceWrapper, new()
 {
     public List<ServiceExpression<TResultSink>>? Children;
-    protected abstract ServiceExpression<TResultSink> CreateChild();
+    public abstract ServiceExpression<TResultSink> CreateChild();
     protected abstract TokenDescription CouplerToken { get; }
     protected abstract void SetChildren(TResultSink sink, ServiceExpression<TResultSink>[] children);
     protected override bool ProtectedUpdateFrom(ref CursorText text)
