@@ -38,17 +38,17 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             GlobalLog.Instance.Information("Logfile in: {file}", logfilePath);
 
             var myDir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-            
+
             BootstrappedStartBuilder
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
                 .AddAssemblyBy<Definition>().AddAssemblyBy<SqliteConnectionSource>().AddAssemblyBy<HtmlForm>()
                 .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>()
-                .AddAssemblyBy<MySqlConnectionSource>().
-                AddFile("site.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "site.rkop")) : "").
-                AddFile("server.rkop",  myDir != null ? File.ReadAllText(Path.Combine(myDir, "server.rkop")) : "").
-                AddFile("boot.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "boot.rkop")) : "").
-                SetStarter("boot.rkop").ReadArgs(args).Build().Run();
+                .AddAssemblyBy<MySqlConnectionSource>()
+                .AddFile("site.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "site.rkop")) : "")
+                .AddFile("server.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "server.rkop")) : "")
+                .AddFile("boot.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "boot.rkop")) : "")
+                .SetStarter("boot.rkop").ReadArgs(args).Build().Run();
         }
     }
 }

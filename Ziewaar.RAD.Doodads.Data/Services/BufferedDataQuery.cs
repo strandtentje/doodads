@@ -3,17 +3,17 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
 
 [Category("Databases & Querying")]
 [Title("Cursor through query results after the query completes")]
 [Description("""
-    Retrieve all result rows then iterate through them.
-    """)]
+             Retrieve all result rows then iterate through them.
+             """)]
 public class BufferedDataQuery : DataService<object?>
 {
     protected override object? WorkWithCommand(IDbCommand command, IInteraction cause)
@@ -27,16 +27,19 @@ public class BufferedDataQuery : DataService<object?>
                 results.Add(dqr.Memory.ToDictionary(x => x.Key, x => x.Value));
             }
         }
-        foreach (var item in results)
+
+        for (var index = 0; index < results.Count; index++)
         {
-            InvokeThen(new CommonInteraction(cause, memory: item));
+            var item = results[index];
+            InvokeThen(new BufferedDataInteraction(cause, item, index, results.Count));
         }
+
         return results.Count;
     }
+
     protected override void FinalizeResult(object? output, IInteraction cause)
     {
         if (output is not int numb || numb == 0)
             InvokeElse(cause);
     }
 }
-
