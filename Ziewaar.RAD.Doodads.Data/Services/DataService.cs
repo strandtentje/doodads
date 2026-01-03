@@ -12,20 +12,26 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 namespace Ziewaar.RAD.Doodads.Data.Services;
+
 public abstract class DataService<TResult> : IService
 {
     [PrimarySetting("Query text or filename of query, or transaction name")]
     private readonly UpdatingPrimaryValue StringParameterConstant = new();
+
     private string? QueryFilePath;
     private long QueryFileAge;
     private string? QueryText;
     private string[]? ParameterNames;
+
     [EventOccasion("When the query ran successfully or has a result")]
     public event CallForInteraction? OnThen;
+
     [EventOccasion("After the query ran, or when it had no output")]
     public event CallForInteraction? OnElse;
+
     [EventOccasion("Likely when the query text was wrong.")]
     public event CallForInteraction? OnException;
+
     public enum CommonBranchName
     {
         None,
@@ -33,8 +39,10 @@ public abstract class DataService<TResult> : IService
         OnElse,
         OnException
     };
+
     protected abstract TResult WorkWithCommand(IDbCommand command, IInteraction cause);
     protected abstract void FinalizeResult(TResult output, IInteraction cause);
+
     public virtual void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ICommandSourceInteraction>(out var commandSource) || commandSource == null)
@@ -43,6 +51,7 @@ public abstract class DataService<TResult> : IService
                 new CommonInteraction(interaction, "data command requires a connection source to preceede it"));
             return;
         }
+
         if ((constants, StringParameterConstant).IsRereadRequired(out object? stringParameterObject) &&
             stringParameterObject?.ToString() is string stringParameter)
             ProcessStringParameter(stringParameter, commandSource);
@@ -54,12 +63,18 @@ public abstract class DataService<TResult> : IService
                 var newParam = GenerateParameter(interaction, command, item);
                 command.Parameters.Add(newParam);
             }
+
             command.CommandText = this.QueryText;
+            var replacements = interaction.GetAllOf<QueryPlaceholderInteraction>();
+            foreach (var replacement in replacements)
+                command.CommandText = replacement.Apply(command.CommandText ?? "");
+
             return WorkWithCommand(command, interaction);
         });
 
         FinalizeResult(output, interaction);
     }
+
     private IDbDataParameter GenerateParameter(IInteraction interaction, IDbCommand command, string item)
     {
         var newParam = command.CreateParameter();
@@ -118,8 +133,10 @@ public abstract class DataService<TResult> : IService
             OnException?.Invoke(this,
                 new CommonInteraction(interaction, $"missing param {item} so setting null. query might fail."));
         }
+
         return newParam;
     }
+
     private bool FindErrorsWithQueryText(IInteraction interaction, ICommandSourceInteraction commandSource)
     {
         if (QueryFilePath != null)
@@ -132,13 +149,16 @@ public abstract class DataService<TResult> : IService
                 this.ParameterNames = commandSource.DetermineParamNames(this.QueryText).Distinct().ToArray();
             }
         }
+
         if (string.IsNullOrWhiteSpace(this.QueryText))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "cannot execute empty query"));
             return true;
         }
+
         return false;
     }
+
     protected virtual void ProcessStringParameter(string stringParameter, ICommandSourceInteraction commandSource)
     {
         if (stringParameter.EndsWith(".sql", true, CultureInfo.InvariantCulture))
@@ -158,6 +178,7 @@ public abstract class DataService<TResult> : IService
                     }
                 }
             }
+
             QueryFileAge = -1;
         }
         else
@@ -167,6 +188,7 @@ public abstract class DataService<TResult> : IService
             this.ParameterNames = commandSource.DetermineParamNames(this.QueryText).Distinct().ToArray();
         }
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
     protected void InvokeThen(IInteraction source) => OnThen?.Invoke(this, source);
     protected void InvokeElse(IInteraction source) => OnElse?.Invoke(this, source);
