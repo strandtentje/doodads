@@ -29,14 +29,14 @@ public class ZipLine : IteratingService
         {
             if (ziMergeCollection.Collection.TryTake(out var item, (int)CurrentTimeout))
             {
-                yield return zipInteraction.
+                yield return repeater.
                     AppendMemory(new InteractingDefaultingDictionary(item, EmptyReadOnlyDictionary.Instance)).
                     AppendRegister(ziMergeCollection.Name);
             }
             else if (ziMergeCollection.Collection.IsAddingCompleted)
-                yield return zipInteraction.AppendRegister(ziMergeCollection.Name).AppendMemory(("zip", "complete"));
+                yield return repeater.AppendRegister(ziMergeCollection.Name).AppendMemory(("zip", "complete"));
             else
-                yield return zipInteraction.AppendRegister(ziMergeCollection.Name).AppendMemory(("zip", "timeout"));
+                yield return repeater.AppendRegister(ziMergeCollection.Name).AppendMemory(("zip", "timeout"));
         }
     }
 }
