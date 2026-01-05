@@ -4,6 +4,7 @@ using Serilog;
 using Ziewaar.RAD.Doodads.CommonComponents;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.Cryptography;
 using Ziewaar.RAD.Doodads.Cryptography.Secrets;
@@ -38,6 +39,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             GlobalLog.Instance.Information("Logfile in: {file}", logfilePath);
 
             var myDir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+            FrameworkTypeAdaptorRepository.Instance.Register(DateOnlyAdaptor.Instance).Register(TimeOnlyAdaptor.Instance);
 
             BootstrappedStartBuilder
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))

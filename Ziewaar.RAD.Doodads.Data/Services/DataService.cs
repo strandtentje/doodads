@@ -81,6 +81,9 @@ public abstract class DataService<TResult> : IService
         newParam.ParameterName = item;
         if (interaction.TryFindVariable(item, out object? paramToIdentify))
         {
+            if (FrameworkTypeAdaptorRepository.Instance.TryConvert(paramToIdentify, out var converted))
+                paramToIdentify = converted;
+            
             if (paramToIdentify == null)
             {
                 newParam.Value = DBNull.Value;

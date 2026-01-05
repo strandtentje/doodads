@@ -1,4 +1,5 @@
 using System.Threading;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
@@ -27,7 +28,11 @@ public class ZipLine : IteratingService
         foreach (var ziMergeCollection in zipInteraction.MergeCollections)
         {
             if (ziMergeCollection.Collection.TryTake(out var item, (int)CurrentTimeout))
-                yield return item.AppendRegister(ziMergeCollection.Name);
+            {
+                yield return zipInteraction.
+                    AppendMemory(new InteractingDefaultingDictionary(item, EmptyReadOnlyDictionary.Instance)).
+                    AppendRegister(ziMergeCollection.Name);
+            }
             else if (ziMergeCollection.Collection.IsAddingCompleted)
                 yield return zipInteraction.AppendRegister(ziMergeCollection.Name).AppendMemory(("zip", "complete"));
             else
