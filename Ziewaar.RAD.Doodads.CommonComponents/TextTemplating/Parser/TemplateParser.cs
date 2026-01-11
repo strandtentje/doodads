@@ -1,4 +1,7 @@
+using System.Runtime.ConstrainedExecution;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
+
 public class TemplateParser
 {
     private readonly List<TemplateCommand> CommandStack = new();
@@ -6,12 +9,14 @@ public class TemplateParser
     public ISet<string> Locales => AvailableTrueLocales;
     public IReadOnlyList<TemplateCommand> TemplateCommands => CommandStack;
     public IEnumerable<IGrouping<string, TemplateCommand>> CommandsByLocale { get; private set; }
+
     public void RefreshTemplateData(StreamReader reader)
     {
         var allTemplateText = reader.ReadToEnd();
         RefreshTemplateData(allTemplateText);
         reader.Dispose();
     }
+
     public void RefreshTemplateData(string allTemplateText)
     {
         CommandStack.Clear();
@@ -24,6 +29,7 @@ public class TemplateParser
                 AvailableTrueLocales.Add(currentLocale.ToLowerInvariant());
         CommandsByLocale = CommandStack.GroupBy(x => x.Locale.ToLower().Replace('-', '_'));
     }
+
     private int FindNextHead(string allTemplateText, int cursor, ref string currentLocale)
     {
         (TemplateTokens.ControlType openingType, int openerPosition) = allTemplateText.FindNextControlStart(cursor);
@@ -43,6 +49,7 @@ public class TemplateParser
             {
                 throw new Exception(string.Format("The matching closer could not be found"));
             }
+
             return allTemplateText.Length;
         }
 
@@ -64,35 +71,27 @@ public class TemplateParser
             default:
                 return allTemplateText.Length;
         }
+
         return cursor + TemplateTokens.PLACEHOLDER_END.Length;
     }
+
     private static TemplateCommand ParsePlaceholder(string dirtyPayload, string forLocale, int position)
     {
-        var colonPayload = dirtyPayload.Trim().TrimTemplateTokens();
-        var modifiers = dirtyPayload.Substring(0, dirtyPayload.Length - colonPayload.Length);
-        var splitPayload = colonPayload.Split([':'], count: 2);
-        var cleanPayload = splitPayload.ElementAtOrDefault(0) ?? "";
-        var formatter = splitPayload.ElementAtOrDefault(1) ?? "";
-        TemplateCommand command = new()
+        if (!SwitchingFilter.TryParse(dirtyPayload, out var result) &&
+            !CoalescingFilter.TryParse(dirtyPayload, out result) &&
+            !LiteralFilter.TryParse(dirtyPayload, out result) &&
+            !FormattingFilter.TryParse(dirtyPayload, out result) &&
+            !PassthroughFilter.TryParse(dirtyPayload, out result) ||
+            result == null)
+            throw new ArgumentException($"Failed to parse placeholder #{position} named {dirtyPayload}");
+
+        return new()
         {
             Position = position,
             Locale = forLocale,
-            PayloadText = cleanPayload,
-            Type = modifiers.ConvertToCommandType(),
-            Formatter = string.IsNullOrWhiteSpace(formatter)
-                ? null
-                : (object o) =>
-                {
-                    if (o.ConvertNumericToDecimal() is decimal decimalValue)
-                        return decimalValue.ToString(formatter);
-                    else if (o is DateTime dateTimeValue)
-                        return dateTimeValue.ToString(formatter);
-                    else if (o is TimeSpan timespanValue)
-                        return timespanValue.ToString(formatter);
-                    else
-                        return o.ToString();
-                }
+            PayloadText = result.CleanPayload,
+            Type = result.Command,
+            Formatter = result.Render,
         };
-        return command;
     }
 }

@@ -19,7 +19,7 @@ public struct TemplateCommand
         }
         else
         {
-            return PayloadText;
+            return "";
         }
     }
 }

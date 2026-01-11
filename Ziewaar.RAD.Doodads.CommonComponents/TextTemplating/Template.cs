@@ -157,8 +157,9 @@ public class Template : IService
                         writer.Write(segment.PayloadText);
                         break;
 
-                    case TemplateCommandType.VariableSource
-                        when interaction.TryFindVariable<object>(segment.PayloadText, out var rawValue):
+                    case TemplateCommandType.VariableSource:
+                        if (!interaction.TryFindVariable<object>(segment.PayloadText, out var rawValue))
+                            rawValue = null;
                         if (rawValue is string rawText)
                             writer.Write(segment.Type.ApplyFilterTo(rawText));
                         else
