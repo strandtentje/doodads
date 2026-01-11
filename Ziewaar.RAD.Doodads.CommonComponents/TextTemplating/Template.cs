@@ -161,10 +161,10 @@ public class Template : IService
                         if (!interaction.TryFindVariable<object>(segment.PayloadText, out var rawValue))
                             rawValue = null;
                         if (rawValue is string rawText)
-                            writer.Write(segment.Type.ApplyFilterTo(rawText));
+                            writer.Write(segment.Type.ApplyFilterTo(segment.GetFormattedPayload(rawText)));
                         else
                             writer.Write(
-                                segment.Type.ApplyFilterTo(Convert.ToString(segment.GetFormattedPayload(rawValue))));
+                                segment.Type.ApplyFilterTo(segment.GetFormattedPayload(rawValue)));
                         break;
 
                     case TemplateCommandType.CallOutSource
@@ -177,7 +177,8 @@ public class Template : IService
                         var callOutIntermediate = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
                         OnElse?.Invoke(this, callOutIntermediate);
                         writer.Write(
-                            segment.Type.ApplyFilterTo(callOutIntermediate.GetDisposingSinkReader().ReadToEnd()));
+                            segment.Type.ApplyFilterTo(
+                                segment.GetFormattedPayload(callOutIntermediate.GetDisposingSinkReader().ReadToEnd())));
                         break;
 
                     case TemplateCommandType.CallOutOrVariable:
@@ -186,29 +187,21 @@ public class Template : IService
                             var attemptedCallOut = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
                             OnElse?.Invoke(this, attemptedCallOut);
                             var text = attemptedCallOut.GetDisposingSinkReader().ReadToEnd();
-                            writer.Write(segment.Type.ApplyFilterTo(text));
+                            writer.Write(segment.Type.ApplyFilterTo(segment.GetFormattedPayload(text)));
                             if (text.Length > 0)
                                 break;
                         }
-
-                        if (defaultValue is string defaultString)
-                            writer.Write(segment.Type.ApplyFilterTo(defaultString));
-                        else if (segment.Formatter != null && defaultValue is not null)
-                            writer.Write(segment.Type.ApplyFilterTo(segment.Formatter(defaultValue)));
                         else
-                            writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(defaultValue)));
+                        {
+                            writer.Write(segment.Type.ApplyFilterTo(segment.GetFormattedPayload(defaultValue)));
+                        }
 
                         break;
 
                     case TemplateCommandType.ConstantSource:
                         if (!constants.NamedItems.TryGetValue(segment.PayloadText, out var rawObjectConstant))
                             break;
-                        if (rawObjectConstant is string rawStringConstant)
-                            writer.Write(segment.Type.ApplyFilterTo(rawStringConstant));
-                        else if (segment.Formatter != null && rawObjectConstant is not null)
-                            writer.Write(segment.Type.ApplyFilterTo(segment.Formatter(rawObjectConstant)));
-                        else
-                            writer.Write(segment.Type.ApplyFilterTo(Convert.ToString(rawObjectConstant)));
+                        writer.Write(segment.Type.ApplyFilterTo(segment.GetFormattedPayload(rawObjectConstant)));
                         break;
                 }
             }
