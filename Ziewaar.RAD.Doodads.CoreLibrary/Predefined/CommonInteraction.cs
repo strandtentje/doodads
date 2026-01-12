@@ -20,22 +20,3 @@ public class CommonInteraction : IInteraction
     public object Register { get; set; }
     public IReadOnlyDictionary<string, object> Memory { get; }
 }
-
-public class RootInteraction(object register, SortedList<string, object> memory) : ISelfStartingInteraction
-{
-    public IInteraction Stack => StopperInteraction.Instance;
-    public object Register => register;
-    public IReadOnlyDictionary<string, object> Memory => memory;
-}
-
-public class StopperInteraction : IInteraction
-{
-    public static readonly StopperInteraction Instance = new();
-    private StopperInteraction() { }
-    [JsonIgnore]
-    public IInteraction Stack => throw new ArgumentOutOfRangeException("This is the stopper interaction.");
-    [JsonIgnore]
-    public object Register => throw new ArgumentOutOfRangeException("This is the stopper interaction");
-    [JsonIgnore]
-    public IReadOnlyDictionary<string, object> Memory => EmptyReadOnlyDictionary.Instance;
-}

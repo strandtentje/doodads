@@ -104,9 +104,9 @@ public class TcpServer : IService, IDisposable
                     ingestAnother?.Release();
                     // ReSharper disable once AccessToDisposedClosure
                     // ReSharper disable once DisposeOnUsingVariable
-    #pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     ingestAnother.Dispose();
-    #pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 }
                 catch (Exception)
                 {
