@@ -9,9 +9,11 @@ using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Networking;
 
-public class EncryptedDuplex : IService
+public class EncryptedDuplex : IService, IDisposable
 {
     private readonly UpdatingPrimaryValue TestNameConstant = new();
+    private readonly UpdatingKeyValue SaveUnknownPubkeys = new("saveunknown");
+    private readonly HashSet<EncryptedTransponder> OpenTransponders = new();
     public event CallForInteraction? OnNameOffer;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
@@ -45,7 +47,7 @@ public class EncryptedDuplex : IService
                 ? cancellationInteraction.GetCancellationToken()
                 : new CancellationToken(false);
 
-            var rng = RandomNumberGenerator.Create();
+            using var rng = RandomNumberGenerator.Create();
             var handshaker = new Handshaker(
                 logger,
                 selectedPrivateKeyInteraction.Payload,
@@ -53,20 +55,31 @@ public class EncryptedDuplex : IService
                 connectionInteraction.Payload.Protocol,
                 rng, TestRemoteIdentifier, localIdentifier);
 
-            var remotePublicKey = handshaker.GetRemotePublicKey(true).RSA;
+            var remotePublicKey = handshaker
+                .GetRemotePublicKey(
+                    constants.NamedItems.TryGetValue(SaveUnknownPubkeys.Key, out var saveUnkCandidate) &&
+                    Convert.ToBoolean(saveUnkCandidate)).RSA;
             var keyExchange = new RsaToAesKeyExchange(selectedPrivateKeyInteraction.Payload, remotePublicKey);
             var transponders =
                 new EncryptedTransponderFactory(logger, keyExchange, connectionInteraction.Payload.Protocol, rng);
 
             using (var active = transponders.CreateTransponder())
             {
-                active.Start();
-                OnThen?.Invoke(this, new DuplexInteraction(interaction, active.Stream));
+                OpenTransponders.Add(active);
+                try
+                {
+                    active.Start();
+                    OnThen?.Invoke(this, new DuplexInteraction(interaction, active.Stream));
+                }
+                finally
+                {
+                    OpenTransponders.Remove(active);
+                }
             }
 
             bool TestRemoteIdentifier(string arg)
             {
-                var ri = new RepeatInteraction(repeatName, interaction, ct) { IsRunning = false };
+                var ri = new RepeatInteraction(repeatName, interaction.AppendRegister(arg), ct) { IsRunning = false };
                 OnNameOffer?.Invoke(this, ri);
                 return ri.IsRunning;
             }
@@ -74,4 +87,18 @@ public class EncryptedDuplex : IService
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    public void Dispose()
+    {
+        foreach (EncryptedTransponder encryptedTransponder in OpenTransponders)
+        {
+            try
+            {
+                encryptedTransponder.Dispose();
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}", nameof(encryptedTransponder), nameof(EncryptedDuplex));
+            }
+        }
+    }
 }

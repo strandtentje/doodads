@@ -1,7 +1,7 @@
 <<>> : WebServer(["http://+:8243/"]) {
     : <f"site.rkop">;
-    OnStarted->SlimDump("Webserver on: [ LO:{loopbackurl} | IP:{localipurl} | HOST:{localhostnameurl} ]") & [:];
-    OnHead->$"[{% requesttime %}|{% remoteip %}] {% <method %} {% <url %}";
-    OnStopping->$"Webserver Stopped";
-    OnException->!"message" : ConsoleOutput() : $"Server complains {% message %}";
+    OnStarted->InformationMessage("Webserver Running");
+    OnHead->SlimDump("[{requesttime}|{remoteip}] {method} {url}");
+    OnStopping->InformationMessage("Webserver Stopping");
+    OnException->!"message" : InformationMessage("Server complains {message}");
 };

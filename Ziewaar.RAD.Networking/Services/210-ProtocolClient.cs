@@ -1,10 +1,12 @@
 using System.Net.Sockets;
 using Ziewaar.Network.Protocol;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Networking;
 
-public class ProtocolClient : IService
+public class ProtocolClient : IService, IDisposable
 {
+    private readonly HashSet<TcpClient> OpenClients = new();
     private readonly UpdatingKeyValue HostnameConstant = new("host");
     private readonly UpdatingKeyValue PortConstant = new("port");
 
@@ -28,11 +30,36 @@ public class ProtocolClient : IService
         else
         {
             var connection = protocolInteraction.Payload.CreateClient(hostStringCandidate, portNumber);
-            OnThen?.Invoke(this,
-                new CustomInteraction<(TcpClient TcpClient, ProtocolOverStream Protocol)>(interaction,
-                    (connection.client, connection.protocol)));
+            OpenClients.Add(connection.client);
+            using (connection.client)
+            {
+                try
+                {
+                    OnThen?.Invoke(this,
+                        new CustomInteraction<(TcpClient TcpClient, ProtocolOverStream Protocol)>(interaction,
+                            (connection.client, connection.protocol)));
+                }
+                finally
+                {
+                    OpenClients.Remove(connection.client);
+                }
+            }
         }
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    public void Dispose()
+    {
+        foreach (TcpClient openClient in OpenClients)
+        {
+            try
+            {
+                openClient.Dispose();
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}", nameof(TcpClient), nameof(ProtocolClient));
+            }
+        }
+    }
 }

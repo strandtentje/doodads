@@ -50,6 +50,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                 .AddFile("site.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "site.rkop")) : "")
                 .AddFile("server.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "server.rkop")) : "")
                 .AddFile("boot.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "boot.rkop")) : "")
+                .AddFile("programs.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "programs.rkop")) : "")
                 .SetStarter("boot.rkop").ReadArgs(args).Build().Run();
         }
     }

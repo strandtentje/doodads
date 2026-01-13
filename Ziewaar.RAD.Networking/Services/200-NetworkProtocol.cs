@@ -43,8 +43,5 @@ public class NetworkProtocol : IService
         }
     }
 
-    public void HandleFatal(IInteraction source, Exception ex)
-    {
-        throw new NotImplementedException();
-    }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

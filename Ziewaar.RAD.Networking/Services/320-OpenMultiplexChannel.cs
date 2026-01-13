@@ -6,8 +6,9 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Networking;
 
-public class OpenMultiplexChannel : IService
+public class OpenMultiplexChannel : IService, IDisposable
 {
+    private readonly HashSet<MultiplexingStream.Channel> OpenChannels = new();
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -48,44 +49,54 @@ public class OpenMultiplexChannel : IService
             }
 
             var interactionChannel = interactionMultiplexTask.Result;
-            var duplexChannel = duplexMultiplexTask.Result;
+            using var duplexChannel = duplexMultiplexTask.Result;
+
+            OpenChannels.Add(interactionChannel);
+            OpenChannels.Add(duplexChannel);
+
             var duplexStream = duplexChannel.AsStream();
-            
+
             var interactionThread = new Thread(() =>
             {
                 try
                 {
-                    var valueStream = interactionChannel.AsStream();
-                    var valueProtocol = MultiplexProtocolFactories.InteractionChannel.Create(valueStream);
-                    while (true)
+                    using (interactionChannel)
                     {
-                        var controlMessage = valueProtocol.ReceiveMessage<InteractionChannelMessage>(ct);
-                        if (controlMessage.Operation != InteractionOperation.ValueRequest)
-                            throw new ProtocolViolationException("Unstable channel state; expected value request");
-                        byte[] receiveAlloc = new byte[controlMessage.NextLength];
-                        var nameMessage = valueProtocol.ReceiveMessage<InteractionChannelMessage>(receiveAlloc, ct);
-                        if (nameMessage.Operation != InteractionOperation.Name)
-                            throw new ProtocolViolationException("Unstable channel state; expected name of value");
-                        var nameString = Encoding.UTF8.GetString(receiveAlloc);
+                        var valueStream = interactionChannel.AsStream();
+                        var valueProtocol = MultiplexProtocolFactories.InteractionChannel.Create(valueStream);
+                        while (true)
+                        {
+                            var controlMessage = valueProtocol.ReceiveMessage<InteractionChannelMessage>(ct);
+                            if (controlMessage.Operation != InteractionOperation.ValueRequest)
+                                throw new ProtocolViolationException("Unstable channel state; expected value request");
+                            byte[] receiveAlloc = new byte[controlMessage.NextLength];
+                            var nameMessage = valueProtocol.ReceiveMessage<InteractionChannelMessage>(receiveAlloc, ct);
+                            if (nameMessage.Operation != InteractionOperation.Name)
+                                throw new ProtocolViolationException("Unstable channel state; expected name of value");
+                            var nameString = Encoding.UTF8.GetString(receiveAlloc);
 
-                        if (interaction.TryFindVariable(nameString, out object? variable) &&
-                            variable?.ToString() is { } toSend)
-                        {
-                            var utfBytes = Encoding.UTF8.GetBytes(toSend);
-                            valueProtocol.SendMessage(
-                                new InteractionChannelMessage()
-                                {
-                                    Operation = InteractionOperation.StringResponse, NextLength = utfBytes.Length,
-                                }, cancellationToken: ct);
-                            valueProtocol.SendMessage(
-                                new InteractionChannelMessage() { Operation = InteractionOperation.Value, }, utfBytes, ct);
-                        }
-                        else
-                        {
-                            valueProtocol.SendMessage(new InteractionChannelMessage()
+                            if (interaction.TryFindVariable(nameString, out object? variable) &&
+                                variable?.ToString() is { } toSend)
                             {
-                                Operation = InteractionOperation.StringResponse, NextLength = -1
-                            });
+                                var utfBytes = Encoding.UTF8.GetBytes(toSend);
+                                valueProtocol.SendMessage(
+                                    new InteractionChannelMessage()
+                                    {
+                                        Operation = InteractionOperation.StringResponse,
+                                        NextLength = utfBytes.Length,
+                                    }, cancellationToken: ct);
+                                valueProtocol.SendMessage(
+                                    new InteractionChannelMessage() { Operation = InteractionOperation.Value, },
+                                    utfBytes, ct);
+                            }
+                            else
+                            {
+                                valueProtocol.SendMessage(
+                                    new InteractionChannelMessage()
+                                    {
+                                        Operation = InteractionOperation.StringResponse, NextLength = -1
+                                    }, cancellationToken: ct);
+                            }
                         }
                     }
                 }
@@ -94,7 +105,7 @@ public class OpenMultiplexChannel : IService
                     GlobalLog.Instance?.Warning(ex, "Closed channel due to interaction channel failure");
                 }
             });
-            
+
             var outgoingThread = new Thread(() =>
             {
                 try
@@ -129,8 +140,27 @@ public class OpenMultiplexChannel : IService
                 outgoingThread.Join(1000);
                 incomingThread.Join(1000);
             }
+
+            OpenChannels.Remove(interactionChannel);
+            OpenChannels.Remove(duplexChannel);
         }
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+
+    public void Dispose()
+    {
+        foreach (MultiplexingStream.Channel openChannel in OpenChannels)
+        {
+            try
+            {
+                openChannel.Dispose();
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}",
+                    nameof(MultiplexingStream.Channel), nameof(OpenMultiplexChannel));
+            }
+        }
+    }
 }
