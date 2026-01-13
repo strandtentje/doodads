@@ -26,6 +26,7 @@ public class Hopper : IteratingService, IDisposable
     private readonly BlockingCollection<IInteraction> Jobs = new();
     protected virtual bool IsLooping => false;
     protected override bool RunElse => false;
+
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
         if ((constants, RunnersConstant).IsRereadRequired(() => 1, out int countCandidate))
@@ -51,10 +52,36 @@ public class Hopper : IteratingService, IDisposable
             Blocker.Release();
         }
     }
+
     protected override IEnumerable<IInteraction> GetElseItems(StampedMap constants, IInteraction repeater) => [];
+
     public void Dispose()
     {
         Blocker.Dispose();
         Jobs.Dispose();
+    }
+}
+
+public class Retry : IteratingService, IDisposable
+{
+    public override event CallForInteraction? OnElse;
+    private bool IsDisposed;
+    protected override bool RunElse => false;
+
+    protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
+    {
+        var retryInterval = Convert.ToInt32(constants.PrimaryConstant);
+        
+        while (!IsDisposed && !repeater.IsCancelled())
+        {
+            OnElse?.Invoke(this, repeater);
+            yield return repeater;
+            Thread.Sleep(retryInterval);
+        }
+    }
+
+    public void Dispose()
+    {
+        this.IsDisposed = true;
     }
 }

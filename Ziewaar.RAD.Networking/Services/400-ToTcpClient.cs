@@ -2,8 +2,9 @@ using System.Net.Sockets;
 
 namespace Ziewaar.RAD.Networking;
 
-public class ToTcpClient : IService
+public class ToTcpClient : IService, IDisposable
 {
+    private readonly HashSet<CancellationTokenSource> RunningJobs = new();
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -23,11 +24,8 @@ public class ToTcpClient : IService
                     "Expected source and sink to work with, as well as portnumber and hostname variable"));
         else
         {
-            var ct =
-                interaction.TryGetClosest<CancellationInteraction>(out CancellationInteraction? cancellation) &&
-                cancellation != null
-                    ? cancellation.GetCancellationToken()
-                    : new CancellationToken(false);
+            using var cts = new CancellationTokenSource();
+            var ct = cts.Token;
             using TcpClient client = new TcpClient();
             
             client.Connect(hostName, portNumber);
@@ -39,4 +37,12 @@ public class ToTcpClient : IService
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    public void Dispose()
+    {
+        foreach (CancellationTokenSource cancellationTokenSource in RunningJobs)
+        {
+            using(cancellationTokenSource)
+                cancellationTokenSource.Cancel();
+        }
+    }
 }

@@ -13,7 +13,7 @@ public class EncryptedDuplex : IService, IDisposable
 {
     private readonly UpdatingPrimaryValue TestNameConstant = new();
     private readonly UpdatingKeyValue SaveUnknownPubkeys = new("saveunknown");
-    private readonly HashSet<EncryptedTransponder> OpenTransponders = new();
+    private readonly HashSet<(EncryptedTransponder Transponder, CancellationTokenSource CTS)> OpenTransponders = new();
     public event CallForInteraction? OnNameOffer;
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
@@ -42,38 +42,45 @@ public class EncryptedDuplex : IService, IDisposable
                 interaction.AppendRegister("Service requires name as primary setting to confirm incoming names on."));
         else
         {
-            var ct = interaction.TryGetClosest<CancellationInteraction>(out var cancellationInteraction) &&
-                     cancellationInteraction != null
-                ? cancellationInteraction.GetCancellationToken()
-                : new CancellationToken(false);
-
             using var rng = RandomNumberGenerator.Create();
-            var handshaker = new Handshaker(
-                logger,
-                selectedPrivateKeyInteraction.Payload,
-                publicKeyStoreInteraction.Payload,
-                connectionInteraction.Payload.Protocol,
-                rng, TestRemoteIdentifier, localIdentifier);
-
-            var remotePublicKey = handshaker
-                .GetRemotePublicKey(
-                    constants.NamedItems.TryGetValue(SaveUnknownPubkeys.Key, out var saveUnkCandidate) &&
-                    Convert.ToBoolean(saveUnkCandidate)).RSA;
-            var keyExchange = new RsaToAesKeyExchange(selectedPrivateKeyInteraction.Payload, remotePublicKey);
-            var transponders =
-                new EncryptedTransponderFactory(logger, keyExchange, connectionInteraction.Payload.Protocol, rng);
-
-            using (var active = transponders.CreateTransponder())
+            using var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+            EncryptedTransponder? active = null;
+            try
             {
-                OpenTransponders.Add(active);
+                var handshaker = new Handshaker(
+                    logger.ForContext(typeof(EncryptedDuplex)),
+                    selectedPrivateKeyInteraction.Payload,
+                    publicKeyStoreInteraction.Payload,
+                    connectionInteraction.Payload.Protocol,
+                    rng, TestRemoteIdentifier, localIdentifier);
+
+                var remotePublicKey = handshaker
+                    .GetRemotePublicKey(
+                        !constants.NamedItems.TryGetValue(SaveUnknownPubkeys.Key, out var saveUnkCandidate) ||
+                        !Convert.ToBoolean(saveUnkCandidate)).RSA;
+                var keyExchange = new RsaToAesKeyExchange(selectedPrivateKeyInteraction.Payload, remotePublicKey);
+                var transponders =
+                    new EncryptedTransponderFactory(logger, keyExchange, connectionInteraction.Payload.Protocol, rng);
+                active = transponders.CreateTransponder();
+                active.Start();
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "During handshake");
+                return;
+            }
+
+            using (active)
+            {
+                OpenTransponders.Add((active, cts));
                 try
                 {
-                    active.Start();
                     OnThen?.Invoke(this, new DuplexInteraction(interaction, active.Stream));
                 }
                 finally
                 {
-                    OpenTransponders.Remove(active);
+                    OpenTransponders.Remove((active, cts));
                 }
             }
 
@@ -87,17 +94,21 @@ public class EncryptedDuplex : IService, IDisposable
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+
     public void Dispose()
     {
-        foreach (EncryptedTransponder encryptedTransponder in OpenTransponders)
+        foreach (var pair in OpenTransponders)
         {
             try
             {
-                encryptedTransponder.Dispose();
+                using (pair.CTS)
+                    using (pair.Transponder)
+                        pair.CTS.Cancel();
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}", nameof(encryptedTransponder), nameof(EncryptedDuplex));
+                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}", nameof(EncryptedTransponder),
+                    nameof(EncryptedDuplex));
             }
         }
     }

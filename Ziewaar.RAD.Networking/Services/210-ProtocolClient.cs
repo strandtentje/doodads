@@ -29,8 +29,22 @@ public class ProtocolClient : IService, IDisposable
                 interaction.AppendRegister("This service requires host=hostname and port=0-65535"));
         else
         {
-            var connection = protocolInteraction.Payload.CreateClient(hostStringCandidate, portNumber);
-            OpenClients.Add(connection.client);
+            (TcpClient? client, ProtocolOverStream? protocol) connection = (null,null);
+            try
+            {
+                connection = protocolInteraction.Payload.CreateClient(hostStringCandidate, portNumber);
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "Couldn't connect to remote protocol");
+            }
+
+            if (connection.client == null || connection.protocol == null)
+            {
+                OnElse?.Invoke(this, interaction);
+                return;
+            }
+            
             using (connection.client)
             {
                 try

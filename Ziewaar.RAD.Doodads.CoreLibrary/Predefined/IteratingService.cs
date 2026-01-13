@@ -7,7 +7,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public abstract class IteratingService : IService
 {
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
-    private string? CurrentRepeatName;
+    protected string? CurrentRepeatName;
     [EventOccasion("Next item")]
     public event CallForInteraction? OnThen;
     [NeverHappens]

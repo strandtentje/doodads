@@ -1,24 +1,26 @@
 using System.Net.Sockets;
 using Ziewaar.Network.Protocol;
 using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Networking;
 
-public class ProtocolServer : IteratingService, IDisposable
+public class ProtocolServer : IService, IDisposable
 {
-    private readonly HashSet<ClientEmitter> OpenEmitters = new();
+    private readonly HashSet<(ClientEmitter Emitter, CancellationTokenSource CTS)> OpenEmitters = new();
+    private readonly UpdatingPrimaryValue RepeatNameConstant = new UpdatingPrimaryValue();
     private readonly UpdatingKeyValue PortNumberConstant = new("port");
     private readonly UpdatingKeyValue ConnectionLimitConstant = new("connectionlimit");
 
-    protected override bool RunElse => false;
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
 
-    protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
+    public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (!repeater.TryGetClosest<CustomInteraction<TcpBasedProtocolFactory>>(out var protocolInteraction) ||
+        if (!interaction.TryGetClosest<CustomInteraction<TcpBasedProtocolFactory>>(out var protocolInteraction) ||
             protocolInteraction == null)
             throw new Exception("This service requires NetworkProtocol service to've run before it.");
-        if (!repeater.TryGetClosest<CancellationInteraction>(out CancellationInteraction? cancellationInteraction))
-            cancellationInteraction = null;
 
         var portNumber = Convert.ToUInt16(constants.NamedItems["port"]);
         var connectionLimit =
@@ -26,37 +28,63 @@ public class ProtocolServer : IteratingService, IDisposable
                 ? connectionLimitCandidate
                 : 10000);
 
-        var clientReceiver =
-            new ClientReceiverEnumerable(
-                cancellationInteraction?.GetCancellationToken() ?? new CancellationToken(false));
-        var connectionMaker = protocolInteraction.Payload.CreateServer(portNumber, clientReceiver, connectionLimit);
-        OpenEmitters.Add(connectionMaker);
+        using var cts = new CancellationTokenSource();
+        var ri = new RepeatInteraction(constants.PrimaryConstant.ToString() ?? throw new Exception("Missing repeat name"), interaction, cts.Token);
+        
+        var clientReceiver = new ClientReceiver(cts.Token, ReceiveConnectionCallback);
+        using var connectionMaker = protocolInteraction.Payload.CreateServer(portNumber, clientReceiver, connectionLimit);
+        
+        OpenEmitters.Add((connectionMaker, cts));
+        
         using (connectionMaker)
         {
             try
             {
-                return clientReceiver.Select(x =>
-                    new CustomInteraction<(TcpClient TcpClient, ProtocolOverStream Protocol)>(repeater,
-                        (x.Client, x.Protocol)));
-            }
-            finally
-            {
-                OpenEmitters.Remove(connectionMaker);
-            }
-        }
-    }
-
-    public void Dispose()
-    {
-        foreach (ClientEmitter clientEmitter in OpenEmitters)
-        {
-            try
-            {
-                clientEmitter.Dispose();
+                connectionMaker.Start();
+                connectionMaker.WaitForExit(cts.Token);
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}", nameof(ClientEmitter), nameof(ProtocolServer));
+                GlobalLog.Instance?.Warning(ex, "Failed to start enumerable for incoming protocol connections");
+            }
+            finally
+            {
+                OpenEmitters.Remove((connectionMaker, cts));
+            }
+        }
+
+        return;
+
+        void ReceiveConnectionCallback(TcpClient client, ProtocolOverStream protocol)
+        {
+            ri.IsRunning = false;
+            OnThen?.Invoke(this, new CustomInteraction<(TcpClient TcpClient, ProtocolOverStream Protocol)>(ri,
+                (client, protocol)));
+            if (ri.IsRunning == false)
+                ri.Cancel();
+        }
+    }
+
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+
+    public void Dispose()
+    {
+        foreach (var pair in OpenEmitters)
+        {
+            try
+            {
+                using (pair.CTS)
+                {
+                    using (pair.Emitter)
+                    {
+                        pair.CTS.Cancel();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "While disposing {type} of {service}", nameof(ClientEmitter),
+                    nameof(ProtocolServer));
             }
         }
     }

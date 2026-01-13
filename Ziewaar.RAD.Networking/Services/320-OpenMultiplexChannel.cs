@@ -8,7 +8,10 @@ namespace Ziewaar.RAD.Networking;
 
 public class OpenMultiplexChannel : IService, IDisposable
 {
-    private readonly HashSet<MultiplexingStream.Channel> OpenChannels = new();
+    private readonly
+        HashSet<(MultiplexingStream.Channel ChannelA, MultiplexingStream.Channel ChannelB, CancellationTokenSource CTS)>
+        OpenChannels = new();
+
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -27,12 +30,8 @@ public class OpenMultiplexChannel : IService, IDisposable
             OnException?.Invoke(this, interaction.AppendRegister("Sourcing and sinking interaction required"));
         else
         {
-            CancellationToken ct;
-            if (interaction.TryGetClosest<CancellationInteraction>(out var cancellationInteraction) &&
-                cancellationInteraction != null)
-                ct = cancellationInteraction.GetCancellationToken();
-            else
-                ct = new CancellationToken(false);
+            using var cts = new CancellationTokenSource();
+            var ct = cts.Token;
 
             var (multiplexer, channel, protocol, protocolLock) = channelInteraction.Payload;
 
@@ -51,8 +50,7 @@ public class OpenMultiplexChannel : IService, IDisposable
             var interactionChannel = interactionMultiplexTask.Result;
             using var duplexChannel = duplexMultiplexTask.Result;
 
-            OpenChannels.Add(interactionChannel);
-            OpenChannels.Add(duplexChannel);
+            OpenChannels.Add((interactionChannel, duplexChannel, cts));
 
             var duplexStream = duplexChannel.AsStream();
 
@@ -141,8 +139,7 @@ public class OpenMultiplexChannel : IService, IDisposable
                 incomingThread.Join(1000);
             }
 
-            OpenChannels.Remove(interactionChannel);
-            OpenChannels.Remove(duplexChannel);
+            OpenChannels.Remove((interactionChannel, duplexChannel, cts));
         }
     }
 
@@ -150,11 +147,14 @@ public class OpenMultiplexChannel : IService, IDisposable
 
     public void Dispose()
     {
-        foreach (MultiplexingStream.Channel openChannel in OpenChannels)
+        foreach (var pair in OpenChannels)
         {
             try
             {
-                openChannel.Dispose();
+                using (pair.CTS)
+                using (pair.ChannelA)
+                using (pair.ChannelB)
+                    pair.CTS.Cancel();
             }
             catch (Exception ex)
             {

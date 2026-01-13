@@ -8,7 +8,7 @@ namespace Ziewaar.RAD.Networking;
 
 public class DuplexToMultiplex : IteratingService, IDisposable
 {
-    private readonly HashSet<MultiplexingStream> OpenMultiplexers = new();
+    private readonly HashSet<(MultiplexingStream Multiplex, CancellationTokenSource CTS)> OpenMultiplexers = new();
     private readonly UpdatingPrimaryValue SideChannelNameConstant = new();
     public override event CallForInteraction? OnElse;
     protected override bool RunElse => false;
@@ -24,14 +24,9 @@ public class DuplexToMultiplex : IteratingService, IDisposable
             throw new Exception("Runtime with logger required for this");
         else
         {
-            CancellationToken ct;
-            if (repeater.TryGetClosest<CancellationInteraction>(out var cancellationInteraction) &&
-                cancellationInteraction != null)
-                ct = cancellationInteraction.GetCancellationToken();
-            else
-                ct = new CancellationToken(false);
-
-
+            using var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+            
             var localSideChannelAscii = Encoding.ASCII.GetBytes(localSidechannelName);
             var duplex = duplexInteraction.DuplexStream;
             duplex.WriteByte((byte)localSideChannelAscii.Length);
@@ -42,8 +37,12 @@ public class DuplexToMultiplex : IteratingService, IDisposable
             duplex.ReadExactly(remoteSideChannelAscii, 0, remoteSidechannelLength);
             var remoteSidechannelName = Encoding.ASCII.GetString(remoteSideChannelAscii);
 
-            var multiplexing = MultiplexingStream.Create(duplexInteraction.DuplexStream);
-            OpenMultiplexers.Add(multiplexing);
+            var multiplexing = MultiplexingStream.Create(duplexInteraction.DuplexStream, new MultiplexingStream.Options()
+            {
+                ProtocolMajorVersion = 3, StartSuspended = true,
+            });
+            multiplexing.StartListening();
+            OpenMultiplexers.Add((multiplexing,cts));
             var localSidechannelOffer = multiplexing.OfferChannelAsync(localSidechannelName, ct);
 
             var channelOpeningThread = new Thread(() =>
@@ -151,7 +150,7 @@ public class DuplexToMultiplex : IteratingService, IDisposable
             }
             finally
             {
-                OpenMultiplexers.Remove(multiplexing);
+                OpenMultiplexers.Remove((multiplexing,cts));
                 multiplexing.DisposeAsync();
             }
         }
@@ -159,15 +158,17 @@ public class DuplexToMultiplex : IteratingService, IDisposable
 
     public void Dispose()
     {
-        foreach (MultiplexingStream multiplexingStream in OpenMultiplexers)
+        foreach (var pair in OpenMultiplexers)
         {
             try
             {
-                multiplexingStream.DisposeAsync();
+                using (pair.CTS)
+                using (pair.Multiplex)
+                    pair.CTS.Cancel();
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Warning(ex, "While trying to dispose {type} of {service}", nameof(multiplexingStream), nameof(DuplexToMultiplex));
+                GlobalLog.Instance?.Warning(ex, "While trying to dispose {type} of {service}", nameof(MultiplexingStream), nameof(DuplexToMultiplex));
             }
         }
     }
