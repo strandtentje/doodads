@@ -7,4 +7,7 @@ public enum InteractionOperation
 
     StringResponse,
     Value,
+    
+    Syn,
+    SynAck,
 }

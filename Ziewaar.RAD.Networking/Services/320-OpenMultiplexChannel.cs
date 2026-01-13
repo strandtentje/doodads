@@ -65,6 +65,14 @@ public class OpenMultiplexChannel : IService, IDisposable
                         while (true)
                         {
                             var controlMessage = valueProtocol.ReceiveMessage<InteractionChannelMessage>(ct);
+                            if (controlMessage.Operation == InteractionOperation.Syn)
+                            {
+                                if (controlMessage.NextLength > 0)
+                                    continue;
+                                else
+                                    break;
+                            }
+
                             if (controlMessage.Operation != InteractionOperation.ValueRequest)
                                 throw new ProtocolViolationException("Unstable channel state; expected value request");
                             byte[] receiveAlloc = new byte[controlMessage.NextLength];
@@ -104,40 +112,20 @@ public class OpenMultiplexChannel : IService, IDisposable
                 }
             });
 
-            var outgoingThread = new Thread(() =>
-            {
-                try
-                {
-                    sourcingInteraction.SourceBuffer.CopyTo(duplexStream);
-                }
-                catch (Exception ex)
-                {
-                    GlobalLog.Instance?.Warning(ex, "Closed channel due to local->remote copy fail");
-                }
-            });
-
-            var incomingThread = new Thread(() =>
-            {
-                try
-                {
-                    duplexStream.CopyTo(sinkingInteraction.SinkBuffer);
-                }
-                catch (Exception ex)
-                {
-                    GlobalLog.Instance?.Warning(ex, "Closed channel due to remote->local copy fail");
-                }
-            });
-
             interactionThread.Start();
-            outgoingThread.Start();
-            incomingThread.Start();
 
-            while (interactionThread.IsAlive && outgoingThread.IsAlive && incomingThread.IsAlive)
-            {
-                interactionThread.Join(1000);
-                outgoingThread.Join(1000);
-                incomingThread.Join(1000);
-            }
+            var localToPipe =
+                (sourcingInteraction.SourceBuffer, duplexStream).CopyGently(
+                    () => duplexChannel is { IsDisposed: false, Completion.IsCompleted: false },
+                    "local to pipe");
+            var pipeToLocal =
+                (duplexStream, sinkingInteraction.SinkBuffer).CopyGently(
+                    () => duplexChannel is { IsDisposed: false, Completion.IsCompleted: false },
+                    "pipe to local");
+
+            localToPipe.Join();
+            pipeToLocal.Join();
+            interactionThread.Join();
 
             OpenChannels.Remove((interactionChannel, duplexChannel, cts));
         }

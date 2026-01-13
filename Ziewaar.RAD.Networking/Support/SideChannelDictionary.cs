@@ -6,10 +6,8 @@ using Ziewaar.Network.Protocol;
 
 namespace Ziewaar.RAD.Networking;
 
-public class SideChannelDictionary(ProtocolOverStream interactionProtocol) : IReadOnlyDictionary<string, object>
+public class SideChannelDictionary(Lock protocolLock, ProtocolOverStream interactionProtocol) : IReadOnlyDictionary<string, object>
 {
-    private readonly Lock ProtocolLock = new();
-
     public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
     {
         yield break;
@@ -22,7 +20,7 @@ public class SideChannelDictionary(ProtocolOverStream interactionProtocol) : IRe
 
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
     {
-        lock (ProtocolLock)
+        lock (protocolLock)
         {
             var utf8Key = Encoding.UTF8.GetBytes(key);
             interactionProtocol.SendMessage(new InteractionChannelMessage()

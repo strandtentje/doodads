@@ -1,10 +1,11 @@
+using Serilog;
 using System.Net.Sockets;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Networking;
 
-public class ToTcpClient : IService, IDisposable
+public class ToTcpClient : IService
 {
-    private readonly HashSet<CancellationTokenSource> RunningJobs = new();
     public event CallForInteraction? OnThen;
     public event CallForInteraction? OnElse;
     public event CallForInteraction? OnException;
@@ -24,25 +25,31 @@ public class ToTcpClient : IService, IDisposable
                     "Expected source and sink to work with, as well as portnumber and hostname variable"));
         else
         {
-            using var cts = new CancellationTokenSource();
-            var ct = cts.Token;
             using TcpClient client = new TcpClient();
-            
-            client.Connect(hostName, portNumber);
-            var duplex = client.GetStream();
-            var outgoingTask = sourcingInteraction.SourceBuffer.CopyToAsync(duplex, ct);
-            var incomingTask = duplex.CopyToAsync(sinkingInteraction.SinkBuffer, ct);
-            outgoingTask.Wait(ct);
-            incomingTask.Wait(ct);
+
+            try
+            {
+                client.Connect(hostName, portNumber);
+                var duplex = client.GetStream();
+                
+                using (sourcingInteraction.SourceBuffer)
+                using (sinkingInteraction.SinkBuffer)
+                {
+                    var pipeToClient =
+                        (sourcingInteraction.SourceBuffer, duplex).CopyGently(() => client.Connected, "pipe to client");
+                    var clientToPipe =
+                        (duplex, sinkingInteraction.SinkBuffer).CopyGently(() => client.Connected, "client to pipe");
+                    
+                    pipeToClient.Join();
+                    clientToPipe.Join();
+                }
+            }
+            catch (Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "Streamcopying ceased");
+            }
         }
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-    public void Dispose()
-    {
-        foreach (CancellationTokenSource cancellationTokenSource in RunningJobs)
-        {
-            using(cancellationTokenSource)
-                cancellationTokenSource.Cancel();
-        }
-    }
 }
