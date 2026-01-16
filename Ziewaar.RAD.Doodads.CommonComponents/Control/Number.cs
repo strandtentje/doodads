@@ -66,3 +66,30 @@ public class Number : IService
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
+
+public class NumberChanged : IService
+{
+    private readonly UpdatingPrimaryValue CounterNameConstant = new();
+    public event CallForInteraction? OnThen;
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        if (!interaction.TryGetClosest<CounterInteraction>(out var counterInteraction, x => x.Name == constants.PrimaryConstant.ToString()) ||
+            counterInteraction == null)
+            OnException?.Invoke(this, interaction.AppendRegister("No matching counter"));
+        else
+        {
+            var currentValue = Convert.ToDecimal(interaction.Register);
+            if (currentValue != counterInteraction.CounterValue)
+            {
+                counterInteraction.CounterValue = currentValue;
+                OnThen?.Invoke(this, interaction);
+            } else
+            {
+                OnElse?.Invoke(this, interaction);
+            }
+        }
+    }
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+}

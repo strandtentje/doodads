@@ -3,7 +3,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 public class CounterInteraction : IInteraction
 {
-    private decimal CounterValue;
+    public decimal CounterValue;
     private readonly IInteraction Stack1;
     private readonly string CounterName;
 

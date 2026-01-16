@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.Extensions.ObjectPool">
-      <HintPath>..\..\..\.nuget\packages\microsoft.extensions.objectpool\9.0.7\lib\net9.0\Microsoft.Extensions.ObjectPool.dll</HintPath>
+      <HintPath>..\..\..\.nuget\packages\microsoft.extensions.objectpool\9.0.7\lib\net10.0\Microsoft.Extensions.ObjectPool.dll</HintPath>
     </Reference>
   </ItemGroup>
 
