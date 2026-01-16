@@ -30,14 +30,18 @@ public class DuplexToMultiplex : IService, IDisposable
             using var cts = new CancellationTokenSource();
             var ct = cts.Token;
 
+            byte[] singleLengthByte = new byte[10];
             var localSideChannelAscii = Encoding.ASCII.GetBytes(localSidechannelName);
             var duplex = duplexInteraction.DuplexStream;
-            duplex.WriteByte((byte)localSideChannelAscii.Length);
+            singleLengthByte[0] = (byte)localSideChannelAscii.Length;
+            duplex.Write(singleLengthByte, 0, 10);
             duplex.Write(localSideChannelAscii, 0, localSideChannelAscii.Length);
 
-            var remoteSidechannelLength = duplex.ReadByte();
-            byte[] remoteSideChannelAscii = new byte[remoteSidechannelLength];
-            duplex.ReadExactly(remoteSideChannelAscii, 0, remoteSidechannelLength);
+            duplex.Flush();
+
+            duplex.ReadExactly(singleLengthByte, 0, 10);
+            byte[] remoteSideChannelAscii = new byte[singleLengthByte[0]];
+            duplex.ReadExactly(remoteSideChannelAscii, 0, singleLengthByte[0]);
             var remoteSidechannelName = Encoding.ASCII.GetString(remoteSideChannelAscii);
 
             var multiplexing = MultiplexingStream.Create(duplexInteraction.DuplexStream,
@@ -90,6 +94,8 @@ public class DuplexToMultiplex : IService, IDisposable
 
                 MultiplexingStream.Channel? remoteSidechannel = null;
                 ProtocolOverStream? remoteProtocol = null;
+                
+                Thread.Sleep(333); // hmm
 
                 try
                 {

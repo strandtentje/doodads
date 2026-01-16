@@ -29,7 +29,7 @@ namespace Ziewaar.RAD.Networking
                 }
                 catch (Exception ex)
                 {
-                    GlobalLog.Instance?.Warning(ex, $"{description} during copy");
+                    // GlobalLog.Instance?.Warning(ex, $"{description} during copy");
                 }
                 finally
                 {
@@ -39,8 +39,10 @@ namespace Ziewaar.RAD.Networking
                     }
                     catch (Exception ex)
                     {
-                        GlobalLog.Instance?.Warning(ex, $"{description} during close");
+                        // GlobalLog.Instance?.Warning(ex, $"{description} during close");
                     }
+
+                    GlobalLog.Instance?.Information("Pipe {description} stopped", description);
                 }
             });
             thr.Start();

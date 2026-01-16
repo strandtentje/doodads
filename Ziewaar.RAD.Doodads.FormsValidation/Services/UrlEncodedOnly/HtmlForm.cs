@@ -1,4 +1,5 @@
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
+
 #pragma warning disable 67
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
@@ -19,14 +20,18 @@ public class HtmlForm : IService
 {
     [EventOccasion("Sink the form text here.")]
     public event CallForInteraction? OnThen;
-    [NeverHappens]
-    public event CallForInteraction? OnElse;
+
+    [NeverHappens] public event CallForInteraction? OnElse;
+
     [EventOccasion("When the form was valid, the form values are in memory here.")]
     public event CallForInteraction? OnValid;
+
     [EventOccasion("When the form was invalid, no new data is here, but the form will be printed with its error spans")]
     public event CallForInteraction? OnInvalid;
+
     [EventOccasion("When there was no sink")]
     public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var targetSink) || targetSink == null)
@@ -43,8 +48,9 @@ public class HtmlForm : IService
         doc.Load(tsi.SinkBuffer, targetSink.TextEncoding);
         var fieldset = ValidatingInputFieldSet.Parse(doc);
 
-        ICsrfFields? csrfFields = interaction.TryGetClosest<ICsrfTokenSourceInteraction>(out var csrf) && csrf != null ?
-            csrf.Fields : null;
+        ICsrfFields? csrfFields = interaction.TryGetClosest<ICsrfTokenSourceInteraction>(out var csrf) && csrf != null
+            ? csrf.Fields
+            : null;
 
         if (interaction.TryFindVariable<string>("method", out string? candidateMethod) && candidateMethod != null &&
             interaction.TryFindVariable<string>("url", out string? candiateUrl) && candiateUrl != null &&
@@ -70,9 +76,12 @@ public class HtmlForm : IService
             }
             else
             {
-                OnException?.Invoke(this, new CommonInteraction(interaction, "bad method or no data (note: HtmlForm does not support multipart; use HtmlFormPrepare and related services instead."));
+                OnException?.Invoke(this,
+                    new CommonInteraction(interaction,
+                        "bad method or no data (note: HtmlForm does not support multipart; use HtmlFormPrepare and related services instead."));
                 return;
             }
+
             if (csrfFields != null)
                 parsedForm = new DeobfuscatedFormDictionary(parsedForm, csrfFields, fieldset.ToString());
             try
@@ -89,22 +98,35 @@ public class HtmlForm : IService
                             if (instances.Length == 1)
                             {
                                 saneValues[item.name] = instances[0];
-                            } else if (instances.Length > 1)
+                            }
+                            else if (instances.Length > 1)
                             {
                                 saneValues[item.name] = instances;
                             }
-                        } else if (item.value is object singleItem)
+                        }
+                        else if (item.value is object singleItem)
                         {
                             saneValues[item.name] = singleItem;
                         }
                     }
+
                     OnValid?.Invoke(this, new CommonInteraction(interaction, saneValues));
-                } else
+                }
+                else
                 {
-                    foreach (var item in result.Where(x=>x.isError))
+                    GlobalLog.Instance?.Debug("Form {method} {url} didn't come in quite right", candidateMethod,
+                        candiateUrl);
+                    foreach (var item in result)
+                    {
+                        GlobalLog.Instance?.Debug("On item {name} we got a failure:{result} due to value {value}",
+                            item.name, item.isError, item.value);
+                    }
+
+                    foreach (var item in result.Where(x => x.isError))
                     {
                         doc.SetErrorSpan(item.name);
                     }
+
                     OnInvalid?.Invoke(this, interaction);
                 }
             }
@@ -119,8 +141,9 @@ public class HtmlForm : IService
 
         if (interaction.TryGetClosest<IMayRedirectInteraction>(out var redirect) &&
             redirect is { IsRedirecting: true }) return;
-        
+
         doc.Save(targetSink.SinkBuffer, targetSink.TextEncoding);
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

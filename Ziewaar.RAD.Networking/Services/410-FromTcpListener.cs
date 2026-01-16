@@ -27,25 +27,28 @@ public class FromTcpListener : IService
                 new MessageTypeNames(),
                 new ProtocolDefinition("NULL", 0));
 
-            using var cts = new CancellationTokenSource();
             var ri = new RepeatInteraction(
                 constants.PrimaryConstant.ToString() ?? throw new Exception("Missing repeat name"), interaction,
-                cts.Token);
+                new CancellationToken(false));
 
-            var receiver = new ClientReceiver(cts.Token, ReceiveConnectionCallback);
+            EventWaitHandle breakdown = new EventWaitHandle(false, EventResetMode.ManualReset);
+            var receiver = new ClientReceiver(ReceiveConnectionCallback);
 
             using var listener = new TcpListener(IPAddress.Any, portNumber);
             listener.Start();
             using ClientEmitter ce = new(logger, listener, nullProtocol, receiver);
             ce.Start();
-            ce.WaitForExit(cts.Token);
+            breakdown.WaitOne();
 
             void ReceiveConnectionCallback(TcpClient client, ProtocolOverStream protocol)
             {
                 ri.IsRunning = false;
                 OnThen?.Invoke(this, new DuplexInteraction(ri, client.GetStream()));
                 if (ri.IsRunning == false)
-                    ri.Cancel();
+                {
+                    using (breakdown)
+                        breakdown.Set();
+                }
             }
         }
     }

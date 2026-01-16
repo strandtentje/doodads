@@ -18,8 +18,11 @@ public class HttpResponseInteraction(
 
     public void RedirectTo(string url, bool preservePost = false)
     {
-        context.Response.StatusCode = preservePost ? (int)HttpStatusCode.TemporaryRedirect : (int)HttpStatusCode.SeeOther;
+        var desiredCode = preservePost ? (int)HttpStatusCode.TemporaryRedirect : (int)HttpStatusCode.SeeOther;
+        GlobalLog.Instance?.Debug("Setting redirect code {code} to url {url}...", desiredCode, url);
+        context.Response.StatusCode = desiredCode;
         context.Response.RedirectLocation = url;
+        GlobalLog.Instance?.Debug("Code and Location: {code} - {location}", context.Response.StatusCode, context.Response.RedirectLocation);
     }
     public int StatusCode
     {

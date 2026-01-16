@@ -38,7 +38,7 @@ public class SinkPlug : IService
             return;
         }
         var bsi = new BufferSinkInteraction(interaction, trueSink);
-        (interaction, ContinueName ?? "").RunCancellable(ri =>
+        (bsi, ContinueName ?? "").RunCancellable(ri =>
         {
             try
             {
@@ -46,7 +46,10 @@ public class SinkPlug : IService
             }
             finally
             {
-                if (ri.IsRunning || ri.RepeatName == "") bsi.Flush();
+                if (ri.IsRunning || ri.RepeatName == "") 
+                    bsi.Flush();
+                else 
+                    GlobalLog.Instance?.Debug("Not flushing due to {rn} abort", ri.RepeatName);
             }
         });
     }

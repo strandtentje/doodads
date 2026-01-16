@@ -6,7 +6,7 @@ using Ziewaar.Network.Protocol;
 
 namespace Ziewaar.RAD.Networking;
 
-public class ClientReceiver(CancellationToken cancellationToken, Action<TcpClient, ProtocolOverStream> callback)
+public class ClientReceiver(Action<TcpClient, ProtocolOverStream> callback)
     : IClientReceiver
 {
     public void CommunicateWithClient(TcpClient client, ProtocolOverStream protocol) => callback(client, protocol);

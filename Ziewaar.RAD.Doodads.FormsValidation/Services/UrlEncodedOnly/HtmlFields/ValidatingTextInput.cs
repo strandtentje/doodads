@@ -1,7 +1,9 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
+
 public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
 {
     public event EventHandler<(string oldName, string newName)>? NameChanged;
+
     public string Name
     {
         get => node.GetInputName() ?? "";
@@ -13,6 +15,7 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
             NameChanged?.Invoke(this, (oldName, value));
         }
     }
+
     public int MinLength, MaxLength;
     public Regex Pattern = new(".*");
     public string TextInputType = "text";
@@ -21,8 +24,16 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
+
     public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
+        if (MaxLength < 1)
+        {
+            GlobalLog.Instance?.Warning(
+                "A field named {name} has no maxlength configured, or has it set to 0! Perhaps, this form never validates.",
+                node.GetInputName());
+        }
+
         if (TextInputType == "password")
         {
             var distinctValues = submittedValue.Distinct().ToArray();
@@ -45,6 +56,7 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
             return readPw.Length == submittedValue.Length;
         }
     }
+
     public bool TryIdentityMerge(IValidatingInputFieldInSet otherFieldInSet)
     {
         if (otherFieldInSet.Name != this.Name)
@@ -60,7 +72,9 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
             return false;
         }
     }
+
     private static readonly string[] FieldTypes = ["password", "text", "search", "tel", "text", "url", "hidden"];
+
     public static bool TryInsertInto(HtmlNode node, IValidatingInputFieldSet set)
     {
         var nodeType = node.GetInputTypeName();

@@ -7,7 +7,7 @@ namespace Ziewaar.RAD.Networking;
 
 public class ProtocolServer : IService, IDisposable
 {
-    private readonly HashSet<(ClientEmitter Emitter, CancellationTokenSource CTS)> OpenEmitters = new();
+    private readonly HashSet<ClientEmitter> OpenEmitters = new();
     private readonly UpdatingPrimaryValue RepeatNameConstant = new UpdatingPrimaryValue();
     private readonly UpdatingKeyValue PortNumberConstant = new("port");
     private readonly UpdatingKeyValue ConnectionLimitConstant = new("connectionlimit");
@@ -28,20 +28,22 @@ public class ProtocolServer : IService, IDisposable
                 ? connectionLimitCandidate
                 : 10000);
 
-        using var cts = new CancellationTokenSource();
-        var ri = new RepeatInteraction(constants.PrimaryConstant.ToString() ?? throw new Exception("Missing repeat name"), interaction, cts.Token);
+        var ri = new RepeatInteraction(constants.PrimaryConstant.ToString() ?? throw new Exception("Missing repeat name"), interaction, new CancellationToken(false));
         
-        var clientReceiver = new ClientReceiver(cts.Token, ReceiveConnectionCallback);
+        EventWaitHandle breakdown = new EventWaitHandle(false, EventResetMode.ManualReset);
+        var clientReceiver = new ClientReceiver(ReceiveConnectionCallback);
         using var connectionMaker = protocolInteraction.Payload.CreateServer(portNumber, clientReceiver, connectionLimit);
         
-        OpenEmitters.Add((connectionMaker, cts));
+        OpenEmitters.Add(connectionMaker);
+        
         
         using (connectionMaker)
         {
             try
             {
                 connectionMaker.Start();
-                connectionMaker.WaitForExit(cts.Token);
+                breakdown.WaitOne();
+                GlobalLog.Instance?.Information("Protocol server broke due to natural reasons");
             }
             catch (Exception ex)
             {
@@ -49,7 +51,7 @@ public class ProtocolServer : IService, IDisposable
             }
             finally
             {
-                OpenEmitters.Remove((connectionMaker, cts));
+                OpenEmitters.Remove(connectionMaker);
             }
         }
 
@@ -61,7 +63,9 @@ public class ProtocolServer : IService, IDisposable
             OnThen?.Invoke(this, new CustomInteraction<(TcpClient TcpClient, ProtocolOverStream Protocol)>(ri,
                 (client, protocol)));
             if (ri.IsRunning == false)
-                ri.Cancel();
+            {
+                using (breakdown) breakdown.Set();
+            }
         }
     }
 
@@ -73,13 +77,7 @@ public class ProtocolServer : IService, IDisposable
         {
             try
             {
-                using (pair.CTS)
-                {
-                    using (pair.Emitter)
-                    {
-                        pair.CTS.Cancel();
-                    }
-                }
+                pair.Dispose();
             }
             catch (Exception ex)
             {

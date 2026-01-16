@@ -93,6 +93,7 @@ public class WebServer : IService, IDisposable
                 var requestInteraction = new HttpRequestInteraction(headInteraction, context);
                 var responseInteraction = new HttpResponseInteraction(requestInteraction, context);
                 OnThen?.Invoke(this, responseInteraction);
+                GlobalLog.Instance?.Debug("Replying to {method} {url} with {code}", context.Request.HttpMethod, context.Request.Url, context.Response.StatusCode);
             };
             this.StartingInteraction = new CommonInteraction(
                 interaction, memory: new SwitchingDictionary(

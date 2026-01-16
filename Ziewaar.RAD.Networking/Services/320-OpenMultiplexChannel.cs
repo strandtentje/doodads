@@ -49,10 +49,13 @@ public class OpenMultiplexChannel : IService, IDisposable
 
             var interactionChannel = interactionMultiplexTask.Result;
             using var duplexChannel = duplexMultiplexTask.Result;
+            var valueStream = interactionChannel.AsStream();
 
             OpenChannels.Add((interactionChannel, duplexChannel, cts));
 
             var duplexStream = duplexChannel.AsStream();
+
+            OnThen?.Invoke(this, interaction);
 
             var interactionThread = new Thread(() =>
             {
@@ -60,7 +63,6 @@ public class OpenMultiplexChannel : IService, IDisposable
                 {
                     using (interactionChannel)
                     {
-                        var valueStream = interactionChannel.AsStream();
                         var valueProtocol = MultiplexProtocolFactories.InteractionChannel.Create(valueStream);
                         while (true)
                         {
