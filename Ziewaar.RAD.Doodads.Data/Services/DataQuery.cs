@@ -11,6 +11,7 @@ namespace Ziewaar.RAD.Doodads.Data.Services;
 [Description("""
     Execute a query, and after each result row was retrieved, invoke OnThen.
     """)]
+[ShortNames("qry")]
 public class DataQuery : DataService<object?>
 {
     protected override object? WorkWithCommand(IDbCommand command, IInteraction cause)

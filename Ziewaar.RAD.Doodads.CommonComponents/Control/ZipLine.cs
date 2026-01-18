@@ -9,6 +9,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
              Will dequeue an item enqueued by ZipOut. If there are no items and ZipExit happened
              on this name, this will not propagate OnThen.
              """)]
+[ShortNames("zl")]
 public class ZipLine : IteratingService
 {
     [NamedSetting("timeout",

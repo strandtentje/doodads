@@ -5,6 +5,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Category("Diagnostics & Debug")]
 [Title("Dump the partial context to console")]
 [Description("Dont do this in prod.")]
+[ShortNames("dmp")]
 public class SlimDump : IService
 {
     [PrimarySetting("Serilog-style log line that may optionally contain memory names")]

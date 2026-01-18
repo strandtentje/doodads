@@ -6,6 +6,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
              This happens in the OnElse of a ZipIn, after ZipEnter.
              Interactions propagated into this services, are saved for later use by ZipOut
              """)]
+[ShortNames("zo")]
 public class ZipOut : IService
 {
     [NeverHappens]

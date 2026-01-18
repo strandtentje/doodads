@@ -45,7 +45,9 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         this.CleanupPropagation = [.. branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup)];
         try
         {
-            this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, out this.Type);
+            if (!atPosition.Policies.TryGetValue("shorthand", out var shorthandPolicyCandidate) ||
+                shorthandPolicyCandidate is not ShorthandNamePolicy snp) snp = ShorthandNamePolicy.Rejected; 
+            this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, snp, out this.Type);
         }
         catch (MissingServiceTypeException ex)
         {

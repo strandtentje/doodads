@@ -13,6 +13,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
              are available by name. It'll continue outputting according to IteratingService rules ie with Continue("")
               or [""]
              """)]
+[ShortNames("zi")]
 public class ZipIn : IteratingService
 {
     [EventOccasion("Zip sources")]
@@ -30,6 +31,6 @@ public class ZipIn : IteratingService
         do
         {
             yield return zi;
-        } while (zi.MergeCollections.Any(x => !x.Collection.IsAddingCompleted));
+        } while (zi.MergeCollections.Any(x => !x.Collection.IsCompleted));
     }
 }

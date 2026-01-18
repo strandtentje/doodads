@@ -4,6 +4,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Category("Diagnostics & Debug")]
 [Title("Write an information message and optionally some interaction context to console/logfile")]
 [Description("This is cool in prod.")]
+[ShortNames("msg")]
 public class InformationMessage : IService
 {
     [PrimarySetting("Serilog-style log line that may optionally contain memory names")]

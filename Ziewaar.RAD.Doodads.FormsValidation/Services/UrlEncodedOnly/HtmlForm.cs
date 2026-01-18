@@ -16,6 +16,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
               - There was no method or maybe a not a query in memory
               - OnValid or OnInvalid triggered a redirect right after validation but before printing
              """)]
+[ShortNames("hfrm")]
 public class HtmlForm : IService
 {
     [EventOccasion("Sink the form text here.")]

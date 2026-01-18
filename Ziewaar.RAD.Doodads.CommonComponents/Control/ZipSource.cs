@@ -10,6 +10,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
              OnThen is spun up concurrently, and when its done doing work, ZipEnter the Zip sink
              as complete such that ZipLine won't expect more items.
              """)]
+[ShortNames("zs")]
 public class ZipSource : IService
 {
     [EventOccasion("Runs concurrently to start populating the zip list")]

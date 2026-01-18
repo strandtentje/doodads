@@ -13,6 +13,7 @@ namespace Ziewaar.RAD.Doodads.Data.Services;
     Depending on the affected rows, it may propagate differently; OnElse happens if nothing
     was affected. OnThen happens is something was affected.
     """)]
+[ShortNames("dbcmd")]
 public class DataCommand : DataService<int>
 {
     protected override int WorkWithCommand(IDbCommand command, IInteraction cause) => command.ExecuteNonQuery();

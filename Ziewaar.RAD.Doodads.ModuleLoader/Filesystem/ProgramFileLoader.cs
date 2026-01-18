@@ -24,6 +24,18 @@ public class ProgramFileLoader : IDisposable
     {
         CleanDefinitions();
         var seenTerminator = true;
+
+        text = text.SkipWhitespace().TakeToken(TokenDescription.ShorthandPolicy, out var token);
+
+        if (token.IsValid)
+            text = text.IncludePolicy(
+                "shorthand",
+                Enum.TryParse<ShorthandNamePolicy>(
+                    token.Text.Substring("shorthand is ".Length).Trim().TrimEnd(';').Trim(),
+                    ignoreCase: true, out var snp)
+                    ? snp
+                    : ShorthandNamePolicy.Rejected);
+        
         while (seenTerminator && ProgramDefinition.TryCreate(ref text, out ProgramDefinition newDefinition))
         {
             Definitions!.Add(newDefinition);

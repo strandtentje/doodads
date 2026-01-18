@@ -6,6 +6,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 [Description("""
              Put a value in the primary constant and it'll be in Register at OnThen
              """)]
+[ShortNames("reg")]
 public class Register : IService
 {
     [EventOccasion("Primary constant comes out in register here")]

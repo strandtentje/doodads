@@ -14,6 +14,7 @@ namespace Ziewaar.RAD.Doodads.Data.Services;
 [Description("""
              Retrieve all result rows then iterate through them.
              """)]
+[ShortNames("bdq", "bufqry")]
 public class BufferedDataQuery : DataService<object?>
 {
     protected override object? WorkWithCommand(IDbCommand command, IInteraction cause)

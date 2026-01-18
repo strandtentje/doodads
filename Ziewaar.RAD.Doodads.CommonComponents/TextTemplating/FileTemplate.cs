@@ -10,6 +10,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
              will template using the contents of the file provided in the primary 
              constant. 
              """)]
+[ShortNames("ft", "tpl")]
 public class FileTemplate : IService
 {
     PrintContent ContentPrinter = new();

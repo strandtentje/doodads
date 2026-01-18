@@ -10,6 +10,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
              configured name. Unless the `constant`-setting is specified; 
              then the configuration value is put into memory at the specified location.
              """)]
+[ShortNames("st")]
 public class Store : IService
 {
     [PrimarySetting("Key in memory to write to")]

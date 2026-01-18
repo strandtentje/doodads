@@ -4,11 +4,14 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
+
 public class TypeRepository : IDisposable
 {
     public static readonly TypeRepository Instance = new();
     public readonly SortedList<string, Type> NamedServiceTypes = new();
+    public readonly SortedList<string, Type> ShortNamedServiceTypes = new(StringComparer.OrdinalIgnoreCase);
     private NameSuggestions? Names;
+
     public TypeRepository PopulateWith(params string[] assemblyFiles)
     {
         foreach (var assemblyPath in assemblyFiles)
@@ -16,8 +19,10 @@ public class TypeRepository : IDisposable
             var assembly = Assembly.LoadFrom(assemblyPath);
             PopulateWith(assembly);
         }
+
         return this;
     }
+
     public TypeRepository PopulateWith(Assembly assembly)
     {
         IEnumerable<Type> serviceTypes;
@@ -44,6 +49,15 @@ public class TypeRepository : IDisposable
             {
                 NamedServiceTypes.Add(serviceType.Name, serviceType);
                 var attributes = serviceType.GetCustomAttributes().ToArray();
+                var serviceShortNames = attributes.OfType<ShortNames>().SelectMany(x => x.Names);
+
+                foreach (var shortName in serviceShortNames)
+                {
+                    if (ShortNamedServiceTypes.Remove(shortName))
+                        GlobalLog.Instance?.Warning("Duplicate definition of short name {sn}", shortName);
+                    else
+                        ShortNamedServiceTypes.Add(shortName, serviceType);
+                }
 
                 Task.Run(() =>
                 {
@@ -81,37 +95,52 @@ public class TypeRepository : IDisposable
                 });
             }
         }
+
         return this;
     }
+
     List<IDisposable> disposables = new();
-    public IService CreateInstanceFor(string name, out Type foundType)
+
+    public IService CreateInstanceFor(string name, ShorthandNamePolicy shorthandPolicy, out Type foundType)
     {
-        if (NamedServiceTypes.TryGetValue(name, out var type))
+        if ((!NamedServiceTypes.TryGetValue(name, out foundType) &&
+             !TryGetByShortHand(shorthandPolicy, name, out foundType)) || foundType == null)
+            throw new MissingServiceTypeException(name,
+                (Names ??= new NameSuggestions(NamedServiceTypes.Keys)).GetMostSimilar(name));
+
+        var service = (IService)Activator.CreateInstance(foundType);
+        if (service is IDisposable disposableService)
+            disposables.Add(disposableService);
+        return service;
+    }
+
+    private bool TryGetByShortHand(ShorthandNamePolicy policy, string shorthand, out Type type)
+    {
+        if (!ShortNamedServiceTypes.TryGetValue(shorthand, out type))
+            return false;
+        switch (policy)
         {
-            foundType = NamedServiceTypes[name];
-            if (foundType == null)
-            {
-                if (Names == null)
-                    Names = new NameSuggestions(NamedServiceTypes.Keys);
-                throw new MissingServiceTypeException(name, Names.GetMostSimilar(name));
-            }
-            var service = (IService)Activator.CreateInstance(foundType);
-            if (service is IDisposable disposableService)
-            {
-                disposables.Add(disposableService);
-            }
-            return service;
-        }
-        else
-        {
-            if (Names == null)
-                Names = new NameSuggestions(NamedServiceTypes.Keys);
-            throw new MissingServiceTypeException(name, Names.GetMostSimilar(name));
+            case ShorthandNamePolicy.Encouraged:
+            case ShorthandNamePolicy.Accepted:
+                return true;
+            case ShorthandNamePolicy.Discouraged:
+                GlobalLog.Instance?.Warning(
+                    "Shorthand is discouraged! But we'll allow retrieving `{type}` by `{shortand}` for now.", type.Name,
+                    shorthand);
+                return true;
+            case ShorthandNamePolicy.Rejected:
+            default:
+                GlobalLog.Instance?.Error(
+                    "Shorthand REJECTED! `{type}` may not be retrieved by `{shortand}`.", type.Name,
+                    shorthand);
+                return false;
         }
     }
+
     public string[] GetAvailableNames() => NamedServiceTypes.Keys.ToArray();
     public bool HasName(string newTypeName) => NamedServiceTypes.ContainsKey(newTypeName);
     public bool TryGetByName(string name, out Type type) => NamedServiceTypes.TryGetValue(name, out type);
+
     public void Dispose()
     {
         foreach (var item in disposables)

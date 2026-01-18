@@ -7,6 +7,7 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 [Description("""
              Does a 307 Temporary Redirect to the path sunk into OnThen
              """)]
+[ShortNames("redir")]
 public class HttpRedirect : IService
 {
     [EventOccasion("Sink redirect URL here.")]

@@ -21,6 +21,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
              order of operations instead. However, it does mean, sometimes you need to move something
              into or out of the Register, or Memory. This is what Load and Store are for.
              """)]
+[ShortNames("ld")]
 public class Load : IService
 {
     [PrimarySetting("The memory key to look at for retrieving the Register value")]

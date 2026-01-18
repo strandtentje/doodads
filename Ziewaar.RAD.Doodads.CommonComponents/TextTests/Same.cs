@@ -9,6 +9,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTests;
 [Description("""
              Compares string representations of memory values.
              """)]
+[ShortNames("eq")]
 public class Same : IService
 {
     [PrimarySetting("constant names in memory, may be string with commas, or array of strings")]

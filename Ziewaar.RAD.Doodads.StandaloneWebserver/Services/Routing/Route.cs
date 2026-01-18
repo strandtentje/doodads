@@ -25,6 +25,7 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
              ```ExactRoute("POST /purchase")```
              Will only match POST requests on `/purchase` and no subdirs.
              """)]
+[ShortNames("r")]
 public class Route : IService
 {
     [PrimarySetting("Routing template as specified in the description above")]

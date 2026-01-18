@@ -62,6 +62,26 @@ public class TokenDescription(
         Terminator = DescribeSingleCharacter(';', "Terminator char (semicol, ';')"),
         DefaultBranchCoupler = DescribeSingleCharacter(':', "Coupler char (col, ':')"),
         ObelusCoupler = DescribeSingleCharacter('÷', "Omni coupler char (obelus, '÷')"),
+        ShorthandPolicy = new TokenDescription(ShorthandOkTester, ShorthandOkValidator, "shorthand is [encouraged|accepted|discouraged|rejected]");
+
+    private static bool ShorthandOkValidator(string arg) =>
+        string.Equals(arg, SHORTHAND_IS_ENCOURAGED, StringComparison.Ordinal)
+        || string.Equals(arg, SHORTHAND_IS_ACCEPTED, StringComparison.Ordinal)
+        || string.Equals(arg, SHORTHAND_IS_DISCOURAGED, StringComparison.Ordinal)
+        || string.Equals(arg, SHORTHAND_IS_REJECTED, StringComparison.Ordinal);
+
+    public const string
+        SHORTHAND_IS_ENCOURAGED = "shorthand is encouraged;",
+        SHORTHAND_IS_ACCEPTED = "shorthand is accepted;",
+        SHORTHAND_IS_DISCOURAGED = "shorthand is discouraged;",
+        SHORTHAND_IS_REJECTED = "shorthand is rejected;";
+    private static bool ShorthandOkTester(int arg1, char arg2) =>
+        SHORTHAND_IS_ENCOURAGED.ElementAtOrDefault(arg1) == arg2 ||
+        SHORTHAND_IS_ACCEPTED.ElementAtOrDefault(arg1) == arg2 ||
+        SHORTHAND_IS_DISCOURAGED.ElementAtOrDefault(arg1) == arg2 ||
+        SHORTHAND_IS_REJECTED.ElementAtOrDefault(arg1) == arg2;
+
+    public static readonly TokenDescription
         TermOrAmpP = new TokenDescription(
             (pos, chr) => pos switch
             {
@@ -174,5 +194,4 @@ public class TokenDescription(
                 _ => char.IsDigit(chr)
             }, x => x.Length > 0, "Numbers 0-9 optionally starting with -"),
         DecimalSeparator = DescribeSingleCharacter('.', "Decimal point (.)");
-
 }

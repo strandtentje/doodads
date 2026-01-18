@@ -12,6 +12,7 @@ namespace Ziewaar.RAD.Doodads.Data.Services;
 [Description("""
              For queries that contain a PLACEHOLDER_name, define the text here using the constants.
              """)]
+[ShortNames("qplh")]
 public class QueryPlaceholder : IService
 {
     [EventOccasion("Placeholder definition comes out here")]
