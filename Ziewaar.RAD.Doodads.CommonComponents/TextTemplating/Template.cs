@@ -28,6 +28,16 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
               - `%` : Prefixing with a percent sign will escape strings to be safe for URL usage.
               - `=` : Prefixing with an equals-sign will escape strings to be safe for HTML attribute usage.
               - `;` : Prefixing with a semicolon will escape strings to be safe for JS string literal usage.
+              
+             Conditional modifiers
+              - `!` : Null-coalescing modifier. Prefixing with an exclamation mark then putting the alternative 
+                value after, will replace in case of null or empty.
+              - `?` : Regex-options modifier. Prefixing memory name with an `?` then providing `*`-prefixed 
+                `regex key => "output value"` pairs will create an inline sort of switch
+                
+             Quote expression
+              - Putting some plain text between quotes in a template block, will put the (filtered) content
+                of the text between the quotes into the output.
 
              Scalar values such as numbers, datetimes and timespans may be formatted using a colon and then
              a format.
@@ -38,9 +48,12 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
               - {% <sheepcount:0000 $} makes 0010 if the sheepcount is 10
               - {% &bananas %} makes &lt;bananas&gt; if bananas says `<bananas>`
               - {% %cake %} makes hello%20world if cake is `hello world`
+              - {% !cake=>"no cake :(" %} makes `no cake :(` when the memory place `cake` is empty.
+              - {% ?color *yellow=>"bert" *orange=>"ernie" %} makes `bert` when memory `color` is set to
+                `yellow`, and `ernie` when `color` is set to `orange` 
 
-             Exactly one filter modifier and one source modifier may be combined. When omitted, the engine
-             defaults to sourcing from memory first, and never filtering.
+             Exactly one filter modifier, one source modifier and one conditional modifier may be combined. 
+             When omitted, the engine defaults to sourcing from memory first, and never filtering.
              """)]
 public class Template : IService
 {
