@@ -49,7 +49,7 @@ public class TypeRepository : IDisposable
             {
                 NamedServiceTypes.Add(serviceType.Name, serviceType);
                 var attributes = serviceType.GetCustomAttributes().ToArray();
-                var serviceShortNames = attributes.OfType<ShortNames>().SelectMany(x => x.Names);
+                var serviceShortNames = attributes.OfType<ShortNamesAttribute>().SelectMany(x => x.Names);
 
                 foreach (var shortName in serviceShortNames)
                 {

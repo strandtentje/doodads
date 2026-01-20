@@ -12,6 +12,7 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Documentation;
 public class ServiceSettings : IteratingService
 {
     protected override bool RunElse { get; }
+
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
         if (repeater.Register is not string serviceName)
