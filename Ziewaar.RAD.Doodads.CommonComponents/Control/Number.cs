@@ -67,11 +67,21 @@ public class Number : IService
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
 
+[Category("Printing & Formatting")]
+[Title("Check changes against captured number")]
+[Description("""
+             Compare a register number to a captured numper. Update the captured number & 
+             detect cahgnes.
+             """)]
 public class NumberChanged : IService
 {
+    [PrimarySetting("Name of the captured number")]
     private readonly UpdatingPrimaryValue CounterNameConstant = new();
+    [EventOccasion("When the number has changed")]
     public event CallForInteraction? OnThen;
+    [EventOccasion("When the number hasn't changed")]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When no captured number was found with that name in memory.")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

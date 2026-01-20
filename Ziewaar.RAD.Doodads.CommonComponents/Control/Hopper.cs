@@ -20,7 +20,8 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
              """)]
 public class Hopper : IteratingService, IDisposable
 {
-    private readonly UpdatingPrimaryValue RunnersConstant = new();
+    [NamedSetting("runners", "Amount of parallel jobs that can come from the hopper")]
+    private readonly UpdatingKeyValue RunnersConstant = new("runners");
     private int CurrentAmountOfRunners = 1;
     private SemaphoreSlim Blocker = new(1, 1);
     private readonly BlockingCollection<IInteraction> Jobs = new();

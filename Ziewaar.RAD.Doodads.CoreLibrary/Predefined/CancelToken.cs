@@ -11,15 +11,19 @@ public class CancelToken : IService
     private readonly UpdatingPrimaryValue CancellationNameConstant = new();
     private string? CurrentCancellationToken;
 
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, CancellationNameConstant).IsRereadRequired(out CurrentCancellationToken);
 
-        var cancels = interaction.GetAllOf<CancellationInteraction>(x => x.Name == "" || x.Name == CurrentCancellationToken);
+        var cancels = interaction.GetAllOf<CancellationInteraction>(
+            x => x.Name == "" || x.Name == CurrentCancellationToken);
 
         foreach (var item in cancels)
             item.Cancel();
