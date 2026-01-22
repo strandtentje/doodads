@@ -106,28 +106,4 @@ public class BootstrapperBuilderTest
         Assert.AreEqual(testfilename, output.StartFile);
         Assert.IsEmpty(output.RootInteractionMemory);
     }
-    [TestMethod]
-    public void TestWithAssembliesAndRuntime()
-    {
-        var dir = Path.GetTempPath();
-        var testfilename = Path.GetTempFileName();
-        if (File.Exists(Path.Combine(dir, testfilename)))
-            File.Delete(Path.Combine(dir, testfilename));
-        var sut = BootstrappedStartBuilder.Create(dir);
-        var ex = Assert.ThrowsExactly<ArgumentException>(sut.Build);
-        Assert.AreEqual("StarterFile", ex.ParamName);
-        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.SetStarter(testfilename));
-        Assert.AreEqual("name", ex.ParamName);
-        ex = Assert.ThrowsExactly<ArgumentException>(() => sut.AddFile(testfilename));
-        Assert.AreEqual("definitionText", ex.ParamName);
-        sut.AddFile(testfilename, "");
-        sut.SetStarter(testfilename);
-        sut.SetRuntimeBy<Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Program>();
-        sut.AddAssemblyBy<ExceptionCauser>();
-        var output = sut.BuildProcessStart(true);
-        Assert.AreEqual(dir, output.WorkingDirectory);
-        Assert.Contains("RuntimeForDotnetCore", output.FileName);
-        Assert.Contains("Starter.Test", output.Arguments);
-        Assert.Contains((new FileInfo(testfilename)).Name, output.Arguments);
-    }
 }

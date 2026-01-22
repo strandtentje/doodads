@@ -7,9 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\dev-tunnels-ssh\src\cs\Ssh.Keys\Ssh.Keys.csproj" />
-    <ProjectReference Include="..\dev-tunnels-ssh\src\cs\Ssh.Tcp\Ssh.Tcp.csproj" />
-    <ProjectReference Include="..\dev-tunnels-ssh\src\cs\Ssh\Ssh.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.EnumerableStreaming\Ziewaar.RAD.Doodads.EnumerableStreaming.csproj" />
   </ItemGroup>
