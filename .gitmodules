@@ -1,6 +1,3 @@
-[submodule "dev-tunnels-ssh"]
-	path = dev-tunnels-ssh
-	url = git@github.com:strandtentje/dev-tunnels-ssh.git
 [submodule "network-utils-cs"]
 	path = network-utils-cs
 	url = git@github.com:strandtentje/network-utils-cs.git
