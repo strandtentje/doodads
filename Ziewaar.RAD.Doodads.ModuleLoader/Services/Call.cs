@@ -25,6 +25,8 @@ public class Call : IService
     private string? CurrentModuleName;
     private string? DefinitionFile;
 
+    protected virtual bool Destroyer => false;
+
     [EventOccasion("When the called configuration returns control using ReturnThen")]
     public event CallForInteraction? OnThen;
 
@@ -114,6 +116,9 @@ public class Call : IService
 
     private void EnterDefinition(IInteraction interaction, StampedMap constants, string file, string definition)
     {
+        if (Destroyer)
+            ProgramRepository.Instance.DisposeFile(file);
+
         var ci = new CallingInteraction(interaction, constants.NamedItems);
         ci.OnThen += OnThen;
         ci.OnElse += OnElse;
@@ -122,13 +127,15 @@ public class Call : IService
         program.Emitter.WorkingState.SloppilyWaitForWorkToCease();
 
         var entryPointCount = program.TryFindEntryPoint(x => x.Name == definition, out var entryPoint);
-        if (entryPointCount != 1 || entryPoint == null)
+        if (entryPointCount < 1 || entryPoint == null)
         {
             OnException?.Invoke(
-                this,
-                new CommonInteraction(
-                    interaction,
-                    $"entry point should be defined exactly once, but {definition} exists {entryPointCount} times in {file}"));
+                this, new CommonInteraction(interaction, $"Entry point not found: {file} @ {definition}"));
+        }
+        else if (entryPointCount > 1)
+        {
+            OnException?.Invoke(
+                this, new CommonInteraction(interaction, $"Duplicate entry points found; cannot choose: {file} @ {definition}"));
         }
         else
         {

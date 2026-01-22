@@ -81,6 +81,12 @@ public static class SinkingInteractionExtensions
             return x.ReadToEnd();
         }
     }
+    public static IEnumerable<string> ReadAllLines(this ISinkingInteraction interaction)
+    {
+        using var x = interaction.GetDisposingSinkReader();
+        while (!x.EndOfStream)
+            yield return x.ReadLine();
+    }
     public static byte[] ReadAllBytes(this ISinkingInteraction interaction)
     {
         interaction.SinkBuffer.Position = 0;

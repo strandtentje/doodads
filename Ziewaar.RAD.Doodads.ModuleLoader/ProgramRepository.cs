@@ -18,6 +18,16 @@ public class ProgramRepository
 
         return known;
     }
+    public void DisposeFile(string filePath)
+    {
+        if (!File.Exists(filePath) && File.Exists($"{filePath}.rkop"))
+            filePath += ".rkop";
+        if (Programs.TryGetValue(filePath, out var known))
+        {
+            Programs.Remove(filePath);
+            known.Dispose();            
+        }
+    }
     public IEntryPoint? GetEntryPointForFile(string filePath) =>
         GetForFile(filePath).GetPrimaryEntryPoint();
     public ProgramFileLoader[] GetKnownPrograms() => Programs.Values.ToArray();

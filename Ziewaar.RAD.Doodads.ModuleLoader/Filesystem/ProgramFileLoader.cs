@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 #pragma warning disable CS0162 // Unreachable code detected
@@ -17,7 +18,15 @@ public class ProgramFileLoader : IDisposable
     {
         Definitions ??= new();
         foreach (var definition in Definitions)
-            definition.Dispose();
+        {
+            try
+            {
+                definition.Dispose();
+            } catch(Exception ex)
+            {
+                GlobalLog.Instance?.Warning(ex, "while disposing {name}", definition.Name);
+            }
+        }
         Definitions.Clear();
     }
     private void Emitter_HandleNewCursorText(object sender, CursorText text)

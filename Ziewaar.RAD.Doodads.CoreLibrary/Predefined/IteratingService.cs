@@ -1,10 +1,11 @@
 #nullable enable
+using Serilog.Core;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-public abstract class IteratingService : IService
+public abstract class IteratingService : IService, IDisposable
 {
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     protected string? CurrentRepeatName;
@@ -32,41 +33,84 @@ public abstract class IteratingService : IService
         {
             var items = GetItems(constants, repeatInteraction);
             repeatInteraction.IsRunning = true;
-            var thenEnumerator = items.GetEnumerator();
-
-            try
+            using (var thenEnumerator = items.GetEnumerator())
             {
-                while (repeatInteraction.IsRunning && thenEnumerator.MoveNext())
+                void HandleLocalDispose(object? sender, EventArgs e)
                 {
-                    repeatInteraction.IsRunning = false;
-                    if (thenEnumerator.Current != null)
-                        OnThen?.Invoke(this, thenEnumerator.Current);
+                    try
+                    {
+                        thenEnumerator.Dispose();
+                    } catch(ObjectDisposedException)
+                    {
+
+                    } catch(Exception ex)
+                    {
+                        GlobalLog.Instance?.Warning(ex, "while trying to dispose then-enumerator of {name}", this.CurrentRepeatName);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                OnException?.Invoke(this, interaction.AppendRegister(ex));
+
+                this.InternalDisposeEvent += HandleLocalDispose;
+
+                try
+                {
+                    while (repeatInteraction.IsRunning && thenEnumerator.MoveNext())
+                    {
+                        repeatInteraction.IsRunning = false;
+                        if (thenEnumerator.Current != null)
+                            OnThen?.Invoke(this, thenEnumerator.Current);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnException?.Invoke(this, interaction.AppendRegister(ex));
+                } finally
+                {
+                    this.InternalDisposeEvent -= HandleLocalDispose;
+                }
+
             }
 
             repeatInteraction.IsRunning &= RunElse;
             repeatInteraction.IsRunning |= OnElseRunningOverride;
             if (!repeatInteraction.IsRunning) return;
 
-            var elseEnumerator = GetElseItems(constants, repeatInteraction).GetEnumerator();
-
-            try
+            using (var elseEnumerator = GetElseItems(constants, repeatInteraction).GetEnumerator())
             {
-                while (repeatInteraction.IsRunning && elseEnumerator.MoveNext())
+                void HandleLocalDispose(object? sender, EventArgs e)
                 {
-                    repeatInteraction.IsRunning = false;
-                    if (elseEnumerator.Current != null)
-                        OnElse?.Invoke(this, elseEnumerator.Current);
+                    try
+                    {
+                        elseEnumerator.Dispose();
+                    } catch(ObjectDisposedException)
+                    {
+
+                    } catch(Exception ex)
+                    {
+                        GlobalLog.Instance?.Warning(ex, "while trying to dispose else-enumerator of {name}", this.CurrentRepeatName);
+                    }
+                }
+
+                this.InternalDisposeEvent += HandleLocalDispose;
+
+                try
+                {
+                    while (repeatInteraction.IsRunning && elseEnumerator.MoveNext())
+                    {
+                        repeatInteraction.IsRunning = false;
+                        if (elseEnumerator.Current != null)
+                            OnElse?.Invoke(this, elseEnumerator.Current);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnException?.Invoke(this, interaction.AppendRegister(ex));
+                }
+                finally
+                {
+                    this.InternalDisposeEvent -= HandleLocalDispose;
                 }
             }
-            catch (Exception ex)
-            {
-                OnException?.Invoke(this, interaction.AppendRegister(ex));
-            }
+
         });
     }
 
@@ -80,4 +124,9 @@ public abstract class IteratingService : IService
 
     public void HandleFatal(IInteraction source, Exception ex)
         => OnException?.Invoke(this, source);
+    protected event EventHandler<EventArgs>? InternalDisposeEvent;
+    public virtual void Dispose()
+    {
+        InternalDisposeEvent?.Invoke(this, EventArgs.Empty);
+    }
 }
