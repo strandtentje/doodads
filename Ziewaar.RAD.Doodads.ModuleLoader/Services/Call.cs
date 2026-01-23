@@ -117,7 +117,10 @@ public class Call : IService
     private void EnterDefinition(IInteraction interaction, StampedMap constants, string file, string definition)
     {
         if (Destroyer)
+        {
             ProgramRepository.Instance.DisposeFile(file);
+            return;
+        }
 
         var ci = new CallingInteraction(interaction, constants.NamedItems);
         ci.OnThen += OnThen;

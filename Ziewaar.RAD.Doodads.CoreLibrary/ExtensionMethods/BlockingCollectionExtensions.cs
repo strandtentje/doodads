@@ -23,7 +23,18 @@ public static class BlockingCollectionExtensions
             }
             catch (InvalidOperationException)
             {
-                return collection.IsCompleted ? BlockingTakeResult.Complete : BlockingTakeResult.ListFailure;
+                try
+                {
+                    return collection.IsCompleted ? BlockingTakeResult.Complete : BlockingTakeResult.ListFailure;
+                }
+                catch (ObjectDisposedException)
+                {
+                    return BlockingTakeResult.Complete;
+                }
+                catch (Exception)
+                {
+                    return BlockingTakeResult.ListFailure;
+                }
             }
             catch (Exception ex)
             {
