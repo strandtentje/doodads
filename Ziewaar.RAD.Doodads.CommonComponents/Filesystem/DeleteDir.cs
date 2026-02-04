@@ -3,20 +3,16 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
-[Title("Deletes file by register")]
+[Title("Recursive delete directory")]
 [Description("""
-             provided a file in the register, deletes it.
-             """)]
-[ShortNames("rm")]
-public class DeleteFile : IService
+    Provided a dir in register, deletes it.
+    """)]
+[ShortNames("rmrf")]
+public class DeleteDir : IService
 {
-    [NeverHappens]
     public event CallForInteraction? OnThen;
-    [NeverHappens]
     public event CallForInteraction? OnElse;
-    [EventOccasion("When it didn't receive a file on the register")]
     public event CallForInteraction? OnException;
-
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         FileSystemInfo? infoToWorkWith = null;
@@ -27,13 +23,13 @@ public class DeleteFile : IService
         else if (interaction.Register is object pathObject &&
             pathObject.ToString() is string path)
         {
-            if (File.Exists(path))
-                infoToWorkWith = new FileInfo(path);
+            if (Directory.Exists(path))
+                infoToWorkWith = new DirectoryInfo(path);
         }
-        if (infoToWorkWith is FileInfo info)
-            info.Delete();
+        if (infoToWorkWith is DirectoryInfo info)
+            info.Delete(true);
         else
-            OnException?.Invoke(this, new CommonInteraction(interaction, "provided path wasn't a file"));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "provided path wasn't a directory"));
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

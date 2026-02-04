@@ -4,6 +4,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 [Category("System & IO")]
 [Title("Read Single Line from File or Default")]
 [Description("Reads the first line from a text file into register, or puts default into register")]
+[ShortNames("lid")]
 public class LineOrDefault : IService
 {
     [PrimarySetting("Default Line Text")]

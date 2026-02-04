@@ -5,6 +5,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 [Category("System & IO")]
 [Title("Set single text line into file")]
 [Description("Overwrites contents of file with single line of text from variable. Attempts to create whole path.")]
+[ShortNames("sft")]
 public class SetFileText : IService
 {
     [PrimarySetting("Line Text Variable")] private readonly UpdatingPrimaryValue LineVariableConstant = new();
