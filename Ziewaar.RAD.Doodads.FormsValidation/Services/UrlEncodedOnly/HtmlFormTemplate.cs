@@ -8,6 +8,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 [Description("""
     Works like HTML form and FileTemplate cobined
     """)]
+[ShortNames("fmtp")]
 public class HtmlFormTemplate : IService
 {
     private readonly HtmlForm form = new HtmlForm();

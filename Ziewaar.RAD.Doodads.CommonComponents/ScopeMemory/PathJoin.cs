@@ -11,6 +11,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
              Provide array in primary constant of either path literals or {placeholders} 
              to join up a path.
              """)]
+[ShortNames("pj")]
 public class PathJoin : IService
 {
     private string? SendToVariable = null;
