@@ -86,8 +86,8 @@ public class Info : IService
                 OnElse?.Invoke(this, interaction);
                 return;
             }
-            var numberPrefix = info.Name.TakeWhile(char.IsDigit);
-            var afterNumberPrefix = info.Name.SkipWhile(char.IsDigit);
+            var numberPrefix = new string(info.Name.TakeWhile(char.IsDigit).ToArray());
+            var afterNumberPrefix = new string(info.Name.SkipWhile(char.IsDigit).SkipWhile(c => c == '_' || c == '-').ToArray());
 
             var payload = new SortedList<string, object>()
             {

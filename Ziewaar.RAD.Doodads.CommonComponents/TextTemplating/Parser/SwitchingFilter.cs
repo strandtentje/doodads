@@ -36,7 +36,7 @@ public class SwitchingFilter : ITemplateFilter
             throw new ArgumentException($"Switching placeholder {cleanPayload} contained incomplete mapping");
 
         var expressionFilters = mappings.Select(BuildFilter).ToArray();
-        result = new SwitchingFilter(cleanPayload, command, expressionFilters);
+        result = new SwitchingFilter(cleanPayload.Trim(), command, expressionFilters);
         return true;
     }
 
