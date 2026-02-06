@@ -59,8 +59,12 @@ public class Call : IService
         var requestedFileComponent = callComponents.ElementAtOrDefault(0);
         var requestedDefComponent = callComponents.ElementAtOrDefault(1);
 
+        var combination = Path.Combine(requestedFileComponent, "main.rkop");
+
         if (string.IsNullOrWhiteSpace(requestedFileComponent) ||
-            !File.Exists(requestedFileComponent) && Directory.Exists(requestedFileComponent))
+            !File.Exists(requestedFileComponent) && Directory.Exists(requestedFileComponent) &&
+            (!File.Exists(combination) || combination == constants.DefiningFile) &&
+            requestedFileComponent.Trim() != "*")
         {
             if (string.IsNullOrWhiteSpace(requestedDefComponent))
             {
@@ -70,8 +74,7 @@ public class Call : IService
 
             if (this.DefinitionFile == null)
             {
-                var myFile = ProgramRepository.Instance.FindFileOf(this);
-                this.DefinitionFile = Path.Combine(myFile.workingDirectory, myFile.fileName);
+                this.DefinitionFile = constants.DefiningFile;
             }
 
             requestedFileComponent = this.DefinitionFile;
@@ -90,10 +93,15 @@ public class Call : IService
 
         if (requestedFileComponent == "*")
         {
-            if (interaction.Register is not string requestedExternalFile)
+            if (interaction.Register.ToString() is not string requestedExternalFile)
             {
                 OnException?.Invoke(this,
                     new CommonInteraction(interaction, "wildcard call defined, but no text in register"));
+                return;
+            }
+            else if (!File.Exists(requestedExternalFile))
+            {
+                OnException?.Invoke(this, interaction.AppendRegister("wildcard call defined, but register text wasn't an existing file"));
                 return;
             }
 

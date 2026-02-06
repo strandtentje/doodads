@@ -9,6 +9,8 @@ public class ProgramRepository
     private readonly SortedList<string, ProgramFileLoader> Programs = new();
     public ProgramFileLoader GetForFile(string filePath, IInteraction? autoStartOnReloadParams = null)
     {
+        if (!File.Exists(filePath) && File.Exists(Path.Combine(filePath, "main.rkop")))
+            filePath = Path.Combine(filePath, "main.rkop");
         if (!File.Exists(filePath) && File.Exists($"{filePath}.rkop"))
             filePath += ".rkop";
         if (!Programs.TryGetValue(filePath, out var known))

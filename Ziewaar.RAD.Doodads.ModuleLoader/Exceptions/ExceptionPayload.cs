@@ -5,11 +5,12 @@ public class ExceptionPayload
 {
     public ExceptionPayload(StampedMap? consts, Type? type, CursorText? text, IInteraction? interaction)
     {
+        this.BackingInteraction = interaction;
         PrimaryConstant = consts?.PrimaryConstant?.ToString() ?? "No Primary Constant";
         PrimaryConstantStamp = consts?.PrimaryLog ?? -1;
         Constants = BuildConstants(consts);
         CurrentTimeStamp = GlobalStopwatch.Instance.ElapsedTicks;
-        Register = interaction?.Register?.ToString().Split('\n') ?? ["Empty Register"];
+        LastRegister = interaction?.Register?.ToString().Split('\n') ?? ["Empty Register"];
         Type = type?.Name ?? "Unknown Type";
         Directory = text?.WorkingDirectory?.FullName ?? "No Directory";
         File = text?.BareFile ?? "No File";
@@ -18,6 +19,38 @@ public class ExceptionPayload
         Memory = (interaction?.Memory ?? EmptyReadOnlyDictionary.Instance).
             Select(x => (x.Key, x.Value.ToString())).
             ToDictionary(x => x.Key, x => x.Item2);
+    }
+
+    public string[] RegisterHistory
+    {
+        get
+        {
+            string? lastInteractionType = null;
+            string? lastRegister = null;
+            List<string> history = new();
+
+            IInteraction? workingInteraction = BackingInteraction;
+
+            while (workingInteraction != null && history.Count < 7)
+            {
+                if (workingInteraction.GetType().Name != (lastInteractionType ?? "") || 
+                    (workingInteraction.Register.ToString() ?? "") != (lastRegister ?? ""))
+                {
+                    lastInteractionType = workingInteraction.GetType().Name;
+                    lastRegister = workingInteraction.Register.ToString() ?? "Non-string register";
+                    history.Add($"{lastInteractionType} => {lastRegister}");
+                }
+
+                workingInteraction =
+                    workingInteraction.Stack is not StopperInteraction
+                    ? workingInteraction.Stack : null;
+            }
+
+            if (workingInteraction != null)
+                history.Add("Interaction => Register History Truncated");
+
+            return history.ToArray();
+        }
     }
 
     private IEnumerable<DiagnosticConstant> BuildConstants(StampedMap? consts)
@@ -57,7 +90,9 @@ public class ExceptionPayload
         }
     }
 
-    public readonly string[] Register;
+    public readonly string[] LastRegister;
+    [JsonIgnore]
+    private readonly IInteraction? BackingInteraction;
     public readonly string Type, Directory, File, PrimaryConstant;
     public readonly long PrimaryConstantStamp, CurrentTimeStamp;
     public readonly int Line, Column;

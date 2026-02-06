@@ -52,6 +52,15 @@ public class ServiceConstantExpression : IParityParser
             return pathRes;
         }
 
+        text = text.TakeToken(TokenDescription.RelativeSearchPathAnnouncement, out var spa);
+        if (spa.IsValid)
+        {
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathFoundAbove(
+                text, text.WorkingDirectory, x));
+            inText = text;
+            return pathRes;
+        }
+
         text = text.TakeToken(TokenDescription.ConfigurationPathAnnouncement, out var cpa);
         if (cpa.IsValid)
         {
@@ -66,7 +75,7 @@ public class ServiceConstantExpression : IParityParser
         {
             var profilepath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var profileDirInfo = new DirectoryInfo(profilepath);
-            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x=>SetPathValue(profileDirInfo, x));
+            var pathRes = ConsumeRemainingStringIncludingQuotes(ref text, x => SetPathValue(profileDirInfo, x));
             inText = text;
             return pathRes;
         }
@@ -176,6 +185,40 @@ public class ServiceConstantExpression : IParityParser
         return state;
     }
 
+    private ParityParsingState SetPathFoundAbove(CursorText ct, DirectoryInfo workingDirectory, string subPath)
+    {
+        DirectoryInfo actualDirectory = workingDirectory;
+        var state = ParityParsingState.Unchanged;
+        if (ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
+
+        var searchPath = subPath;
+
+        if (searchPath.Contains('@'))
+        {
+            // if there's an @ in there, something like s"somefile.rkop @ someplace" is happening.
+            searchPath = subPath.Split(['@'], 
+                StringSplitOptions.RemoveEmptyEntries).
+                Select(x => x.Trim()).ElementAtOrDefault(0) ?? "";
+        }
+
+        while (
+            !Directory.Exists(Path.Combine(actualDirectory.FullName, searchPath)) &&
+            !File.Exists(Path.Combine(actualDirectory.FullName, searchPath)))
+        {
+            if (actualDirectory.Parent != null)
+                actualDirectory = actualDirectory.Parent;
+            else
+                throw new ParsingException(ct,
+                    $"Could not find sub-path `{searchPath}` in any parent directory of `{workingDirectory}`");
+        }
+
+        if (PathValue != (actualDirectory.FullName, subPath)) state |= ParityParsingState.Changed;
+        ConstantType = ConstantType.Path;
+        PathValue = (actualDirectory.FullName, subPath);
+
+        return state;
+    }
+
     private ParityParsingState SetDecimalValue(decimal v)
     {
         var state = ParityParsingState.Unchanged;
@@ -212,7 +255,7 @@ public class ServiceConstantExpression : IParityParser
             if (!slash.IsValid)
             {
                 inText = text.ValidateToken(
-                    TokenDescription.DoubleQuotes, 
+                    TokenDescription.DoubleQuotes,
                     "this is an unlikely error. rob may need a coffee if you tell him about this.",
                     out var _);
                 return process(guts.ToString());

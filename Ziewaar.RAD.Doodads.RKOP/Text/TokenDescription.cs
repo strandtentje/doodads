@@ -99,6 +99,7 @@ public class TokenDescription(
         ArrayOpen = DescribeSingleCharacter('[', "Start of array with blocky bracket"),
         ArrayClose = DescribeSingleCharacter(']', "End of array with blocky bracket"),
         BeakOpen = DescribeSingleCharacter('<', "Start with open beak"),
+        AsteriskInfix = DescribeSingleCharacter('*', "Infix an asterisk to wildcard call"),
         BeakClose = DescribeSingleCharacter('>', "End with closed beak"),
         AmpersandP = DescribeSingleCharacter('&', "Et sign"),
         Pipe = DescribeSingleCharacter('|', "Or pipe"),
@@ -125,6 +126,14 @@ public class TokenDescription(
                 1 => chr == '"',
                 _ => false,
             }, x => x.Length == 2, "Announcement of filename string with [f\"], which evaluates relative to the current directory."),
+
+        RelativeSearchPathAnnouncement = new TokenDescription(
+            (pos, chr) => pos switch
+            {
+                0 => chr == 's',
+                1 => chr == '"',
+                _ => false,
+            }, x => x.Length == 2, "Announcement of filename string with [s\"], which evaluates to the first parent path that contains the file."),
 
         TemplatePathAnnouncement = new TokenDescription(
             (pos, chr) => pos switch

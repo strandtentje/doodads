@@ -4,6 +4,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.RKOP.Text;
 
 namespace Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
+
 public class CapturedShorthandConstructor : ISerializableConstructor
 {
     public enum ShorthandType
@@ -12,6 +13,7 @@ public class CapturedShorthandConstructor : ISerializableConstructor
         InvalidShorthand,
         Definition,
         Call,
+        CallWildcard,
         ReturnThen,
         ReturnElse,
         Continue
@@ -19,10 +21,12 @@ public class CapturedShorthandConstructor : ISerializableConstructor
     public ShorthandType CurrentShorthandType { get; private set; } = ShorthandType.InvalidShorthand;
     public string? ServiceTypeName
     {
-        get =>
-            CurrentShorthandType != ShorthandType.InvalidShorthand
-                ? Enum.GetName(typeof(ShorthandType), CurrentShorthandType)
-                : throw new Exception("Unknown Shorthand");
+        get => CurrentShorthandType switch
+        {
+            ShorthandType.InvalidShorthand => throw new Exception("Unknown shorthand"),
+            ShorthandType.CallWildcard => "Call",
+            _ => Enum.GetName(typeof(ShorthandType), CurrentShorthandType)
+        };
         set
         {
             CurrentShorthandType = (ShorthandType)Enum.Parse(typeof(ShorthandType), value ?? "InvalidShorthand");
@@ -39,22 +43,25 @@ public class CapturedShorthandConstructor : ISerializableConstructor
         var temporaryCursorPosition = text
             .SkipWhitespace()
             .TakeToken(TokenDescription.BeakOpen, out var firstBeak)
+            .TakeToken(TokenDescription.AsteriskInfix, out var asteriskInfix)
             .TakeToken(TokenDescription.BeakOpen, out var secondBeak)
             .TakeToken(TokenDescription.ArrayOpen, out var firstBlock)
             .TakeToken(TokenDescription.DefaultBranchCoupler, out var colonAfterBlock)
             .TakeToken(TokenDescription.Pipe, out var pipeAfterBlock);
 
-        CurrentShorthandType = (firstBeak.IsValid, secondBeak.IsValid, firstBlock.IsValid, colonAfterBlock.IsValid,
-                pipeAfterBlock.IsValid) switch
-            {
-                (false, false, false, false, false) => ShorthandType.NoShorthand,
-                (true, false, false, false, false) => ShorthandType.Call,
-                (true, true, false, false, false) => ShorthandType.Definition,
-                (false, false, true, false, false) => ShorthandType.Continue,
-                (false, false, true, true, false) => ShorthandType.ReturnThen,
-                (false, false, true, false, true) => ShorthandType.ReturnElse,
-                _ => ShorthandType.InvalidShorthand,
-            };
+        CurrentShorthandType = (
+            firstBeak.IsValid, asteriskInfix.IsValid, secondBeak.IsValid,
+            firstBlock.IsValid, colonAfterBlock.IsValid, pipeAfterBlock.IsValid) switch
+        {
+            (false, false, false, false, false, false) => ShorthandType.NoShorthand,
+            (true, false, false, false, false, false) => ShorthandType.Call,
+            (true, true, false, false, false, false) => ShorthandType.CallWildcard,
+            (true, false, true, false, false, false) => ShorthandType.Definition,
+            (false, false, false, true, false, false) => ShorthandType.Continue,
+            (false, false, false, true, true, false) => ShorthandType.ReturnThen,
+            (false, false, false, true, false, true) => ShorthandType.ReturnElse,
+            _ => ShorthandType.InvalidShorthand,
+        };
 
         if (CurrentShorthandType == ShorthandType.NoShorthand) return false;
         if (CurrentShorthandType == ShorthandType.InvalidShorthand)
@@ -62,7 +69,15 @@ public class CapturedShorthandConstructor : ISerializableConstructor
 
         text = temporaryCursorPosition;
 
-        var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
+        if (CurrentShorthandType != ShorthandType.CallWildcard)
+        {
+            var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
+        }
+        else
+        {
+            PrimaryExpression.ConstantType = ConstantType.String;
+            PrimaryExpression.TextValue = "*";
+        }
 
         switch (CurrentShorthandType)
         {
@@ -78,6 +93,7 @@ public class CapturedShorthandConstructor : ISerializableConstructor
                     .ValidateToken(TokenDescription.BeakClose, "close definition with double >>", out var _);
                 break;
             case ShorthandType.Call:
+            case ShorthandType.CallWildcard:
                 text = text.SkipWhitespace()
                     .ValidateToken(TokenDescription.BeakClose, "close definition with single >", out var _);
                 break;

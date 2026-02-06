@@ -8,10 +8,13 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 {
     private static readonly object NullBuster = new();
-    
+
     private ServiceIdentity ServiceIdentity = new()
     {
-        Typename = "Undefined", Filename = "Undeclared", Line = -1, Position = -1,
+        Typename = "Undefined",
+        Filename = "Undeclared",
+        Line = -1,
+        Position = -1,
     };
 
     private Type? Type;
@@ -46,7 +49,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
         try
         {
             if (!atPosition.Policies.TryGetValue("shorthand", out var shorthandPolicyCandidate) ||
-                shorthandPolicyCandidate is not ShorthandNamePolicy snp) snp = ShorthandNamePolicy.Rejected; 
+                shorthandPolicyCandidate is not ShorthandNamePolicy snp) snp = ShorthandNamePolicy.Rejected;
             this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, snp, out this.Type);
         }
         catch (MissingServiceTypeException ex)
@@ -58,7 +61,9 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
                              """);
         }
 
-        this.Constants = new StampedMap(primaryValue ?? NullBuster, constants);
+        this.Constants = new StampedMap(
+            primaryValue ?? NullBuster, constants, 
+            Path.Combine(atPosition.WorkingDirectory.FullName, atPosition.BareFile));
 
         this.Instance.OnThen += DiagnosticOnThen;
         CleanupPropagation.Add(() => this.Instance.OnThen -= DiagnosticOnThen);

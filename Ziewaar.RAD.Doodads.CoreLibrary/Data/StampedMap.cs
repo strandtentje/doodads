@@ -7,6 +7,7 @@ public class StampedMap
 {
     private readonly ConcurrentDictionary<string, object> BackingStore;
     private readonly ConcurrentDictionary<string, long> BackingLog;
+    public readonly string? DefiningFile;
     private readonly object LockObject = new();
 
     public SortedList<string, object> ToSortedList() =>
@@ -29,13 +30,14 @@ public class StampedMap
         this.BackingLog = new();
     }
 
-    public StampedMap(object primaryConstant, IReadOnlyDictionary<string, object> origin)
+    public StampedMap(object primaryConstant, IReadOnlyDictionary<string, object> origin, string? definingFile = null)
     {
         var age = GlobalStopwatch.Instance.ElapsedTicks;
         this.PrimaryLog = age;
         this.PrimaryConstant = primaryConstant;
         this.BackingStore = new();
         this.BackingLog = new();
+        this.DefiningFile = definingFile;
         foreach (var o in origin)
         {
             lock (LockObject)
