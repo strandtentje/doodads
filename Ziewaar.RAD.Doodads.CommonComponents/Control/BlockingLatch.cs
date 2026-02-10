@@ -8,7 +8,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
     Passes through control transparently, but makes sure of whatever is running 
     on the OnThen branch, it's only one; the rest of the interactions will be dropped.
     """)]
-public class Latch : IService
+public class BlockingLatch : IService
 {
     private readonly object lockObject = new();
     private bool isCaptured = false;
@@ -21,16 +21,9 @@ public class Latch : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (isCaptured)
-        {
-            OnElse?.Invoke(this, interaction);
-            return;
-        }
         lock (lockObject)
         {
-            isCaptured = true;
-            OnThen?.Invoke(this, interaction);
-            isCaptured = false;
+            OnThen?.Invoke(this, interaction);     
         }
     }
 
