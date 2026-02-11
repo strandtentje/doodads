@@ -18,8 +18,10 @@ public class DoNextOnDoneWrapper : IAmbiguousServiceWrapper
             ambiguousServiceWrapper.Cleanup();
         ServiceSequence = null;
     }
-    public void Run(object sender, IInteraction interaction) => this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
-    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices() => ServiceSequence?.SelectMany(x => x.GetAllServices()) ?? [];
+    public void Run(object sender, IInteraction interaction) => 
+        this.ServiceSequence!.ElementAt(0).Run(sender, interaction);
+    public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices() => 
+        ServiceSequence?.SelectMany(x => x.GetAllServices()) ?? [];
     public void SetTarget(ServiceBuilder[] toArray)
     {
         this.ServiceSequence = toArray.Select(x => x.CurrentService!).ToArray();

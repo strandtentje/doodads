@@ -1,11 +1,12 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.Profiler;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 
-public class DefinedServiceWrapper : IAmbiguousServiceWrapper
+public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInteraction>
 {
     private static readonly object NullBuster = new();
 
@@ -23,7 +24,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     public CursorText? Position { get; private set; }
     private SortedList<string, CallForInteraction>? EventHandlers;
     public string? TypeName { get; private set; }
-    private List<Action>? CleanupPropagation;
+    private Stack<Action>? CleanupPropagation;
     public IService? Instance { get; private set; }
     public StampedMap? Constants { get; private set; }
     public event CallForInteraction? DiagnosticOnThen, DiagnosticOnElse, DiagnosticOnException;
@@ -45,7 +46,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 
         this.Position = atPosition;
         this.TypeName = typename;
-        this.CleanupPropagation = [.. branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup)];
+        this.CleanupPropagation = new Stack<Action>(branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup));
         try
         {
             if (!atPosition.Policies.TryGetValue("shorthand", out var shorthandPolicyCandidate) ||
@@ -66,13 +67,13 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             Path.Combine(atPosition.WorkingDirectory.FullName, atPosition.BareFile));
 
         this.Instance.OnThen += DiagnosticOnThen;
-        CleanupPropagation.Add(() => this.Instance.OnThen -= DiagnosticOnThen);
+        CleanupPropagation.Push(() => this.Instance.OnThen -= DiagnosticOnThen);
         this.Instance.OnElse += DiagnosticOnElse;
-        CleanupPropagation.Add(() => this.Instance.OnElse -= DiagnosticOnElse);
+        CleanupPropagation.Push(() => this.Instance.OnElse -= DiagnosticOnElse);
         this.Instance.OnException += DiagnosticOnException;
-        CleanupPropagation.Add(() => this.Instance.OnException -= DiagnosticOnException);
+        CleanupPropagation.Push(() => this.Instance.OnException -= DiagnosticOnException);
         this.Instance.OnException += Instance_OnException;
-        CleanupPropagation.Add(() => this.Instance.OnException -= Instance_OnException);
+        CleanupPropagation.Push(() => this.Instance.OnException -= Instance_OnException);
 
         var allEvents = Type.GetEvents().ToArray();
         this.EventHandlers = new SortedList<string, CallForInteraction>();
@@ -84,7 +85,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             {
                 var newEvent = EventHandlers[item.Name] = child.Run;
                 item.AddEventHandler(this.Instance, newEvent);
-                CleanupPropagation.Add(() => item.RemoveEventHandler(this.Instance, newEvent));
+                CleanupPropagation.Push(() => item.RemoveEventHandler(this.Instance, newEvent));
             }
         }
 
@@ -107,22 +108,22 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
     {
         if (dlg.Target is IAmbiguousServiceWrapper asw)
         {
-            CleanupPropagation!.Add(asw.Cleanup);
+            CleanupPropagation!.Push(asw.Cleanup);
         }
 
         OnThenEventInfo!.AddEventHandler(Instance!, dlg);
-        CleanupPropagation!.Add(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
+        CleanupPropagation!.Push(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
     }
 
     public void OnElse(CallForInteraction dlg)
     {
         if (dlg.Target is IAmbiguousServiceWrapper asw)
         {
-            CleanupPropagation!.Add(asw.Cleanup);
+            CleanupPropagation!.Push(asw.Cleanup);
         }
 
         OnElseEventInfo!.AddEventHandler(Instance!, dlg);
-        CleanupPropagation!.Add(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
+        CleanupPropagation!.Push(() => OnThenEventInfo!.RemoveEventHandler(Instance!, dlg));
     }
 
     public void OnDone(CallForInteraction dlg) => this.DoneDelegate =
@@ -139,12 +140,9 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             lock (cleanLock)
             {
                 isInCleanLoop = true;
-                foreach (var item in CleanupPropagation)
-                {
-                    item();
-                }
-
-                CleanupPropagation.Clear();
+                while (CleanupPropagation.Count > 0)
+                    CleanupPropagation.Pop()();
+                CleanupPropagation = null;
                 isInCleanLoop = false;
             }
         }
@@ -168,24 +166,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
 
     public void Run(object sender, IInteraction interaction)
     {
-        ServiceProfiler.Instance.Watch(ServiceIdentity, () =>
-        {
-            try
-            {
-                Instance!.Enter(Constants, interaction);
-            }
-#if !DEBUG || true
-            catch (Exception ex)
-            {
-                GlobalLog.Instance?.Error(ex, "Fatal on {0}", Type?.Name ?? "Unknown Type");
-                Instance!.HandleFatal(new CommonInteraction(interaction, ex.ToString()), ex);
-            }
-#endif
-            finally
-            {
-                DoneDelegate?.DynamicInvoke(this, interaction);
-            }
-        });
+        ServiceProfiler.Instance.Watch(ServiceIdentity, this, interaction);
     }
 
     public IEnumerable<(DefinedServiceWrapper wrapper, IService service)> GetAllServices()
@@ -194,5 +175,24 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper
             return [(this, Instance)];
         else
             return [];
+    }
+
+    void IProfilable<IInteraction>.Run(IInteraction data)
+    {
+        try
+        {
+            Instance!.Enter(Constants, data);
+        }
+#if !DEBUG || true
+        catch (Exception ex)
+        {
+            GlobalLog.Instance?.Error(ex, "Fatal on {0}", Type?.Name ?? "Unknown Type");
+            Instance!.HandleFatal(new CommonInteraction(data, ex.ToString()), ex);
+        }
+#endif
+        finally
+        {
+            DoneDelegate?.DynamicInvoke(this, data);
+        }
     }
 }

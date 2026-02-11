@@ -28,6 +28,7 @@ public class ProgramFileLoader : IDisposable
             }
         }
         Definitions.Clear();
+        GC.Collect();
     }
     private void Emitter_HandleNewCursorText(object sender, CursorText text)
     {

@@ -8,6 +8,11 @@ using ProfilingFrameStackByThread =
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Profiler;
 
+public interface IProfilable<TData>
+{
+    void Run(TData data);
+}
+
 public sealed class ServiceProfiler
 {
     public static ServiceProfiler Instance { get; private set; } = new();
@@ -17,13 +22,13 @@ public sealed class ServiceProfiler
     private (Action<ServiceIdentity> Push, Action Pop) Scope = (PushScopeDisabled, PopScopeDisabled);
     public void Enable() => Scope = (PushScopeEnabled, PopScopeEnabled);
     public void Disable() => Scope = (PushScopeDisabled, PopScopeDisabled);
-    public void Watch(ServiceIdentity serviceIdentity, Action operationToMonitor) => ForScope(scope =>
+    public void Watch<TData>(ServiceIdentity serviceIdentity, IProfilable<TData> operationToMonitor, TData data) => ForScope(scope =>
     {
         if (operationToMonitor == null) throw new ArgumentNullException(nameof(operationToMonitor));
         scope.Push(serviceIdentity);
         try
         {
-            operationToMonitor();
+            operationToMonitor.Run(data);
         }
         finally
         {

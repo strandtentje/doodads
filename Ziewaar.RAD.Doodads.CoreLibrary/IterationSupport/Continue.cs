@@ -6,7 +6,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 [Title("Find the originating Repeat call, and invoke its children again.")]
 [Shorthand("[CONSTANTS]")]
 [Description("""Read the docs on Repeat, for Continue will behave according to its definition. """)]
-public class Continue : IService
+public class Continue : IService, IDisposable
 {
     // TODO: Continue needs a shorthand like ["Text to Return to"]
     // TODO: Homogenize operations that output lists of things to Iterate with Continue instead of ienumerables or uncontrolled triggers
@@ -18,6 +18,8 @@ public class Continue : IService
     // TODO: Introduce a better design pattern to split the validations a service does from the actual work
     [PrimarySetting("Name of the Repeat block to fall back to.")]
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
+    private bool IsDisposing;
+
     [EventOccasion("Passes on after marking good for repeating")]
     public event CallForInteraction? OnThen;
     [NeverHappens]
@@ -25,8 +27,15 @@ public class Continue : IService
     [EventOccasion("Likely happens if the Repeat name was missing, or no Repeat with the configured name could be found.")]
     public event CallForInteraction? OnException;
 
+    public void Dispose()
+    {
+        this.IsDisposing = true;
+    }
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if (this.IsDisposing)
+            return;
         (constants, RepeatNameConstant).IsRereadRequired(out string? repeatName);
         if (repeatName == null)
         {
