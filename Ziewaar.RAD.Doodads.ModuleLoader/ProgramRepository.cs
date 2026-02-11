@@ -1,24 +1,45 @@
 ﻿#nullable enable
+using System.Collections.Concurrent;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 using Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
+
 public class ProgramRepository
 {
     public static readonly ProgramRepository Instance = new();
     private readonly SortedList<string, ProgramFileLoader> Programs = new();
+    private readonly ConcurrentDictionary<string, string> NameCompletions = new();
     public ProgramFileLoader GetForFile(string filePath, IInteraction? autoStartOnReloadParams = null)
     {
-        if (!File.Exists(filePath) && File.Exists(Path.Combine(filePath, "main.rkop")))
-            filePath = Path.Combine(filePath, "main.rkop");
-        if (!File.Exists(filePath) && File.Exists($"{filePath}.rkop"))
-            filePath += ".rkop";
-        if (!Programs.TryGetValue(filePath, out var known))
-            known = Programs[filePath] = ProgramFactory.Instance.CreateFor(filePath, autoStartOnReloadParams);
-        else 
-            known.Reload();
+        if (Programs.TryGetValue(filePath, out var oneShot))
+        {
+            oneShot.Reload();
+            return oneShot;
+        } else if (!NameCompletions.TryGetValue(filePath, out var completedName))
+        {
+            if (!File.Exists(filePath) && File.Exists(Path.Combine(filePath, "main.rkop")))
+                filePath = Path.Combine(filePath, "main.rkop");
+            if (!File.Exists(filePath) && File.Exists($"{filePath}.rkop"))
+                filePath += ".rkop";
+            completedName = filePath;
 
-        return known;
+            if (!Programs.TryGetValue(completedName, out var known))
+                known = Programs[completedName] = ProgramFactory.Instance.CreateFor(completedName, autoStartOnReloadParams);
+            else
+                known.Reload();
+
+            NameCompletions[filePath] = completedName;
+            return known;
+        }
+        else
+        {
+            if (!Programs.TryGetValue(completedName, out var known))
+                known = Programs[completedName] = ProgramFactory.Instance.CreateFor(completedName, autoStartOnReloadParams);
+            else
+                known.Reload();
+            return known;
+        }
     }
     public void DisposeFile(string filePath)
     {
@@ -27,7 +48,7 @@ public class ProgramRepository
         if (Programs.TryGetValue(filePath, out var known))
         {
             Programs.Remove(filePath);
-            known.Dispose();            
+            known.Dispose();
         }
     }
     public IEntryPoint? GetEntryPointForFile(string filePath) =>

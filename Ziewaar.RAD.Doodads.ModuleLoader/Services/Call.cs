@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.CoreLibrary;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 
 [Category("Call Definition Return")]
@@ -12,7 +14,7 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
              like `Call(f"Oven.rkop @ Bake Cookies")` - the `f` before the quotes will make it look from the directory 
              of the current definition file. the @ means a definition name is coming.
              """)]
-public class Call : IService
+public class Call : IService, IDisposable
 {
     [PrimarySetting("""
                     Name and Definition name separated by an @
@@ -24,6 +26,8 @@ public class Call : IService
 
     private string? CurrentModuleName;
     private string? DefinitionFile;
+    private bool IsDisposing;
+    private bool IsWarned;
 
     protected virtual bool Destroyer => false;
 
@@ -38,6 +42,14 @@ public class Call : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        if (IsDisposing)
+        {
+            if (!IsWarned)
+                GlobalLog.Instance?.Warning("Request to enter disposed Call {file} @ {name}", DefinitionFile, CurrentModuleName);
+            IsWarned = true;
+            return;
+        }
+
         if ((constants, ModuleNameConstant).IsRereadRequired(out object? candidateModuleName))
         {
             if (candidateModuleName == null)
@@ -131,8 +143,8 @@ public class Call : IService
         }
 
         var ci = new CallingInteraction(interaction, constants.NamedItems);
-        ci.OnThen += OnThen;
-        ci.OnElse += OnElse;
+        ci.OnThen += (s, e) => { if (!IsDisposing) OnThen?.Invoke(s, e); };
+        ci.OnElse += (s, e) => { if (!IsDisposing) OnElse?.Invoke(s, e); };
         var program = ProgramRepository.Instance.GetForFile(file);
 
         program.Emitter.WorkingState.SloppilyWaitForWorkToCease();
@@ -155,4 +167,9 @@ public class Call : IService
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+
+    public void Dispose()
+    {
+        this.IsDisposing = true;
+    }
 }

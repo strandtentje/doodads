@@ -100,12 +100,12 @@ public static class InteractionExtensions
         IReadOnlyDictionary<string, object>? previousVariables = null;
         for (; interaction != null; interaction = interaction.Stack)
         {
-            if (interaction is StopperInteraction)
+            if (interaction.Memory == EmptyReadOnlyDictionary.Instance && interaction is StopperInteraction)
                 break;
             if (previousVariables != interaction.Memory &&
                 interaction.Memory.TryGetValue(key, out object value) &&
                 value is TType foundResult)
-            {
+            {                
                 candidateValue = foundResult;
                 return true;
             }

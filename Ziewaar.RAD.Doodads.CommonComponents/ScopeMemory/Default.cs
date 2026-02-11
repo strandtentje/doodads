@@ -48,8 +48,7 @@ public class Default : IService
                 memoryValue = tsi.ReadAllText();
             }
         }
-        OnThen?.Invoke(this, new CommonInteraction(interaction, register: memoryValue, memory: new SwitchingDictionary(
-            [CurrentMemoryName], x => x == CurrentMemoryName ? memoryValue : throw new KeyNotFoundException())));
+        OnThen?.Invoke(this, interaction.AppendRegister(memoryValue).AppendMemory((CurrentMemoryName, memoryValue)));
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

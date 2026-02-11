@@ -3,6 +3,7 @@
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary;
 
+[Obsolete] // Don't use this. It's slow and stupid.
 public class InteractingDefaultingDictionary(IInteraction real, IReadOnlyDictionary<string, object> fallback) : IReadOnlyDictionary<string, object>
 {
     public object this[string key]

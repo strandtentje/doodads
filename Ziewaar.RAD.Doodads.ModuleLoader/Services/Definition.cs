@@ -24,13 +24,28 @@ public class Definition : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
+        IInteraction toPropagate = interaction;
+
+        if (constants.NamedItems.Count > 0)
+        {
+            Dictionary<string, object> defaults = new();
+
+            foreach (var item in constants.NamedItems)
+            {
+                if (!interaction.TryFindVariable<object>(item.Key, out var existingValue))
+                    defaults[item.Key] = item.Value;
+            }
+
+            toPropagate = new CommonInteraction(interaction, memory: defaults);
+        }        
+
         if (interaction is CallingInteraction ci)
         {
-            OnThen?.Invoke(this, new DefaultValueInteraction(interaction, memory: constants.ToSortedList()));
+            OnThen?.Invoke(this, toPropagate);
         }
         else if (interaction is ISelfStartingInteraction ss)
         {
-            OnThen?.Invoke(this, new DefaultValueInteraction(interaction, memory: constants.ToSortedList()));
+            OnThen?.Invoke(this, toPropagate);
         }
         else
         {
