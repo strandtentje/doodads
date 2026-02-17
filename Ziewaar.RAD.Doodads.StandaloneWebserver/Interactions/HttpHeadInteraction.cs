@@ -9,7 +9,8 @@ public class HttpHeadInteraction : IInteraction, IHttpHeadInteraction
     string IHttpHeadInteraction.RequestTime => RequestTime;
     string IHttpHeadInteraction.RequestLocale => RequestLocale;
     public readonly string 
-        RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort, RequestLocale;
+        RouteString, QueryString, Method, RemoteIp, RequestTime, RemotePort, RequestLocale,  UserAgent;
+
     public HttpHeadInteraction(IInteraction parent, HttpListenerContext context,
         Services.ExpandedPrefixes expandedPrefixes)
     {
@@ -23,6 +24,7 @@ public class HttpHeadInteraction : IInteraction, IHttpHeadInteraction
         this.RemoteIp = context.Request.RemoteEndPoint.Address.ToString();
         this.RemotePort = context.Request.RemoteEndPoint.Port.ToString();
         this.RequestTime = DateTime.Now.ToString("yyMMdd HH:mm:ss");
+        this.UserAgent = context.Request.UserAgent ?? "unknown";
         this.RequestLocale =
             context.Request.Headers["Accept-Language"]?.Split(',').ElementAtOrDefault(0)?.Trim().ToLower() ??
             CultureInfo.CurrentCulture.Name;
@@ -39,6 +41,7 @@ public class HttpHeadInteraction : IInteraction, IHttpHeadInteraction
             "url" => RouteString,
             "remoteip" => RemoteIp,
             "remoteport" => RemotePort,
+            "useragent" => UserAgent,
             "requesttime" => RequestTime,
             "loopbackurl" => expandedPrefixes.LoopbackURL.TrimEnd('/'),
             "localipurl" => expandedPrefixes.LocalIPURL.TrimEnd('/'),
