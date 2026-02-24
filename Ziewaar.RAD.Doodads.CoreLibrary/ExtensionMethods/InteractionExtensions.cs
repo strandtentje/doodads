@@ -117,6 +117,10 @@ public static class InteractionExtensions
         return false;
     }
 
+    public static IInteraction AppendCustom<TCustom>(
+        this IInteraction interaction,
+        TCustom customValue) => new CustomInteraction<TCustom>(interaction, customValue);
+
     public static IInteraction AppendRegister(
         this IInteraction interaction,
         object registerValue) =>

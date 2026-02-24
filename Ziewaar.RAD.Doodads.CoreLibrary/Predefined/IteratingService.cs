@@ -9,6 +9,8 @@ public abstract class IteratingService : IService, IDisposable
 {
     private readonly UpdatingPrimaryValue RepeatNameConstant = new();
     protected string? CurrentRepeatName;
+    protected bool IsDisposing;
+
     [EventOccasion("Next item")]
     public event CallForInteraction? OnThen;
     [NeverHappens]
@@ -127,6 +129,7 @@ public abstract class IteratingService : IService, IDisposable
     protected event EventHandler<EventArgs>? InternalDisposeEvent;
     public virtual void Dispose()
     {
+        this.IsDisposing = true;
         InternalDisposeEvent?.Invoke(this, EventArgs.Empty);
     }
 }
