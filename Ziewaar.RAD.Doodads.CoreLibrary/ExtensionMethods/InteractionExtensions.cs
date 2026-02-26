@@ -31,6 +31,23 @@ public static class InteractionExtensions
         }
     }
 
+    public static bool TryGetCustom<TType>(
+        this IInteraction childInteraction,
+        out TType? customPayload)
+    {
+        if (!TryGetClosest<CustomInteraction<TType>>(childInteraction, out var x)
+            || x == null)
+        {
+            customPayload = default;
+            return false;
+        }
+        else
+        {
+            customPayload = x.Payload;
+            return true;
+        }
+    }
+
     public static bool TryGetClosest<TInteraction>(
         this IInteraction childInteraction,
         out TInteraction? candidateParentInteraction,
@@ -105,7 +122,7 @@ public static class InteractionExtensions
             if (previousVariables != interaction.Memory &&
                 interaction.Memory.TryGetValue(key, out object value) &&
                 value is TType foundResult)
-            {                
+            {
                 candidateValue = foundResult;
                 return true;
             }
