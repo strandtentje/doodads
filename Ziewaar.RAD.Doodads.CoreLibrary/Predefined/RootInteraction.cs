@@ -4,6 +4,6 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
     {
         public IInteraction Stack => StopperInteraction.Instance;
         public object Register => register;
-        public IReadOnlyDictionary<string, object> Memory => memory;
+        public IReadOnlyDictionary<string, object> Memory { get; } = new RootMemory(memory);
     }
 }
