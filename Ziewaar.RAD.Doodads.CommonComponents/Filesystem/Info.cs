@@ -113,12 +113,12 @@ public class Info : IService
                 payload["cleanname"] = Path.GetFileNameWithoutExtension(fileInfo.FullName);
                 payload["size"] = fileInfo.Length;
                 payload["cleansize"] = ByteSizeFormatter.ToHumanReadable(fileInfo.Length);
-                payload["type"] = "dir";
+                payload["type"] = "file";
             }
             else if (info is DirectoryInfo directoryInfo)
             {
                 payload["count"] = directoryInfo.GetFiles().Length;
-                payload["type"] = "file";
+                payload["type"] = "dir";
             }
             if (showHidden == true || !info.Attributes.HasFlag(FileAttributes.Hidden) && !info.Name.StartsWith("."))
                 OnThen?.Invoke(this, new CommonInteraction(interaction, register: info, memory: payload));
