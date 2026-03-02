@@ -3,11 +3,11 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
-[Title("Rename a file")]
+[Title("Rename a directory")]
 [Description("""
-             Renames a file; sinks new name from sinknewname. will not change path or extension.
+             Renames a directory; sinks new name from sinknewname. will not change path or extension.
              """)]
-public class RenameFile : IService
+public class RenameDirectory : IService
 {
     [NamedSetting("allowmove", """
                                Set this to true to allow the rename to imply a move to a different location
@@ -15,13 +15,13 @@ public class RenameFile : IService
     private readonly UpdatingKeyValue AllowMovingConstant = new UpdatingKeyValue("allowmove");
     private bool CurrentlyAllowsMoving;
 
-    [EventOccasion("Sink new filename here.")]
+    [EventOccasion("Sink new dir name here.")]
     public event CallForInteraction? SinkNewName;
 
-    [EventOccasion("Has renamed file in register")]
+    [EventOccasion("Has renamed dir in register")]
     public event CallForInteraction? OnThen;
 
-    [EventOccasion("When no file was found to rename")]
+    [EventOccasion("When no dir was found to rename")]
     public event CallForInteraction? OnElse;
 
     [EventOccasion("Never happens")]
@@ -34,16 +34,16 @@ public class RenameFile : IService
             this.CurrentlyAllowsMoving = allowMoveCandidate == true;
         }
 
-        FileInfo? info = null;
-        if (interaction.Register is FileInfo registerInfo &&
+        DirectoryInfo? info = null;
+        if (interaction.Register is DirectoryInfo registerInfo &&
             registerInfo.Exists)
             info = registerInfo;
         else if (interaction.Register is object pathObject &&
                  pathObject.ToString() is string path &&
-                 File.Exists(path))
-            info = new FileInfo(path);
+                 Directory.Exists(path))
+            info = new DirectoryInfo(path);
         else
-        {            
+        {
             OnElse?.Invoke(this, interaction);
             return;
         }
@@ -65,28 +65,16 @@ public class RenameFile : IService
         else
         {
             var cleanedName = string.Concat(requestedName.Where(x => !delChars.Contains(x)));
-            fullNewPath = ChangeFileNameOnly(info.FullName, cleanedName);
+
+            var parentName = info.Parent.FullName;
+
+            fullNewPath = Path.Combine(parentName, cleanedName);
         }
-        File.Move(info.FullName, fullNewPath);
+        Directory.Move(info.FullName, fullNewPath);
 
         OnThen?.Invoke(this, new CommonInteraction(interaction, fullNewPath));
     }
 
-
-    public static string ChangeFileNameOnly(string originalFullPath, string newNameMaybeWithPathOrExt)
-    {
-        // Extract original directory and extension
-        string directory = Path.GetDirectoryName(originalFullPath) ?? "";
-        string extension = Path.GetExtension(originalFullPath);
-
-        // Get just the file name part of the new name, stripping any path
-        string newNameWithMaybeExt = Path.GetFileName(newNameMaybeWithPathOrExt);
-
-        // Strip the extension from the new name (if present)
-        string newName = Path.GetFileNameWithoutExtension(newNameWithMaybeExt);
-
-        return Path.Combine(directory, newName + extension);
-    }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
