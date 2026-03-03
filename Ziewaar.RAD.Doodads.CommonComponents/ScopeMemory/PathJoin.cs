@@ -14,12 +14,12 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 [ShortNames("pj")]
 public class PathJoin : IService
 {
-    private string? SendToVariable = null;
+    protected string? SendToVariable = null;
     [PrimarySetting("Members to join")] private readonly UpdatingPrimaryValue JoinMembersConstant = new();
     private string[] CurrentPathMembers = [];
 
     [EventOccasion("Joined path comes out here.")]
-    public event CallForInteraction? OnThen;
+    public virtual event CallForInteraction? OnThen;
 
     [NeverHappens] public event CallForInteraction? OnElse;
 
@@ -47,6 +47,11 @@ public class PathJoin : IService
         var formattedPathMembers = CurrentPathMembers.Select(FormatMember(interaction))
             .Zip(Enumerable.Range(0, CurrentPathMembers.Length), SanitizePath).ToArray();
         var finalPath = string.Join(Path.DirectorySeparatorChar.ToString(), formattedPathMembers);
+        HandleCombinedPath(interaction, finalPath);
+    }
+
+    protected virtual void HandleCombinedPath(IInteraction interaction, string finalPath)
+    {
         if (Directory.Exists(finalPath))
         {
             var dirInfo = new DirectoryInfo(finalPath);
@@ -96,4 +101,15 @@ public class PathJoin : IService
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+}
+
+public class IncompletePathJoin : PathJoin
+{
+    public override event CallForInteraction? OnThen;
+    protected override void HandleCombinedPath(IInteraction interaction, string finalPath)
+    {
+        if (SendToVariable is string targetVar)
+            interaction = interaction.AppendMemory((targetVar, finalPath));
+        OnThen?.Invoke(this, interaction.AppendRegister(finalPath));
+    }
 }
