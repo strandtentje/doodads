@@ -8,13 +8,12 @@ using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.Cryptography;
 using Ziewaar.RAD.Doodads.Cryptography.Secrets;
+using Ziewaar.RAD.Doodads.Data.Services;
 using Ziewaar.RAD.Doodads.FormsValidation.Services;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
-using Ziewaar.RAD.Doodads.MySQL;
-using Ziewaar.RAD.Doodads.SQLite;
+using Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Bootstrapper;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
-using Ziewaar.RAD.Starter;
 using DataRow = Ziewaar.RAD.Doodads.Data.Services.DataRow;
 
 namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
@@ -44,9 +43,8 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             BootstrappedStartBuilder
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
-                .AddAssemblyBy<Definition>().AddAssemblyBy<SqliteConnectionSource>().AddAssemblyBy<HtmlForm>()
+                .AddAssemblyBy<Definition>().AddAssemblyBy<DataQuery>().AddAssemblyBy<HtmlForm>()
                 .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>()
-                .AddAssemblyBy<MySqlConnectionSource>()
                 .AddFile("site.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "site.rkop")) : "")
                 .AddFile("server.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "server.rkop")) : "")
                 .AddFile("boot.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "boot.rkop")) : "")

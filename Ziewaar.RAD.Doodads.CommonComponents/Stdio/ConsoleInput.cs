@@ -1,9 +1,5 @@
 ﻿#pragma warning disable 67
 #nullable enable
-using static System.Net.Mime.MediaTypeNames;
-using System.Runtime.InteropServices;
-using Ziewaar.Common.Aardvargs;
-
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Category("System & IO")]
 [Title("Open input stream")]

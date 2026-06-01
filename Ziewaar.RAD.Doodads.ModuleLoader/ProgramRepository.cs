@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 using Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Blocks;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 

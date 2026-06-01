@@ -1,5 +1,8 @@
-using Ziewaar.RAD.Doodads.RKOP.Constructor;
-using Ziewaar.RAD.Doodads.RKOP.Constructor.Shorthands;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Blocks;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Constructor.Shorthands;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.SeriesParsers;
+
 // ReSharper disable MergeIntoPattern
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;

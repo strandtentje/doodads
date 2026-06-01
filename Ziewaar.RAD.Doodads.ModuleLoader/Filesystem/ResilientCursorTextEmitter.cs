@@ -1,6 +1,7 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Delegates;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 #pragma warning disable CS0162

@@ -3,6 +3,8 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.Profiler;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 

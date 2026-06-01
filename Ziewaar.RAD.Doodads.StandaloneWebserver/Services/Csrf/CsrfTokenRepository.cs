@@ -1,6 +1,6 @@
 using System.Data.SQLite;
 using Ziewaar.RAD.Doodads.Data.Implementable;
-using Ziewaar.RAD.Doodads.SQLite;
+using Ziewaar.RAD.Doodads.Data.Sqlite;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Csrf;
 #pragma warning disable 67

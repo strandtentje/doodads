@@ -1,7 +1,7 @@
 #nullable enable
 #pragma warning disable 67
 using System.Collections;
-using Ziewaar.RAD.Doodads.RKOP.Constructor;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 

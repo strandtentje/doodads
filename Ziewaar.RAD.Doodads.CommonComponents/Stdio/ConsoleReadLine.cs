@@ -1,6 +1,5 @@
 ﻿#pragma warning disable 67
 #nullable enable
-using Ziewaar.Common.Aardvargs;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
@@ -15,12 +14,8 @@ public class ConsoleReadLine : IteratingService
     {
         while(true)
         {
-            var readLine = Console.ReadLine();
-            var halves = readLine?.Split([' '], 2, StringSplitOptions.RemoveEmptyEntries);
-            var command = halves?.ElementAtOrDefault(0) ?? "";
-            var args = halves.ElementAtOrDefault(1)?.Split([' '], StringSplitOptions.RemoveEmptyEntries) ?? [];
-            var parsedArgs = ArgParser.Parse(args);
-            yield return repeater.AppendRegister(command).AppendMemory(parsedArgs.Options);
+            var readLine = Console.ReadLine()?.Trim();
+            yield return repeater.AppendRegister(readLine ?? "");
         }
     }
 }

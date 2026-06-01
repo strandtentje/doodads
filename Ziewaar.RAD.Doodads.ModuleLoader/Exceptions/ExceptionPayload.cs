@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 public class ExceptionPayload

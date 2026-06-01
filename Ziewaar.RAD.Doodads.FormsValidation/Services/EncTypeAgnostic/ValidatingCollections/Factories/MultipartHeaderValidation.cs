@@ -1,6 +1,6 @@
 using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
 using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingMultipart;
-using MultipartHeader =
+using MultipartHeaderTuple =
     (string HeaderName, string HeaderValue, System.Collections.Generic.IReadOnlyDictionary<string, string> HeaderArgs);
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.ValidatingCollections.Factories;
@@ -12,8 +12,8 @@ public static class MultipartHeaderValidation
         object providedValue,
         out string failureReason,
         [NotNullWhen(true)] out ICountingEnumerator<byte>? data,
-        [NotNullWhen(true)] out MultipartHeader? disposition,
-        [NotNullWhen(true)] out MultipartHeader? contentType)
+        [NotNullWhen(true)] out MultipartHeaderTuple? disposition,
+        [NotNullWhen(true)] out MultipartHeaderTuple? contentType)
     {
         disposition = null;
         contentType = null;
@@ -24,8 +24,8 @@ public static class MultipartHeaderValidation
             failureReason = "Byte stream not tagged with supplementary information";
             return false;
         }
-        else if (taggedByteEnumerator.Tag is not IEnumerable<MultipartHeader> headerCollection ||
-                 headerCollection?.ToArray() is not MultipartHeader[] headerArray ||
+        else if (taggedByteEnumerator.Tag is not IEnumerable<MultipartHeaderTuple> headerCollection ||
+                 headerCollection?.ToArray() is not MultipartHeaderTuple[] headerArray ||
                  headerArray.Length < 1)
         {
             failureReason = "Supplementary information wasn't headers";
@@ -34,7 +34,7 @@ public static class MultipartHeaderValidation
         else if (
             headerArray?.Where(x =>
                         x.HeaderName.Equals("content-disposition", StringComparison.OrdinalIgnoreCase))
-                    .ToArray() is not MultipartHeader[]
+                    .ToArray() is not MultipartHeaderTuple[]
                 dispositionHeaderArray ||
             dispositionHeaderArray.Length < 1)
         {

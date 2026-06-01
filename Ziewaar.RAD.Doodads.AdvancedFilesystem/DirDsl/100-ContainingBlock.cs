@@ -17,7 +17,7 @@
                 default:
                     if (!ComparingCondition.TryParseFrom(name, errors, ref cursor, out expression))
                     {
-                        errors.Add((cursor, "expected containing block [] or plain expression");
+                        errors.Add((cursor, "expected containing block [] or plain expression"));
                         expression = null;
                         return false;
                     }

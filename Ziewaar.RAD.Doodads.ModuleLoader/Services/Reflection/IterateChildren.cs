@@ -1,4 +1,6 @@
 #nullable enable
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Blocks;
+
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services.Reflection;
 #pragma warning disable 67
 [Category("Reflection & Documentation")]

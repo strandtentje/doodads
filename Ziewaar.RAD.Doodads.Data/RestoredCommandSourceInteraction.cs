@@ -2,9 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
-namespace Ziewaar.RAD.Doodads.Data.Services;
+namespace Ziewaar.RAD.Doodads.Data;
 #pragma warning disable 67
 public class RestoredCommandSourceInteraction(ICommandSourceInteraction csi) : ICommandSourceInteraction
 {

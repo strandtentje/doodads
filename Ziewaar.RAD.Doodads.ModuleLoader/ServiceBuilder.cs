@@ -1,4 +1,6 @@
 ﻿using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage;
+using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #nullable enable
