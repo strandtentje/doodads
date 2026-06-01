@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 #pragma warning disable 67
 [Category("Scheduling & Flow")]

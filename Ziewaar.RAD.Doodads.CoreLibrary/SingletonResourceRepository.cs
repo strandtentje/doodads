@@ -4,7 +4,7 @@ public class SingletonResourceRepository<TIdent, TInstance> : IDisposable where 
 {
     private bool _disposed;
     private object _instanceLock = new();
-    private static SingletonResourceRepository<TIdent, TInstance> _instance;
+    private static SingletonResourceRepository<TIdent, TInstance>? _instance;
     public static SingletonResourceRepository<TIdent, TInstance> Get() => _instance ??= new SingletonResourceRepository<TIdent, TInstance>();
     private readonly SortedList<TIdent, (TInstance Instance, SortedSet<Guid> Users)> instanceUsers = new();
     public (Guid Guid, TInstance Instance) Take(TIdent ident, Func<TIdent, TInstance> factory)

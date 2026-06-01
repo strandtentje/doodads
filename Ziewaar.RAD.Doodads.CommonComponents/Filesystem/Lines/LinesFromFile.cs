@@ -1,4 +1,3 @@
-#nullable enable
 using System.Threading.Channels;
 using Ziewaar;
 using Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;

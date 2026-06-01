@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+﻿using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 

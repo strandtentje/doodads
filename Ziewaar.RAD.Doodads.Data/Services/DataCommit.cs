@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;

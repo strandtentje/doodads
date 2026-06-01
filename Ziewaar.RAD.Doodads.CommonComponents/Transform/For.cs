@@ -1,5 +1,4 @@
 #pragma warning disable 67
-#nullable enable
 using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;

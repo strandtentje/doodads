@@ -9,7 +9,10 @@ public class TypeRepository : IDisposable
 {
     public static readonly TypeRepository Instance = new();
     public readonly SortedList<string, Type> NamedServiceTypes = new();
-    public readonly SortedList<string, Type> ShortNamedServiceTypes = new(StringComparer.OrdinalIgnoreCase);
+
+    public readonly SortedList<string, Type> ShortNamedServiceTypes =
+        new(StringComparer.OrdinalIgnoreCase);
+
     private NameSuggestions? Names;
 
     public TypeRepository PopulateWith(params string[] assemblyFiles)
@@ -34,7 +37,8 @@ public class TypeRepository : IDisposable
             serviceTypes = typeof(TypeRepository).Assembly.GetTypes()
                 .Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
         else
-            serviceTypes = assembly.GetTypes().Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
+            serviceTypes = assembly.GetTypes()
+                .Where(x => typeof(IService).IsAssignableFrom(x) && !x.IsAbstract);
 
         foreach (var serviceType in serviceTypes)
         {
@@ -48,20 +52,23 @@ public class TypeRepository : IDisposable
             else
             {
                 NamedServiceTypes.Add(serviceType.Name, serviceType);
-                var attributes = serviceType.GetCustomAttributes().ToArray();
-                var serviceShortNames = attributes.OfType<ShortNamesAttribute>().SelectMany(x => x.Names);
+                var attributes = serviceType.GetCustomAttributes(inherit: false).ToArray();
+                var serviceShortNames =
+                    attributes.OfType<ShortNamesAttribute>().SelectMany(x => x.Names);
 
                 foreach (var shortName in serviceShortNames)
                 {
                     if (ShortNamedServiceTypes.Remove(shortName))
-                        GlobalLog.Instance?.Warning("Duplicate definition of short name {sn}", shortName);
+                        GlobalLog.Instance?.Warning("Duplicate definition of short name {sn}",
+                            shortName);
                     else
                         ShortNamedServiceTypes.Add(shortName, serviceType);
                 }
 
                 Task.Run(() =>
                 {
-                    if (!attributes.Any(x => x is TitleAttribute) || !attributes.Any(x => x is CategoryAttribute) ||
+                    if (!attributes.Any(x => x is TitleAttribute) ||
+                        !attributes.Any(x => x is CategoryAttribute) ||
                         !attributes.Any(x => x is DescriptionAttribute))
                         GlobalLog.Instance?.Warning(
                             "Missing Category, Title or Description attributes on {typeName}",
@@ -78,7 +85,8 @@ public class TypeRepository : IDisposable
                         }
                     }
 
-                    var allFields = serviceType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+                    var allFields =
+                        serviceType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
                     foreach (var setting in allFields)
                     {
                         if (typeof(UpdatingPrimaryValue).IsAssignableFrom(setting.FieldType) &&
@@ -87,7 +95,8 @@ public class TypeRepository : IDisposable
                                 "Missing PrimarySettingAttribute on {typeName}:{settingName}",
                                 serviceType.Name, setting.Name);
                         else if (typeof(UpdatingKeyValue).IsAssignableFrom(setting.FieldType) &&
-                                 !setting.GetCustomAttributes().Any(x => x is NamedSettingAttribute))
+                                 !setting.GetCustomAttributes()
+                                     .Any(x => x is NamedSettingAttribute))
                             GlobalLog.Instance?.Warning(
                                 "Missing NamedSettingAttribute on {typeName}:{settingName}",
                                 serviceType.Name, setting.Name);
@@ -101,7 +110,8 @@ public class TypeRepository : IDisposable
 
     List<IDisposable> disposables = new();
 
-    public IService CreateInstanceFor(string name, ShorthandNamePolicy shorthandPolicy, out Type foundType)
+    public IService CreateInstanceFor(string name, ShorthandNamePolicy shorthandPolicy,
+        out Type foundType)
     {
         if ((!NamedServiceTypes.TryGetValue(name, out foundType) &&
              !TryGetByShortHand(shorthandPolicy, name, out foundType)) || foundType == null)
@@ -125,7 +135,8 @@ public class TypeRepository : IDisposable
                 return true;
             case ShorthandNamePolicy.Discouraged:
                 GlobalLog.Instance?.Warning(
-                    "Shorthand is discouraged! But we'll allow retrieving `{type}` by `{shortand}` for now.", type.Name,
+                    "Shorthand is discouraged! But we'll allow retrieving `{type}` by `{shortand}` for now.",
+                    type.Name,
                     shorthand);
                 return true;
             case ShorthandNamePolicy.Rejected:
@@ -139,7 +150,9 @@ public class TypeRepository : IDisposable
 
     public string[] GetAvailableNames() => NamedServiceTypes.Keys.ToArray();
     public bool HasName(string newTypeName) => NamedServiceTypes.ContainsKey(newTypeName);
-    public bool TryGetByName(string name, out Type type) => NamedServiceTypes.TryGetValue(name, out type);
+
+    public bool TryGetByName(string name, out Type type) =>
+        NamedServiceTypes.TryGetValue(name, out type);
 
     public void Dispose()
     {

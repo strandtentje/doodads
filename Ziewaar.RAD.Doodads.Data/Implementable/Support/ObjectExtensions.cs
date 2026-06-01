@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 
 namespace Ziewaar.RAD.Doodads.Data.Implementable.Support;

@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 public class CounterInteraction : IInteraction

@@ -3,7 +3,6 @@ using System.Xml.Schema;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
-#nullable enable
 
 [Category("Printing & Formatting")]
 [Title("Templating service")]

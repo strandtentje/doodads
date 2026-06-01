@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 

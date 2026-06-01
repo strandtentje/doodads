@@ -1,5 +1,4 @@
 ﻿#pragma warning disable 67
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Category("Sourcing & Sinking")]
 [Title("Open input text stream for reading its lines")]

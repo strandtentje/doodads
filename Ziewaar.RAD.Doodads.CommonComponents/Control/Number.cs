@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 #pragma warning disable 67
 

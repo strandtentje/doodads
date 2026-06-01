@@ -1,9 +1,5 @@
-#nullable enable
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
-using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
@@ -56,8 +52,9 @@ public class Hopper : IteratingService, IDisposable
 
     protected override IEnumerable<IInteraction> GetElseItems(StampedMap constants, IInteraction repeater) => [];
 
-    public void Dispose()
+    public override void Dispose()
     {
+        base.Dispose();
         Blocker.Dispose();
         Jobs.Dispose();
     }

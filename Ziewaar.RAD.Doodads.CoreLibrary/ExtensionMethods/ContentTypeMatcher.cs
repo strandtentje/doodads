@@ -66,18 +66,13 @@ public static class ContentTypeMatcher
                 parameters[kv[0].Trim()] = kv[1].Trim().Trim('"'); // handle quoted values
         }
 
-        return new ContentType
-        {
-            Type = types[0].Trim(),
-            Subtype = types[1].Trim(),
-            Parameters = parameters
-        };
+        return new ContentType(types[0].Trim(), types[1].Trim(), parameters);
     }
 
-    private class ContentType
+    private class ContentType(string type, string subtype, Dictionary<string, string> parameters)
     {
-        public string Type { get; set; }
-        public string Subtype { get; set; }
-        public Dictionary<string, string> Parameters { get; set; }
+        public string Type => type;
+        public string Subtype => subtype;
+        public Dictionary<string, string> Parameters => parameters;
     }
 }

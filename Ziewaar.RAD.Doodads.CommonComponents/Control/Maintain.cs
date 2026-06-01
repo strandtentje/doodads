@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
@@ -12,7 +11,6 @@ public class Maintain : IService, IDisposable
 {
     [NamedSetting("ms", "ms to delay with")]
     private readonly UpdatingKeyValue DelayInMsConstant = new("ms");
-    private decimal CurrentDelay;    
     private readonly Recurring Recurring = new();
     public Maintain()
     {

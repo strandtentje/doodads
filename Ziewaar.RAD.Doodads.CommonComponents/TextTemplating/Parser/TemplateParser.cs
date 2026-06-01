@@ -8,7 +8,12 @@ public class TemplateParser
     private readonly HashSet<string> AvailableTrueLocales = new();
     public ISet<string> Locales => AvailableTrueLocales;
     public IReadOnlyList<TemplateCommand> TemplateCommands => CommandStack;
-    public IEnumerable<IGrouping<string, TemplateCommand>> CommandsByLocale { get; private set; }
+
+    public IEnumerable<IGrouping<string, TemplateCommand>> CommandsByLocale
+    {
+        get;
+        private set;
+    } = [];
 
     public void RefreshTemplateData(StreamReader reader)
     {

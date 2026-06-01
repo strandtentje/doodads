@@ -1,5 +1,4 @@
 ﻿#pragma warning disable 67
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Numeric;
 [Category("Input & Validation")]
 [Title("Clamp numeric value in registry to a range")]

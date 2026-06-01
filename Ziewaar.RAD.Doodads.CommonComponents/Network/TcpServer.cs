@@ -7,7 +7,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 #pragma warning disable 67
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Network;
-#nullable enable
+
 [Category("System & IO")]
 [Title("Listen for TCP clients")]
 [Description("""

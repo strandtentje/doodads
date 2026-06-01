@@ -63,8 +63,8 @@ public static class ExecutableResolver
         try
         {
             using var proc = Process.Start(psi);
-            proc.WaitForExit();
-            return proc.ExitCode == 0;
+            proc?.WaitForExit();
+            return proc?.ExitCode == 0;
         }
         catch (Exception ex)
         {

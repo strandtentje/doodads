@@ -3,22 +3,25 @@
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary;
 
-[Obsolete] // Don't use this. It's slow and stupid.
-public class InteractingDefaultingDictionary(IInteraction real, IReadOnlyDictionary<string, object> fallback) : IReadOnlyDictionary<string, object>
+public class InteractionMirroringDictionary(IInteraction backingInteraction) : IReadOnlyDictionary<string, object>
 {
     public object this[string key]
     {
         get
         {
-            if (real.TryFindVariable<object>(key, out var result) && result != null)
+            if (backingInteraction.TryFindVariable<object>(key,
+                    out var result) && result != null)
                 return result;
-            return fallback[key];
+            else
+                throw new KeyNotFoundException();
         }
     }
     public SortedList<string, object> ToSortedList()
     {
         var result = new SortedList<string, object>();
-        for (var currentInteraction = real; currentInteraction is not StopperInteraction; currentInteraction = currentInteraction.Stack)
+        for (var currentInteraction = backingInteraction; 
+             currentInteraction is not StopperInteraction; 
+             currentInteraction = currentInteraction.Stack)
         {
             foreach (var item in currentInteraction.Memory)
             {
@@ -33,24 +36,19 @@ public class InteractingDefaultingDictionary(IInteraction real, IReadOnlyDiction
     public IEnumerable<string> Keys => ToSortedList().Keys;
     public IEnumerable<object> Values => ToSortedList().Values;
     public int Count => ToSortedList().Count;
-    public bool ContainsKey(string key) => real.TryFindVariable<object>(key, out object? _) || fallback.ContainsKey(key);
+    public bool ContainsKey(string key) => backingInteraction.TryFindVariable<object>(key, out object? _);
     public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => ToSortedList().GetEnumerator();
+    private static readonly object NoKeyObject = new();
     public bool TryGetValue(string key, out object value)
     {
-        if (real.TryFindVariable(key, out object? realCandidate) && realCandidate != null)
+        if (backingInteraction.TryFindVariable(key, out object? realCandidate) && realCandidate != null)
         {
             value = realCandidate;
             return true;
-        } else if (fallback.TryGetValue(key, out var fallbackCandidate) && fallbackCandidate != null)
-        {
-            value = fallbackCandidate;
-            return true;
-        }
+        } 
         else
         {
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-            value = null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+            value = NoKeyObject;
             return false;
         }
     }

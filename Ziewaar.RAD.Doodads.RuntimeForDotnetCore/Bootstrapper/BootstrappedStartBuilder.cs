@@ -59,7 +59,7 @@ public class BootstrappedStartBuilder
             if (definitionText != null)
             {
                 var dirpath = Path.GetDirectoryName(fullPath);
-                if (!Directory.Exists(dirpath))
+                if (!Directory.Exists(dirpath) && dirpath != null)
                     Directory.CreateDirectory(dirpath);
                 using (var writer = rkopFile.CreateText())
                 {

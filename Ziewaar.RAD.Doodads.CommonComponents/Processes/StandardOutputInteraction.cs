@@ -2,7 +2,7 @@
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
 
-public class StandardOutputInteraction(IInteraction parent, Stream outputStream, Encoding encoding = null) : ISourcingInteraction
+public class StandardOutputInteraction(IInteraction parent, Stream outputStream, Encoding? encoding = null) : ISourcingInteraction
 {
     public Stream SourceBuffer => outputStream;
     public Encoding TextEncoding => encoding ?? Console.OutputEncoding ?? Encoding.Default;

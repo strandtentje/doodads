@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 [Category("Scheduling & Flow")]
@@ -10,8 +9,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
     """)]
 public class BlockingLatch : IService
 {
-    private readonly object lockObject = new();
-    private bool isCaptured = false;
+    private readonly object LockObject = new();
     [EventOccasion("Runs one at a time using the provided interaction")]
     public event CallForInteraction? OnThen;
     [EventOccasion("If someone else is in here already, this happens.")]
@@ -21,7 +19,7 @@ public class BlockingLatch : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        lock (lockObject)
+        lock (LockObject)
         {
             OnThen?.Invoke(this, interaction);     
         }

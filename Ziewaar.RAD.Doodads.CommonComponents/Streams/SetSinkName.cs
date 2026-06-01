@@ -1,6 +1,5 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 #pragma warning disable 67
-#nullable enable
 [Category("Sourcing & Sinking")]
 [Title("Set name of current sink")]
 [Description("""
@@ -23,7 +22,7 @@ public class SetSinkName : IService
     {
         if ((constants, SinkNameConstant).IsRereadRequired(out string? sinkNameCandidate))
             this.CurrentSinkName = sinkNameCandidate;
-        if (string.IsNullOrWhiteSpace(this.CurrentSinkName))
+        if (this.CurrentSinkName == null || string.IsNullOrWhiteSpace(this.CurrentSinkName))
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "sink name required as primary constant"));
             return;

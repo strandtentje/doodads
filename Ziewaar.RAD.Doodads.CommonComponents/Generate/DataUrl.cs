@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.Generate;
+﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Generate;
 
 [Category("Printing & Formatting")]
 [Title("Sink binary data and output it as a base64 data url")]

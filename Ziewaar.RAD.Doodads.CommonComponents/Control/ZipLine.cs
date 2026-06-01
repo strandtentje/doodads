@@ -31,7 +31,7 @@ public class ZipLine : IteratingService
             if (ziMergeCollection.Collection.TryTake(out var item, (int)CurrentTimeout))
             {
                 yield return repeater.
-                    AppendMemory(new InteractingDefaultingDictionary(item, EmptyReadOnlyDictionary.Instance)).
+                    AppendMemory(new InteractionMirroringDictionary(item)).
                     AppendRegister(ziMergeCollection.Name);
             }
             else if (ziMergeCollection.Collection.IsAddingCompleted)

@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 public class ProxyBufferStream : Stream
 {

@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
+﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 public class CircularStack<T> : IDisposable
 {

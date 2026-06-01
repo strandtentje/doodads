@@ -1,5 +1,4 @@
 #pragma warning disable 67
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 [Category("Printing & Formatting")]
 [Title("Works like Print, but uses the contents of a file instead")]

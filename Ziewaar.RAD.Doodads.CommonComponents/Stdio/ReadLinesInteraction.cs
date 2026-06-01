@@ -1,5 +1,4 @@
 ﻿#pragma warning disable 67
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
 public class ReadLinesInteraction(IInteraction parent, string name, StreamReader reader) : IInteraction

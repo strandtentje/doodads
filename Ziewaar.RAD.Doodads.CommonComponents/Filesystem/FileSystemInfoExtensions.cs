@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 using System.Runtime.InteropServices;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;

@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
@@ -10,8 +9,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 [ShortNames("rmrf")]
 public class DeleteDir : IService
 {
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [EventOccasion("When there wasnt an existing dir path in register")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {

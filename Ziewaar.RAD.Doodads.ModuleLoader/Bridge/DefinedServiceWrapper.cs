@@ -38,7 +38,8 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
         IReadOnlyDictionary<string, object> constants,
         IDictionary<string, ServiceBuilder> branches)
     {
-        if (this.Type != null || this.Position != null || this.Instance != null || this.Constants != null)
+        if (this.Type != null || this.Position != null || this.Instance != null ||
+            this.Constants != null)
             throw new InvalidOperationException("cannot update dirty service");
 
         this.ServiceIdentity.Filename = atPosition.BareFile;
@@ -48,12 +49,15 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
 
         this.Position = atPosition;
         this.TypeName = typename;
-        this.CleanupPropagation = new Stack<Action>(branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup));
+        this.CleanupPropagation =
+            new Stack<Action>(branches.Values.Select<ServiceBuilder, Action>(x => x.Cleanup));
         try
         {
             if (!atPosition.Policies.TryGetValue("shorthand", out var shorthandPolicyCandidate) ||
-                shorthandPolicyCandidate is not ShorthandNamePolicy snp) snp = ShorthandNamePolicy.Rejected;
-            this.Instance = TypeRepository.Instance.CreateInstanceFor(this.TypeName, snp, out this.Type);
+                shorthandPolicyCandidate is not ShorthandNamePolicy snp)
+                snp = ShorthandNamePolicy.Rejected;
+            this.Instance =
+                TypeRepository.Instance.CreateInstanceFor(this.TypeName, snp, out this.Type);
         }
         catch (MissingServiceTypeException ex)
         {
@@ -65,7 +69,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
         }
 
         this.Constants = new StampedMap(
-            primaryValue ?? NullBuster, constants, 
+            primaryValue ?? NullBuster, constants,
             Path.Combine(atPosition.WorkingDirectory.FullName, atPosition.BareFile));
 
         this.Instance.OnThen += DiagnosticOnThen;
@@ -102,8 +106,9 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
 
     private void Instance_OnException(object sender, IInteraction interaction)
     {
-        GlobalLog.Instance?.Error($"Service indicates exceptional situation; {JsonConvert.SerializeObject(
-            new ExceptionPayload(Constants, Type, Position, interaction), Formatting.Indented)}");
+        GlobalLog.Instance?.Error(
+            $"Service indicates exceptional situation; {JsonConvert.SerializeObject(
+                new ExceptionPayload(Constants, Type, Position, interaction), Formatting.Indented)}");
     }
 
     public void OnThen(CallForInteraction dlg)
@@ -183,7 +188,8 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
     {
         try
         {
-            Instance!.Enter(Constants, data);
+            Instance!.Enter(
+                Constants ?? throw new NullReferenceException("constants not known yet"), data);
         }
 #if !DEBUG || true
         catch (Exception ex)

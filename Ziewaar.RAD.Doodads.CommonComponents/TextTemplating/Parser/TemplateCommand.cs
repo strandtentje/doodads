@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 public struct TemplateCommand
 {

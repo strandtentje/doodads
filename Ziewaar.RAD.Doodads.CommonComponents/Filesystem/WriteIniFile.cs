@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
@@ -11,10 +10,13 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 [ShortNames("wini")]
 public class WriteIniFile : IService
 {
+    [PrimarySetting("Array of names to take from memory and write")]
     public readonly UpdatingPrimaryValue NamesToWrite = new();
-
+    [NeverHappens]
     public event CallForInteraction? OnThen;
+    [NeverHappens]
     public event CallForInteraction? OnElse;
+    [NeverHappens]
     public event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)

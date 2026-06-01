@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 using System.Collections.Generic;
 using System.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;

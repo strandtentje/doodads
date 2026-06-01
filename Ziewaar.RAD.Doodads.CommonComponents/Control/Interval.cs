@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 using System.Threading;
 using System.Threading.Tasks;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;

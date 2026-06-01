@@ -1,7 +1,6 @@
 using Newtonsoft.Json;
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
-#nullable enable
 #pragma warning disable 67
 
 [Category("Diagnostics & Debug")]

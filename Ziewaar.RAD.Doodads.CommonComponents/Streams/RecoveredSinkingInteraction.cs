@@ -2,8 +2,6 @@ using System.Text;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 
-#nullable enable
-
 public class RecoveredSinkingInteraction(IInteraction interaction, SinkNamingInteraction namingInteraction)
     : ISinkingInteraction
 {

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
-#nullable enable
 [Category("Scheduling & Flow")]
 [Title("Blocks from here on out to prevent premature finishing of the execution")]
 [Description("""
@@ -14,7 +10,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Lifecycle;
              """)]
 public class Hold : IService, IDisposable
 {
-    private List<ResidentialInteraction> History = new();
+    private readonly List<ResidentialInteraction> History = [];
     public void Dispose()
     {
         foreach (var item in History)
@@ -33,20 +29,20 @@ public class Hold : IService, IDisposable
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         (constants, LockNameConstant).IsRereadRequired(out string? lockName);
-        string? desiredName = lockName;
-        if (string.IsNullOrWhiteSpace(desiredName))
+        var desiredName = lockName;
+        if (desiredName == null || desiredName.Trim().Length == 0)
         {
             var tsi = new TextSinkingInteraction(interaction);
             GetName?.Invoke(this, tsi);
             desiredName = tsi.ReadAllText();
-            if (string.IsNullOrWhiteSpace(desiredName))
+            if (desiredName.Trim().Length == 0)
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "Hold Lock required name"));
                 return;
             }
         }
         ResidentialInteraction currentResident;
-        if (History.SingleOrDefault(x => x.Name == desiredName) is ResidentialInteraction ri)
+        if (History.SingleOrDefault(x => x.Name == desiredName) is { } ri)
         {
             currentResident = ri;
         }

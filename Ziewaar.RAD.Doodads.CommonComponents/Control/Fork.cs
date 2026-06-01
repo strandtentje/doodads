@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 

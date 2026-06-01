@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace Ziewaar.RAD.Doodads.CommonComponents.Generate;
+﻿namespace Ziewaar.RAD.Doodads.CommonComponents.Generate;
 
 public static class DataUrlUtil
 {

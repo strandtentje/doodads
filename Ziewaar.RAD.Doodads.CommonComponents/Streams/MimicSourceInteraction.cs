@@ -28,7 +28,7 @@ public class MimicSinkInteraction(
     public Stream SinkBuffer => overrideStream;
     public string[] SinkContentTypePattern => original.SinkContentTypePattern;
 
-    public string SinkTrueContentType
+    public string? SinkTrueContentType
     {
         get => original.SinkTrueContentType;
         set => original.SinkTrueContentType = value;

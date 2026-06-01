@@ -12,14 +12,8 @@ public class CursorText(
     int position = 0)
 {
     public bool LogFileExists { get; } = File.Exists($"{bareFileName}.log");
-    public string LogFilePath { get; } = $"{bareFileName}.log";
-
+    private string LogFilePath { get; } = $"{bareFileName}.log";
     public IReadOnlyDictionary<string, object> Policies => policies;
-
-    private readonly object FileLock = new();
-    private Timer LogFlusher = null;
-    private Queue<string> Messages = null;
-    private int LogCounter = 0;
 
     public void EnqueueLogMessage(string message)
     {
@@ -31,8 +25,7 @@ public class CursorText(
         new DirectoryInfo(Environment.CurrentDirectory),
         "deleted", "");
 
-    public static CursorText Empty = FixedEmpty.AdvanceTo(0);
-    List<string> localStack = new List<string>();
+    public static readonly CursorText Empty = FixedEmpty.AdvanceTo(0);
 
     public List<string> Stack
     {
@@ -41,9 +34,9 @@ public class CursorText(
             if (scopeAbove != null && scopeAbove != this)
                 return scopeAbove.Stack;
             else
-                return localStack;
+                return field;
         }
-    }
+    } = [];
 
     public int Depth
     {
@@ -54,8 +47,6 @@ public class CursorText(
         }
     }
 
-    string lifield = "Root";
-
     public string LastIdentifier
     {
         get
@@ -63,16 +54,16 @@ public class CursorText(
             if (scopeAbove != null && scopeAbove != this)
                 return scopeAbove.LastIdentifier;
             else
-                return lifield;
+                return field;
         }
         set
         {
             if (scopeAbove != null && scopeAbove != this)
                 scopeAbove.LastIdentifier = value;
             else
-                lifield = value;
+                field = value;
         }
-    }
+    } = "Root";
 
     public DirectoryInfo WorkingDirectory => workingDirectory;
     public char[] Text => text;
@@ -84,38 +75,32 @@ public class CursorText(
 
     public object this[string key]
     {
-        get
-        {
-            if (LocalScope.TryGetValue(key, out var value))
-                return value;
-            else if (ScopeAbove != null)
-                return ScopeAbove[key];
-            else
-                return null;
-        }
-        set { LocalScope[key] = value; }
+        get => LocalScope.TryGetValue(key, out var value) ? value : ScopeAbove?[key];
+        set => LocalScope[key] = value;
     }
 
-    public static CursorText Create(DirectoryInfo workingDirectory, string bareFileName, string text)
-    {
-        return new CursorText(workingDirectory, bareFileName, text.ToCharArray(), null, new(),
-            EmptyReadOnlyDictionary.Instance, 0);
-    }
+    public static CursorText Create(DirectoryInfo workingDirectory, string bareFileName,
+        string text) =>
+        new(workingDirectory, bareFileName, text.ToCharArray(), null, new(),
+            EmptyReadOnlyDictionary.Instance);
 
     public CursorText IncludePolicy(string name, object value) =>
         new CursorText(workingDirectory, bareFileName, text, scopeAbove, localScope,
             new FallbackReadOnlyDictionary(
                 new SwitchingDictionary([name],
-                    key => key == name ? value : throw new KeyNotFoundException()), policies), position);
+                    key => key == name ? value : throw new KeyNotFoundException()), policies),
+            position);
 
-    public CursorText AdvanceTo(int position) =>
-        new CursorText(workingDirectory, bareFileName, Text, ScopeAbove, LocalScope, policies, position);
+    public CursorText AdvanceTo(int advancedPosition) =>
+        new CursorText(workingDirectory, bareFileName, Text, ScopeAbove, LocalScope, policies,
+            advancedPosition);
 
     public CursorText EnterScope() => new CursorText(workingDirectory, bareFileName, Text, this,
         new SortedList<string, object>(), policies, Position);
 
     public CursorText ExitScope() => ScopeAbove != null
-        ? new CursorText(workingDirectory, bareFileName, Text, ScopeAbove.ScopeAbove, ScopeAbove.LocalScope, policies,
+        ? new CursorText(workingDirectory, bareFileName, Text, ScopeAbove.ScopeAbove,
+            ScopeAbove.LocalScope, policies,
             Position)
         : throw new InvalidOperationException("Cannot exit top scope.");
 

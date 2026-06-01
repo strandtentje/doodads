@@ -1,4 +1,3 @@
-#nullable enable
 #pragma warning disable 67
 using System.Collections;
 using System.Text;

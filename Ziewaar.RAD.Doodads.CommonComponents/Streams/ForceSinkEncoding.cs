@@ -1,4 +1,3 @@
-#nullable enable
 using System.Text;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;

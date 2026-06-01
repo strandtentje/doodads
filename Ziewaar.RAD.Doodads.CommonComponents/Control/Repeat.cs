@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 

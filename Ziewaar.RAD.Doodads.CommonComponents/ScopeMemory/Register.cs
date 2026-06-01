@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 #pragma warning disable 67
 [Category("Memory & Register")]

@@ -58,17 +58,17 @@ public class Call : IService, IDisposable
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(candidateModuleName?.ToString()))
+            if (string.IsNullOrWhiteSpace(candidateModuleName.ToString()))
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "no module name provided"));
                 return;
             }
 
-            this.CurrentModuleName = candidateModuleName?.ToString();
+            this.CurrentModuleName = candidateModuleName.ToString();
         }
 
         var callComponents = CurrentModuleName?.Split('@') ?? [];
-        var requestedFileComponent = callComponents.ElementAtOrDefault(0);
+        var requestedFileComponent = callComponents.ElementAtOrDefault(0) ?? "";
         var requestedDefComponent = callComponents.ElementAtOrDefault(1);
 
         var combination = Path.Combine(requestedFileComponent, "main.rkop");
@@ -84,12 +84,16 @@ public class Call : IService, IDisposable
                 return;
             }
 
-            if (this.DefinitionFile == null)
-            {
-                this.DefinitionFile = constants.DefiningFile;
-            }
+            this.DefinitionFile ??= constants.DefiningFile;
 
             requestedFileComponent = this.DefinitionFile;
+            
+            if (requestedFileComponent == null)
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction,
+                    "no conf could be determined"));
+                return;
+            }
         }
         else
         {
@@ -105,7 +109,7 @@ public class Call : IService, IDisposable
 
         if (requestedFileComponent == "*")
         {
-            if (interaction.Register.ToString() is not string requestedExternalFile)
+            if (interaction.Register.ToString() is not { } requestedExternalFile)
             {
                 OnException?.Invoke(this,
                     new CommonInteraction(interaction, "wildcard call defined, but no text in register"));

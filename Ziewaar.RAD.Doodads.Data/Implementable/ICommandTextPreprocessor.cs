@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.Data.Implementable;
 #pragma warning disable 67
 public interface ICommandTextPreprocessor

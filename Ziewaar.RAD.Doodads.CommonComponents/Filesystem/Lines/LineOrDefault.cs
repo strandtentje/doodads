@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Lines;
 
 [Category("System & IO")]

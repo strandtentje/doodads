@@ -1,5 +1,4 @@
-﻿#nullable enable
-using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+﻿using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;

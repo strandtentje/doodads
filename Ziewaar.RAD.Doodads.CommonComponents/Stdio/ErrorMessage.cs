@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
 [Category("Diagnostics & Debug")]

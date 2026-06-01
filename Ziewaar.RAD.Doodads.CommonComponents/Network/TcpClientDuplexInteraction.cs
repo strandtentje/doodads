@@ -4,7 +4,6 @@ using System.Text;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Network;
 
-#nullable enable
 internal class TcpClientDuplexInteraction(IInteraction origin, TcpClient freshClient, NetworkStream networkStream)
     : IInteraction, ISourcingInteraction, ISinkingInteraction
 {

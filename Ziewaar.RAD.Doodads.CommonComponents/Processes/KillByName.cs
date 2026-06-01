@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 using System.Diagnostics;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;

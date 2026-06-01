@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 using System.Globalization;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;

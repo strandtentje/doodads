@@ -1,5 +1,4 @@
-#nullable enable
-
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
 [Category("Scheduling & Flow")]

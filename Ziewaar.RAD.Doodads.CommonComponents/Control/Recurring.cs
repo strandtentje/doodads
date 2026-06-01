@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
@@ -17,7 +16,6 @@ public class Recurring : IteratingService
     [NamedSetting("ms", "ms to delay with")]
     private readonly UpdatingKeyValue DelayInMsConstant = new("ms");
     private decimal CurrentDelay;
-    private bool IsDisposing;
 
     protected override bool RunElse => false;
     [EventOccasion("Sink interval string here")]
@@ -49,10 +47,12 @@ public class Recurring : IteratingService
             try
             {
                 var ct = ((RepeatInteraction)repeater).CancellationToken;
+                // ReSharper disable once InconsistentlySynchronizedField
                 while (!ct.IsCancellationRequested && !IsDisposing)
                 {
                     var waitingTask = semaphore.WaitAsync((int)this.CurrentDelay);
                     waitingTask.Wait(ct);
+                    // ReSharper disable once InconsistentlySynchronizedField
                     if (!ct.IsCancellationRequested && !IsDisposing)
                         yield return repeater;
                 }

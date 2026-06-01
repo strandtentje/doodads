@@ -1,4 +1,3 @@
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
 public class CacheMissInteraction(IInteraction stack, IEnumerable<object> validateKeys, CacheKey key, CacheValue value)

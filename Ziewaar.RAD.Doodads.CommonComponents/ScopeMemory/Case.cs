@@ -1,5 +1,4 @@
 #pragma warning disable 67
-#nullable enable
 namespace Ziewaar.RAD.Doodads.CommonComponents.ScopeMemory;
 
 [Category("Memory & Register")]
@@ -31,46 +30,5 @@ public class Case : IService
         else
             OnElse?.Invoke(this, interaction);
     }
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-}
-
-public class DebounceContainer
-{
-    public object? LastValue;
-}
-
-public class DebounceIn : IService
-{
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-    public void Enter(StampedMap constants, IInteraction interaction) => OnThen?.Invoke(this, interaction.AppendCustom(new DebounceContainer()));
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
-}
-
-public class DebounceOut : IService
-{
-    public event CallForInteraction? OnThen;
-    public event CallForInteraction? OnElse;
-    public event CallForInteraction? OnException;
-
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        if (interaction.TryGetCustom<DebounceContainer>(out var debouncer) && debouncer != null)
-        {
-            if (debouncer.LastValue?.ToString() != interaction.Register.ToString())
-            {
-                debouncer.LastValue = interaction.Register;
-                OnThen?.Invoke(this, interaction);
-            } else
-            {
-                OnElse?.Invoke(this, interaction);
-            }
-        } else
-        {
-            OnException?.Invoke(this, interaction.AppendRegister("debouncein required"));
-        }
-    }
-
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

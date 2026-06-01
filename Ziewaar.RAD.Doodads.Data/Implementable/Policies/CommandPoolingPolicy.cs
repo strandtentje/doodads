@@ -1,4 +1,3 @@
-#nullable enable
 using System.Data;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;

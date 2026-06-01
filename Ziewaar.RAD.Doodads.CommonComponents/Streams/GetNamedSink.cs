@@ -1,6 +1,5 @@
 namespace Ziewaar.RAD.Doodads.CommonComponents.Streams;
 #pragma warning disable 67
-#nullable enable
 [Category("Sourcing & Sinking")]
 [Title("Get sink by name")]
 [Description("""

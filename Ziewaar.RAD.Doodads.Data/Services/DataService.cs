@@ -1,5 +1,4 @@
-﻿#nullable enable
-#pragma warning disable 67
+﻿#pragma warning disable 67
 using System;
 using System.Data;
 using System.Globalization;
@@ -79,60 +78,55 @@ public abstract class DataService<TResult> : IService
     {
         var newParam = command.CreateParameter();
         newParam.ParameterName = item;
-        if (interaction.TryFindVariable(item, out object? paramToIdentify))
+        if (interaction.TryFindVariable(item, out object? paramToIdentify) && 
+            paramToIdentify != null)
         {
             if (FrameworkTypeAdaptorRepository.Instance.TryConvert(paramToIdentify, out var converted))
                 paramToIdentify = converted;
             
-            if (paramToIdentify == null)
+            switch (paramToIdentify)
             {
-                newParam.Value = DBNull.Value;
-            }
-            else if (paramToIdentify is string textParam)
-            {
-                newParam.Value = textParam;
-                newParam.DbType = DbType.String;
-            }
-            else if (paramToIdentify is decimal dcParam)
-            {
-                newParam.Value = dcParam;
-                newParam.DbType = DbType.Decimal;
-            }
-            else if (paramToIdentify is DateTime dtParam)
-            {
-                newParam.Value = dtParam;
-                newParam.DbType = DbType.DateTime;
-            }
-            else if (paramToIdentify is TimeSpan tsParam)
-            {
-                newParam.Value = tsParam;
-                newParam.DbType = DbType.Time;
-            }
-            else if (paramToIdentify is bool blParam)
-            {
-                newParam.Value = blParam;
-                newParam.DbType = DbType.Boolean;
-            }
-            else if (paramToIdentify is byte[] bytParam)
-            {
-                newParam.Value = bytParam;
-                newParam.DbType = DbType.Binary;
-            }
-            else
-            {
-                try
-                {
-                    newParam.Value = Convert.ToDecimal(paramToIdentify);
+                case string textParam:
+                    newParam.Value = textParam;
+                    newParam.DbType = DbType.String;
+                    break;
+                case decimal dcParam:
+                    newParam.Value = dcParam;
                     newParam.DbType = DbType.Decimal;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception($"for db param {item}", ex);
-                }
+                    break;
+                case DateTime dtParam:
+                    newParam.Value = dtParam;
+                    newParam.DbType = DbType.DateTime;
+                    break;
+                case TimeSpan tsParam:
+                    newParam.Value = tsParam;
+                    newParam.DbType = DbType.Time;
+                    break;
+                case bool blParam:
+                    newParam.Value = blParam;
+                    newParam.DbType = DbType.Boolean;
+                    break;
+                case byte[] bytParam:
+                    newParam.Value = bytParam;
+                    newParam.DbType = DbType.Binary;
+                    break;
+                default:
+                    try
+                    {
+                        newParam.Value = Convert.ToDecimal(paramToIdentify);
+                        newParam.DbType = DbType.Decimal;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"for db param {item}", ex);
+                    }
+
+                    break;
             }
         }
         else
         {
+            newParam.Value = DBNull.Value;
             OnException?.Invoke(this,
                 new CommonInteraction(interaction, $"missing param {item} so setting null. query might fail."));
         }
