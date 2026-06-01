@@ -1,7 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.AdvancedFilesystem.DirDsl
+﻿namespace Ziewaar.RAD.Doodads.AdvancedFilesystem.DirDsl;
+
+public interface IReverseFileExpression
 {
-    public interface IReverseFileExpression
-    {
-        bool Evaluate(string input, List<string> reasons);
-    }
+    bool Evaluate(string input, List<string> reasons);
 }
