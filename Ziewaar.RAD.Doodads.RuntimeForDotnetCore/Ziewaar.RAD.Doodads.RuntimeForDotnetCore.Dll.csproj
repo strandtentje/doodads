@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.CommonComponents\Ziewaar.RAD.Doodads.CommonComponents.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.Cryptography\Ziewaar.RAD.Doodads.Cryptography.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.FormsValidation\Ziewaar.RAD.Doodads.FormsValidation.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.ModuleLoader\Ziewaar.RAD.Doodads.ModuleLoader.csproj" />
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.StandaloneWebserver\Ziewaar.RAD.Doodads.StandaloneWebserver.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="site.rkop">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Update="server.rkop">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

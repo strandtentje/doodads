@@ -7,6 +7,8 @@ public class RangeCondition(
     IComparableExpression left,
     IComparableExpression right) : IReverseFileExpression
 {
+    public IComparableExpression LBound => left;
+    public IComparableExpression UBound => right;
 
     public bool Evaluate(string input, List<string> reasons)
     {

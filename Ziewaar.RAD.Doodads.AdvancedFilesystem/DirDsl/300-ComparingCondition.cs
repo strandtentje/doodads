@@ -4,10 +4,11 @@ namespace Ziewaar.RAD.Doodads.AdvancedFilesystem.DirDsl;
 
 public abstract class ComparingCondition : IReverseFileExpression
 {
+    public abstract IComparableExpression Operand { get; }
     public static bool TryParseFrom(string name, List<(int c, string d)> errors, ref int cursor,
         [NotNullWhen(true)] out IReverseFileExpression? expression)
     {
-        char operation = name[cursor];
+        char operation = name.ElementAtOrDefault(cursor);
         switch (operation)
         {
             case '(':
@@ -18,7 +19,7 @@ public abstract class ComparingCondition : IReverseFileExpression
                     expression = null;
                     return false;
                 }
-                else if (name[cursor] != ')')
+                else if (name.ElementAtOrDefault(cursor) != ')')
                 {
                     errors.Add((cursor, "missing closing parenthesis"));
                     expression = null;
@@ -44,7 +45,7 @@ public abstract class ComparingCondition : IReverseFileExpression
                     expression = operation switch
                     {
                         '+' => new GreaterInclusiveCondition(operand),
-                        '-' => new LesserInclusiveCondition(operand),
+                        '-' => new LesserExclusiveCondition(operand),
                         '~' => new NotEqualsCondition(operand),
                         _ => throw new InvalidOperationException(),
                     };
@@ -52,6 +53,7 @@ public abstract class ComparingCondition : IReverseFileExpression
                 }
             case '$':
             case ';':
+            case 'ß':
                 cursor++;
                 if (!ComparableExpression.TryParseFrom(name, errors, ref cursor, true, out var strOperand))
                 {
@@ -65,6 +67,7 @@ public abstract class ComparingCondition : IReverseFileExpression
                     {
                         '$' => new StartsWithCondition(strOperand),
                         ';' => new EndsWithCondition(strOperand),
+                        'ß' => new ContainsCondition(strOperand),
                         _ => throw new InvalidOperationException(),
                     };
                     return true;

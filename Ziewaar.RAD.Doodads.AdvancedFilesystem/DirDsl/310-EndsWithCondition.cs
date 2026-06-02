@@ -3,6 +3,7 @@ namespace Ziewaar.RAD.Doodads.AdvancedFilesystem.DirDsl;
 public class EndsWithCondition(IComparableExpression operand)
     : ComparingCondition
 {
+    public override IComparableExpression Operand => operand;
     public override bool Evaluate(string input, List<string> reasons)
     {
         if (input.EndsWith(operand.Literal, operand.StringComparison))
