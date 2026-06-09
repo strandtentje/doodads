@@ -101,14 +101,3 @@ public class PathJoin : IService
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
-
-public class IncompletePathJoin : PathJoin
-{
-    public override event CallForInteraction? OnThen;
-    protected override void HandleCombinedPath(IInteraction interaction, string finalPath)
-    {
-        if (SendToVariable is string targetVar)
-            interaction = interaction.AppendMemory((targetVar, finalPath));
-        OnThen?.Invoke(this, interaction.AppendRegister(finalPath));
-    }
-}

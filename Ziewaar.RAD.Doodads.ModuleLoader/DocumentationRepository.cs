@@ -21,40 +21,40 @@ public class DocumentationRepository
 
     public string[] GetCategories() =>
         CategoryStrings ??=
-            NamedServiceTypes.Values.Select(x => x.GetCustomAttribute<CategoryAttribute>()?.Name).OfType<string>()
+            NamedServiceTypes.Values.Select(x => x.GetCustomAttribute<CategoryAttribute>(true)?.Name).OfType<string>()
                 .Distinct().OrderBy(x => x).ToArray();
 
     public string[] GetCategoryTypes(string category) =>
         CategoryTypes.TryGetValue(category, out var typeNames)
             ? typeNames
             : CategoryTypes[category] = NamedServiceTypes.Values.Where(x =>
-                    x.GetCustomAttributes().OfType<CategoryAttribute>().SingleOrDefault()?.Name == category)
+                    x.GetCustomAttributes(true).OfType<CategoryAttribute>().SingleOrDefault()?.Name == category)
                 .Select(x => x.Name).OrderBy(x => x).ToArray();
 
     public string GetTypeTitle(string typeName) =>
         TypeTitles.TryGetValue(typeName, out var title)
             ? title
             : TypeTitles[typeName] =
-                NamedServiceTypes[typeName].GetCustomAttribute<TitleAttribute>().Title;
+                NamedServiceTypes[typeName].GetCustomAttribute<TitleAttribute>(true).Title;
 
     public string GetTypeDescription(string typeName) =>
         TypeDescriptions.TryGetValue(typeName, out var description)
             ? description
             : TypeDescriptions[typeName] =
-                NamedServiceTypes[typeName].GetCustomAttribute<DescriptionAttribute>().Description;
+                NamedServiceTypes[typeName].GetCustomAttribute<DescriptionAttribute>(true).Description;
 
     public string? GetTypeShorthand(string typeName) =>
         TypeShorthands.TryGetValue(typeName, out var format)
             ? format
             : TypeShorthands[typeName] =
-                NamedServiceTypes[typeName].GetCustomAttributes().OfType<ShorthandAttribute>()
+                NamedServiceTypes[typeName].GetCustomAttributes(true).OfType<ShorthandAttribute>()
                     .FirstOrDefault()?.Format;
 
     public string[] GetTypeShortnames(string typeName) =>
         TypeShortNames.TryGetValue(typeName, out var names)
             ? names
             : TypeShortNames[typeName] =
-                NamedServiceTypes[typeName].GetCustomAttributes().OfType<ShortNamesAttribute>().FirstOrDefault()
+                NamedServiceTypes[typeName].GetCustomAttributes(true).OfType<ShortNamesAttribute>().FirstOrDefault()
                     ?.Names ?? [];
 
     public string[] GetTypeEvents(string typeName) =>
@@ -63,7 +63,7 @@ public class DocumentationRepository
             : TypeEvents[typeName] =
                 NamedServiceTypes[typeName].GetEvents()
                     .Where(x => typeof(CallForInteraction).IsAssignableFrom(x.EventHandlerType) &&
-                                !x.GetCustomAttributes().OfType<NeverHappensAttribute>().Any()).Select(x => x.Name)
+                                !x.GetCustomAttributes(true).OfType<NeverHappensAttribute>().Any()).Select(x => x.Name)
                     .OrderBy(x => x)
                     .ToArray();
 
@@ -73,7 +73,7 @@ public class DocumentationRepository
             : EventDescriptions[(typeName, eventName)] =
                 NamedServiceTypes[typeName].GetEvents()
                     .Single(x => typeof(CallForInteraction).IsAssignableFrom(x.EventHandlerType) && x.Name == eventName)
-                    .GetCustomAttribute<EventOccasionAttribute>().EventOccasion;
+                    .GetCustomAttributes<EventOccasionAttribute>(true).FirstOrDefault()?.EventOccasion ?? "Missing documentation";
 
     public string? GetTypePrimarySetting(string typeName) =>
         TypePrimarySettings.TryGetValue(typeName, out var setting)
