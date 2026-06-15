@@ -18,25 +18,6 @@ public class SplitAtNonAlpha : IteratingService
 
         splitText = splitText.RemoveDiacritics();
 
-        StringBuilder op = new();
-
-        for (int i = 0; i < splitText.Length; i++)
-        {
-            if (char.IsAsciiLetterOrDigit(op[i]))
-            {
-                op.Append(op[i]);
-            }
-            else if (op.Length > 0)
-            {
-                yield return repeater.AppendRegister(op.ToString());
-                op.Clear();
-            }
-        }
-        
-        if (op.Length > 0)
-        {
-            yield return repeater.AppendRegister(op.ToString());
-            op.Clear();
-        }
+        return splitText.SplitAtNonAlpha().Select(repeater.AppendRegister);
     }
 }

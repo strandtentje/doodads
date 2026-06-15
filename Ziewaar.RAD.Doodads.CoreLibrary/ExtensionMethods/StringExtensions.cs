@@ -55,4 +55,24 @@ public static class StringExtensions
             .Normalize(NormalizationForm.FormC);
     }
 
+    public static IEnumerable<string> SplitAtNonAlpha(this string splitText)
+    {
+        StringBuilder op = new();
+
+        foreach (var t in splitText)
+        {
+            if (char.IsLetterOrDigit(t))
+                op.Append(t);
+            else if (op.Length > 0)
+            {
+                yield return op.ToString();
+                op.Clear();
+            }
+        }
+
+        if (op.Length <= 0) yield break;
+        
+        yield return op.ToString();
+        op.Clear();
+    }
 }

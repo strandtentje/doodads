@@ -55,7 +55,8 @@ public class TagMemory(Tag tag) : IReadOnlyDictionary<string, object>
     {
         return tag.Performers.Concat(tag.AlbumArtists).Concat([
             tag.Title, tag.Subtitle, tag.Album, tag.Year.ToString(),
-        ]).Distinct().Select(x => x.RemoveDiacritics()).Order().ToArray();
+        ]).OfType<string>().SelectMany(x => x.SplitAtNonAlpha()).Distinct().
+            Select(x => x.RemoveDiacritics()).Order().ToArray();
     }
     
 

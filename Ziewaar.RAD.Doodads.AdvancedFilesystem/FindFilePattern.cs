@@ -19,7 +19,7 @@ public class FindFilePattern : IteratingService
         if (!constants.NamedItems.TryGetValue("pattern", out var patCand) ||
             patCand?.ToString() is not string patStr || string.IsNullOrWhiteSpace(patStr))
             throw new Exception("pattern required");
-
+        
         var ef = Directory.EnumerateFiles(dirPath, patStr, new EnumerationOptions()
         {
             AttributesToSkip = FileAttributes.Hidden | FileAttributes.System | FileAttributes.Temporary,
@@ -28,7 +28,7 @@ public class FindFilePattern : IteratingService
             MaxRecursionDepth = 64,
             RecurseSubdirectories = true,
         });
-
+        
         foreach (var f in ef)
         {
             yield return repeater.AppendRegister(f);

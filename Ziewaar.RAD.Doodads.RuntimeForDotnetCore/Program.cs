@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Reflection.Metadata;
 using Serilog;
+using Ziewaar.RAD.Doodads.AdvancedFilesystem;
 using Ziewaar.RAD.Doodads.CommonComponents;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.CoreLibrary;
@@ -44,6 +45,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             BootstrappedStartBuilder
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
+                .AddAssemblyBy<FindFilePattern>()
                 .AddAssemblyBy<Definition>().AddAssemblyBy<DataQuery>().AddAssemblyBy<HtmlForm>()
                 .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>().AddAssemblyBy<ReadMediaTag>()
                 .AddFile("site.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "site.rkop")) : "")
