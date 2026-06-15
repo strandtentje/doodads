@@ -1,0 +1,3 @@
+[submodule "libmpv2netstd"]
+	path = libmpv2netstd
+	url = https://github.com/strandtentje/libmpv2netstd.git

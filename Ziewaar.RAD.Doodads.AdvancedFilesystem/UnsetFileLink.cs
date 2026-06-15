@@ -16,14 +16,12 @@ public class UnsetFileLink : IService
 {
     [EventOccasion("Parent dir of symlink")]
     public event CallForInteraction? LinkParentDir;
-    [EventOccasion("Name of symlink")]
-    public event CallForInteraction? LinkPath;
-    [NeverHappens]
-    public event CallForInteraction? OnThen;
-    [NeverHappens]
-    public event CallForInteraction? OnElse;
-    [NeverHappens]
-    public event CallForInteraction? OnException;
+
+    [EventOccasion("Name of symlink")] public event CallForInteraction? LinkPath;
+    [NeverHappens] public event CallForInteraction? OnThen;
+    [NeverHappens] public event CallForInteraction? OnElse;
+    [NeverHappens] public event CallForInteraction? OnException;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         var parentSink = new TextSinkingInteraction(interaction);
@@ -44,7 +42,9 @@ public class UnsetFileLink : IService
                 "Existing file link path required for this"));
             return;
         }
+
         SymlinkRepository.Instance.Delete(fullLinkPath);
     }
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

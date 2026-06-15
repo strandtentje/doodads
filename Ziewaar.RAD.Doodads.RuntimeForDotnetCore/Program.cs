@@ -12,6 +12,7 @@ using Ziewaar.RAD.Doodads.Data.Services;
 using Ziewaar.RAD.Doodads.FormsValidation.Services;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
+using Ziewaar.RAD.Doodads.Multimedia.Tags;
 using Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Bootstrapper;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 using DataRow = Ziewaar.RAD.Doodads.Data.Services.DataRow;
@@ -44,7 +45,7 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                 .Create(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads"))
                 .AddAssemblyBy<IService>().AddAssemblyBy<WebServer>().AddAssemblyBy<Template>()
                 .AddAssemblyBy<Definition>().AddAssemblyBy<DataQuery>().AddAssemblyBy<HtmlForm>()
-                .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>()
+                .AddAssemblyBy<LoadSensitive>().AddAssemblyBy<DataRow>().AddAssemblyBy<ReadMediaTag>()
                 .AddFile("site.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "site.rkop")) : "")
                 .AddFile("server.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "server.rkop")) : "")
                 .AddFile("boot.rkop", myDir != null ? File.ReadAllText(Path.Combine(myDir, "boot.rkop")) : "")
