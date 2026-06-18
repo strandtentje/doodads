@@ -21,6 +21,7 @@ public abstract class DataService<TResult> : IService
     private long QueryFileAge;
     private string? QueryText;
     private string[]? ParameterNames;
+    private bool AllowNull;
 
     [EventOccasion("When the query ran successfully or has a result")]
     public event CallForInteraction? OnThen;
@@ -51,6 +52,8 @@ public abstract class DataService<TResult> : IService
             return;
         }
 
+        this.AllowNull = constants.NamedItems.TryGetValue("allownull", out var value) && Convert.ToBoolean(value);
+
         if ((constants, StringParameterConstant).IsRereadRequired(out object? stringParameterObject) &&
             stringParameterObject?.ToString() is string stringParameter)
             ProcessStringParameter(stringParameter, commandSource);
@@ -78,12 +81,12 @@ public abstract class DataService<TResult> : IService
     {
         var newParam = command.CreateParameter();
         newParam.ParameterName = item;
-        if (interaction.TryFindVariable(item, out object? paramToIdentify) && 
+        if (interaction.TryFindVariable(item, out object? paramToIdentify) &&
             paramToIdentify != null)
         {
             if (FrameworkTypeAdaptorRepository.Instance.TryConvert(paramToIdentify, out var converted))
                 paramToIdentify = converted;
-            
+
             switch (paramToIdentify)
             {
                 case string textParam:
@@ -127,8 +130,9 @@ public abstract class DataService<TResult> : IService
         else
         {
             newParam.Value = DBNull.Value;
-            OnException?.Invoke(this,
-                new CommonInteraction(interaction, $"missing param {item} so setting null. query might fail."));
+            if (!AllowNull)
+                OnException?.Invoke(this,
+                    new CommonInteraction(interaction, $"missing param {item} so setting null. query might fail."));
         }
 
         return newParam;

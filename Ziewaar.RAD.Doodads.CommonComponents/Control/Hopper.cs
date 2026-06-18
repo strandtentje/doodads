@@ -4,6 +4,84 @@ using System.Threading;
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 
 [Category("Scheduling & Flow")]
+[Title("Spin up workers")]
+[Description("""
+             Spread out inputs that come in at great rate, over several workers, such that multiple
+             threads can do work.
+             """)]
+public class Workers : IService, IDisposable
+{
+    public Workers() => (new Thread(WorkerLoop)).Start(true);
+    [EventOccasion("Attack worker here")]
+    public event CallForInteraction? OnThen;
+    [EventOccasion("When work ran out and workers cooled down")]
+    public event CallForInteraction? OnElse;
+    public event CallForInteraction? OnException;
+
+    [PrimarySetting("Worker count")]
+    private readonly UpdatingPrimaryValue WorkerCount = new();
+    
+    private readonly BlockingCollection<IInteraction> Jobs = new();
+    private readonly Semaphore JobOverflowPrevention = new(64, 64); 
+    private int CurrentWorkers = 0;
+    private int CalledForWorkers = 1;
+    private bool IsDisposing;
+
+    public void Enter(StampedMap constants, IInteraction interaction)
+    {
+        this.CalledForWorkers = Convert.ToInt32(constants.PrimaryConstant);
+        JobOverflowPrevention.WaitOne();
+        Jobs.Add(interaction);
+    }
+
+    private void WorkerLoop(object arg)
+    {
+        Interlocked.Increment(ref CurrentWorkers);
+        IInteraction? lastSeen = null;
+        try
+        {
+            while (true)
+            {
+                if (Jobs.TryTake(out var item, 3072))
+                {
+                    try
+                    {
+                        OnThen?.Invoke(this, lastSeen = item);
+                    }
+                    finally
+                    {
+                        JobOverflowPrevention.Release();
+                    }
+                }
+                else if (arg is not bool b || b == false || this.IsDisposing)
+                    return;
+                else if (Jobs.Any())
+                    for (int i = 0; i < CalledForWorkers - CurrentWorkers; i++)
+                        (new Thread(WorkerLoop)).Start(null);
+            }
+        }
+        finally
+        {
+            if (arg is bool b && b == true && IsDisposing)
+            {
+                JobOverflowPrevention.Dispose();
+            }
+            if (Interlocked.Decrement(ref CurrentWorkers) == 1 && lastSeen != null)
+            {
+                OnElse?.Invoke(this, lastSeen);
+            }
+        }
+    }
+    
+    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    public void Dispose()
+    {
+        Jobs.CompleteAdding();
+        this.IsDisposing = true;
+    }
+}
+
+[Category("Scheduling & Flow")]
 [Title("Funnel multiple incoming events")]
 [Description("""
              For smoothing out request peaks that have a higher rate
