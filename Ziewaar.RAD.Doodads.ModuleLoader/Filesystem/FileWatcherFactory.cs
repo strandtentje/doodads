@@ -4,11 +4,17 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 public class FileWatcherFactory : IDisposable
 {
-    public static readonly FileWatcherFactory Instance = new();
+    private static FileWatcherFactory? backing;
+    public static FileWatcherFactory Instance
+    {
+        get => backing ??= new();
+        private set => backing = value;
+    }
     private readonly List<FileSystemWatcher> ActiveWatchers = new();
 
     public void Dispose()
     {
+        backing = null;
         foreach (var item in ActiveWatchers)
         {
             StopOne(item);

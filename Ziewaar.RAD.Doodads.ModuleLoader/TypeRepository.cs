@@ -7,7 +7,12 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class TypeRepository : IDisposable
 {
-    public static readonly TypeRepository Instance = new();
+    private static TypeRepository? backing;
+    public static TypeRepository Instance
+    {
+        get => backing ??= new();
+        private set => backing = value;
+    }
     public readonly SortedList<string, Type> NamedServiceTypes = new();
 
     public readonly SortedList<string, Type> ShortNamedServiceTypes =
@@ -156,6 +161,7 @@ public class TypeRepository : IDisposable
 
     public void Dispose()
     {
+        backing = null;
         foreach (var item in disposables)
         {
             try

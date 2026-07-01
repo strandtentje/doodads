@@ -25,13 +25,16 @@ public class BootstrappedStart(
     public string StartFile => startFile;
     public IReadOnlyDictionary<string, object> RootInteractionMemory => rootInteractionMemory;
 
-    public void Run(IInteraction? rootInteraction = null)
+    public IDisposable Run(IInteraction? rootInteraction = null, Func<IInteraction, IInteraction>? interactionInjection = null)
     {
         // GlobalLog.Instance?.Information("Bootstrapped start information: {info}", JsonConvert.SerializeObject(this, Formatting.Indented));
         Environment.CurrentDirectory = WorkingDirectory;
         foreach (var item in populateAssemblies)
             TypeRepository.Instance.PopulateWith(item);
         rootInteraction ??= new RootInteraction("", rootInteractionMemory);
+        if (interactionInjection != null)
+            rootInteraction = interactionInjection(rootInteraction);
+        var multipleDisposables = new MultipleDisposables();
         try
         {
             foreach (var item in loadFiles)
@@ -43,14 +46,15 @@ public class BootstrappedStart(
                     File.Create(item).Close();
 
                 if (item == startFile)
-                    ProgramRepository.Instance.GetForFile(item, rootInteraction);
+                    multipleDisposables.Add(ProgramRepository.Instance.GetForFile(item, rootInteraction));
                 else
-                    ProgramRepository.Instance.GetForFile(item);
+                    multipleDisposables.Add(ProgramRepository.Instance.GetForFile(item));
             }
         }
         finally
         {
             FileWatcherFactory.Instance.Dispose();
         }
+        return multipleDisposables;
     }
 }

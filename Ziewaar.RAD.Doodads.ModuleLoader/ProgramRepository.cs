@@ -8,7 +8,13 @@ namespace Ziewaar.RAD.Doodads.ModuleLoader;
 
 public class ProgramRepository
 {
-    public static readonly ProgramRepository Instance = new();
+    private static ProgramRepository? backing;
+    public static ProgramRepository Instance
+    {
+        get => backing ??= new();
+        private set => backing = value;
+    }
+
     private readonly SortedList<string, ProgramFileLoader> Programs = new();
     private readonly ConcurrentDictionary<string, string> NameCompletions = new();
     public ProgramFileLoader GetForFile(string filePath, IInteraction? autoStartOnReloadParams = null)
