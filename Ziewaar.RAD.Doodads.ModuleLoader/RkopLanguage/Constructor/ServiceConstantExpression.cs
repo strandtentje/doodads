@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary;
+﻿using System.Runtime.InteropServices;
+using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
@@ -11,7 +12,7 @@ public class ServiceConstantExpression : IParityParser
     public FileInWorkingDirectory PathValue;
     public bool BoolValue;
     public decimal NumberValue;
-    private ServiceConstantExpression[] ArrayItems = [];
+    public ServiceConstantExpression[] ArrayItems = [];
 
     public object GetValue() => ConstantType switch
     {
@@ -23,24 +24,32 @@ public class ServiceConstantExpression : IParityParser
         _ => throw new InvalidOperationException(),
     };
 
-    public ParityParsingState UpdateFrom(ref CursorText inText)
+    public ParityParsingState UpdateFrom(ref CursorText inText) => UpdateFrom(ref inText, false);
+
+    public ParityParsingState UpdateFrom(ref CursorText inText, bool forcedArray)
     {
         var text = inText.SkipWhitespace();
 
-        text = text.TakeToken(TokenDescription.TrueOrFalse, out var bln);
-        if (bln.IsValid)
+        Token? aop = null;
+
+        if (!forcedArray)
         {
-            var newValue = bool.Parse(bln.Text);
-            var state = ConstantType != ConstantType.Bool || newValue != BoolValue ? ParityParsingState.Changed : ParityParsingState.Unchanged;
-            SetBoolValue(newValue);
-            inText = text;
-            return state;
+            text = text.TakeToken(TokenDescription.TrueOrFalse, out var bln);
+            if (bln.IsValid)
+            {
+                var newValue = bool.Parse(bln.Text);
+                var state = ConstantType != ConstantType.Bool || newValue != BoolValue ? ParityParsingState.Changed : ParityParsingState.Unchanged;
+                SetBoolValue(newValue);
+                inText = text;
+                return state;
+            }
+
+            text = text.TakeToken(TokenDescription.ArrayOpen, out aop);
         }
 
-        text = text.TakeToken(TokenDescription.ArrayOpen, out var aop);
-        if (aop.IsValid)
+        if (forcedArray || aop?.IsValid == true)
         {
-            ParityParsingState arrRes = ConsumeRemainingArrayIncludingCloser(ref text);
+            ParityParsingState arrRes = ConsumeRemainingArrayIncludingCloser(ref text, forcedArray);
             inText = text;
             return arrRes;
         }
@@ -146,22 +155,27 @@ public class ServiceConstantExpression : IParityParser
         return ParityParsingState.Void;
     }
 
-    private ParityParsingState ConsumeRemainingArrayIncludingCloser(ref CursorText text)
+    private ParityParsingState ConsumeRemainingArrayIncludingCloser(ref CursorText text, bool forcedArray)
     {
         List<ServiceConstantExpression> newArrayExpressions = new();
         while (true)
         {
-            text = text.SkipWhitespace().TakeToken(TokenDescription.ArrayClose, out var closer);
-            if (closer.IsValid)
-                break;
+            if (!forcedArray)
+            {
+                text = text.SkipWhitespace().TakeToken(TokenDescription.ArrayClose, out var closer);
+                if (closer.IsValid)
+                    break;
+            }
             var newItem = new ServiceConstantExpression();
             newArrayExpressions.Add(newItem);
             newItem.UpdateFrom(ref text);
-            Token comma;
+            Token comma = null;
             do
             {
                 text = text.SkipWhitespace().TakeToken(TokenDescription.ArgumentSeparator, out comma);
-            } while (comma.IsValid);
+            } while (comma?.IsValid == true);
+            if (forcedArray && (comma == null || comma.IsValid == false))
+                break;
         }
         ParityParsingState state = ParityParsingState.Unchanged;
         if (ConstantType != ConstantType.Array)

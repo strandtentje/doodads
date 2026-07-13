@@ -67,7 +67,9 @@ public class Fileserver : IService
             OnException?.Invoke(this, new CommonInteraction(interaction, "No newDirectory specified for fileserver."));
             return;
         }
-        if (interaction is not RelativeRouteInteraction routeEval || routeEval.HttpHead is not HttpHeadInteraction head)
+        if (!interaction.TryGetClosest<RelativeRouteInteraction>(out var routeEval) ||
+            routeEval is not RelativeRouteInteraction || 
+            routeEval.HttpHead is not HttpHeadInteraction head)
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "Routing information is not valid for file serving."));
             return;

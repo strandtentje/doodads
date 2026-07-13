@@ -38,7 +38,7 @@ public class Continue : IService, IDisposable
             return;
         (constants, RepeatNameConstant).IsRereadRequired(out string? repeatName);
         if (repeatName == null)
-        {
+        {            
             OnException?.Invoke(this, new CommonInteraction(interaction, "repeat name required"));
             return;
         }

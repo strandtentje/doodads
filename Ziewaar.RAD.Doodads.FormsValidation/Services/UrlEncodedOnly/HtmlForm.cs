@@ -42,11 +42,11 @@ public class HtmlForm : IService
             return;
         }
 
-        var tsi = new TextSinkingInteraction(interaction, textEncoding: targetSink.TextEncoding);
+        var tsi = new TextSinkingInteraction(interaction, textEncoding: targetSink.TextEncoding);        
         OnThen?.Invoke(this, tsi);
+        var x = tsi.ReadAllText();        
         HtmlDocument doc = new();
-        tsi.SinkBuffer.Position = 0;
-        doc.Load(tsi.SinkBuffer, targetSink.TextEncoding);
+        doc.LoadHtml(x);
         var fieldset = ValidatingInputFieldSet.Parse(doc);
 
         ICsrfFields? csrfFields = interaction.TryGetClosest<ICsrfTokenSourceInteraction>(out var csrf) && csrf != null
@@ -143,7 +143,9 @@ public class HtmlForm : IService
         if (interaction.TryGetClosest<IMayRedirectInteraction>(out var redirect) &&
             redirect is { IsRedirecting: true }) return;
 
+        // targetSink.SinkBuffer.Write(Encoding.UTF8.GetBytes("START FORM WRITE"));
         doc.Save(targetSink.SinkBuffer, targetSink.TextEncoding);
+        // targetSink.SinkBuffer.Write(Encoding.UTF8.GetBytes("END FORM WRITE"));
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

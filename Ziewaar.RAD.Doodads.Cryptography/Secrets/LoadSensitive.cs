@@ -22,8 +22,17 @@ public class LoadSensitive : IService
             this.CurrentName = newName;
         if (string.IsNullOrWhiteSpace(this.CurrentName))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "name required"));
-            return;
+            if (interaction.Register.ToString() is string sensReg &&
+                !string.IsNullOrWhiteSpace(sensReg))
+            {
+                OnThen?.Invoke(this, new ExpiringStringInteraction(interaction, "", sensReg));
+                return;
+            }
+            else
+            {
+                OnException?.Invoke(this, new CommonInteraction(interaction, "name required"));
+                return;
+            }
         }
         if (!interaction.TryFindVariable(this.CurrentName, out object? value) ||
             value?.ToString() is not string sensitiveString)

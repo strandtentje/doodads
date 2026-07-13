@@ -93,7 +93,7 @@ public class SessionCookie : IService
             [
                 new Cookie(CurrentCookieName!, ComponentCookie.CreateNew().ToString())
                 {
-                    Path = "/",
+                    Path = "*",
                     Expires = DateTime.Now,
                 }
             ];
@@ -108,7 +108,7 @@ public class SessionCookie : IService
             var maxage = TimeSpan.FromHours((double)CurrentCookieLifetimeHours);
             cookieWorkingSet[0].Expires += maxage;
             
-            head.Context.Response.Headers.Add("Set-Cookie", $"{cookieWorkingSet[0].Name}={cookieWorkingSet[0].Value}; Max-Age={maxage.TotalSeconds}; Path=/; SameSite=Strict");
+            head.Context.Response.Headers.Add("Set-Cookie", $"{cookieWorkingSet[0].Name}={cookieWorkingSet[0].Value}; Max-Age={maxage.TotalSeconds}; Path=*; SameSite=Lax");
             
             OnThen?.Invoke(this, new RetrievedCookieInteraction(interaction, head, realm, cookie, cookieWorkingSet[0]));
         }

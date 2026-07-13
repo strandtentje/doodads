@@ -81,9 +81,10 @@ public class Template : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if (!interaction.TryGetClosest<ISinkingInteraction>(out var output) || output == null)
+        if (!interaction.TryGetClosest<IInteraction>(out var targetInteraction,
+            x => x is ISinkingInteraction || x is ICheckUpdateRequiredInteraction) || targetInteraction == null)
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template into."));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template or update into."));
             return;
         }
 
@@ -100,10 +101,14 @@ public class Template : IService
             }
         }
 
-        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) &&
-            checkUpdateRequiredInteraction != null)
+        if (targetInteraction is ICheckUpdateRequiredInteraction checkUpdateRequiredInteraction)
         {
             checkUpdateRequiredInteraction.IsRequired = true;
+            return;
+        } 
+        if (targetInteraction is not ISinkingInteraction output)
+        {
+            OnException?.Invoke(this, interaction.AppendRegister("No sink found to template into"));
             return;
         }
 
@@ -111,7 +116,17 @@ public class Template : IService
         {
             templatefile = TextSinkingInteraction.CreateIntermediateFor(output, interaction);
             OnThen?.Invoke(this, templatefile);
-            Parser.RefreshTemplateData(templatefile.GetDisposingSinkReader());
+            string txt = "";
+            using (var sr = templatefile.GetDisposingSinkReader())
+            {
+                txt = sr.ReadToEnd();
+                GlobalLog.Instance?.Information("Got template text of length {l}", txt.Length);
+            }
+            Parser.RefreshTemplateData(txt);
+            GlobalLog.Instance?.Information("New template has {count} commands", Parser.TemplateCommands.Count);
+        } else
+        {
+            //GlobalLog.Instance?.Information("Already had template with {count} commands", Parser.TemplateCommands.Count);
         }
 
         if (templatefile.SinkTrueContentType?.Contains('*') == false)

@@ -42,7 +42,7 @@ public class FileTemplate : IService
     [EventOccasion("Likely when an IO error happened")]
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
-    {
+    {        
         this.CurrentConstants = constants;
         TemplatingService.Enter(constants, interaction);
     }

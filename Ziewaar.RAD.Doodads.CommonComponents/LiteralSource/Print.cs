@@ -29,20 +29,27 @@ public class Print : IService
             this.PlainText = plainText?.ToString() ?? "";
         }
         (constants, ContentType).IsRereadRequired(() => "*/*", out var contentType);
-        
-        if (interaction.TryGetClosest<ICheckUpdateRequiredInteraction>(out var checkUpdateRequiredInteraction) && 
-            checkUpdateRequiredInteraction != null)
+
+        var foundInteraction = interaction.TryGetClosest<IInteraction>(
+            out var targetInteraction, x => x is ICheckUpdateRequiredInteraction || x is ISinkingInteraction);
+
+        if (!foundInteraction)
+        {
+            OnException?.Invoke(this, new CommonInteraction(interaction, "unable to find sink or update-sensitive interaction"));            
+        }
+        else if (targetInteraction is ICheckUpdateRequiredInteraction checkUpdateRequiredInteraction)
         {
             checkUpdateRequiredInteraction.IsRequired =
-                checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != constants.PrimaryLog;
-        } else if (interaction.TryGetClosest<ISinkingInteraction>(out var sinkInteraction) && 
-                  sinkInteraction != null)
+                checkUpdateRequiredInteraction.Original.LastSinkChangeTimestamp != constants.PrimaryLog;            
+        }
+        else if (targetInteraction is ISinkingInteraction sinkInteraction)
         {
             try
             {
                 sinkInteraction.SinkTrueContentType = contentType;
                 sinkInteraction.WriteSegment(this.PlainText, contentType);
-            } catch(ContentTypeMismatchException ex)
+            }
+            catch (ContentTypeMismatchException ex)
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, ex));
                 return;

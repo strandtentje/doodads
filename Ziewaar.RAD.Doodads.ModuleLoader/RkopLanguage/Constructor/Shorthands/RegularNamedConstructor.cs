@@ -2,6 +2,7 @@
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Constructor.Shorthands;
+
 public class RegularNamedConstructor : ISerializableConstructor
 {
     public string? ServiceTypeName { get; set; }
@@ -27,13 +28,70 @@ public class RegularNamedConstructor : ISerializableConstructor
 
         var state = PrimaryExpression.UpdateFrom(ref text) | Constants.UpdateFrom(ref text);
 
+        var afterSingleArgBracket = text.SkipWhitespace().TakeToken(TokenDescription.EndOfArguments, out var cbToken);
+        if (cbToken.IsValid)
+        {
+            text = afterSingleArgBracket;
+            ServiceTypeName = typeIdentifier.Text;
+            return true;
+        }
+        else
+        {
+            var arrex = new ServiceConstantExpression();
+            arrex.UpdateFrom(ref text, true);
+            var lst = new List<ServiceConstantExpression>();
+
+            switch (PrimaryExpression.ConstantType)
+            {
+                case ConstantType.String:
+                    lst.Add(new ServiceConstantExpression()
+                    {
+                        ConstantType = ConstantType.String,
+                        TextValue = PrimaryExpression.TextValue,
+                    });
+                    break;
+                case ConstantType.Bool:
+                    lst.Add(new ServiceConstantExpression()
+                    {
+                        ConstantType = ConstantType.Bool,
+                        BoolValue = PrimaryExpression.BoolValue,
+                    });
+                    break;
+                case ConstantType.Number:
+                    lst.Add(new ServiceConstantExpression()
+                    {
+                        ConstantType = ConstantType.Number,
+                        NumberValue = PrimaryExpression.NumberValue,
+                    });
+                    break;
+                case ConstantType.Path:
+                    lst.Add(new ServiceConstantExpression()
+                    {
+                        ConstantType = ConstantType.Path,
+                        PathValue = PrimaryExpression.PathValue,
+                    });
+                    break;
+                case ConstantType.Array:
+                    lst.AddRange(PrimaryExpression.ArrayItems);
+                    break;
+                default:
+                    break;
+            }
+
+            lst.AddRange(arrex.ArrayItems);
+            PrimaryExpression.ArrayItems = lst.ToArray();
+            PrimaryExpression.ConstantType = ConstantType.Array;
+
+            ServiceTypeName = typeIdentifier.Text;
+        }
+
+
         text = text.SkipWhitespace().ValidateToken(
             TokenDescription.EndOfArguments,
-            "this may also happen because the value at this position wasn't recognized",
+            $"this may also happen because the value at this position wasn't recognized. At `{typeIdentifier.Text}` with `\"{PrimaryExpression.GetValue()?.ToString() ?? "{null}"}\"`",
             out var _);
-
-        ServiceTypeName = typeIdentifier.Text;
         return true;
+
     }
     public void WriteTo(StreamWriter writer, int indentation)
     {
