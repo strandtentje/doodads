@@ -1,5 +1,10 @@
 ﻿#pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+using Serilog.Core;
+using System.Runtime.CompilerServices;
+using Ziewaar.RAD.Doodads.CommonComponents.Generate;
+using Ziewaar.RAD.Doodads.CommonComponents.TextTests;
+
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
 [Category("System & IO")]
 [Title("Rename a directory")]

@@ -1,4 +1,6 @@
 ﻿#pragma warning disable 67
+using Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
@@ -49,7 +51,7 @@ public class DirInfo : IService
         {
             if (File.Exists(path))
                 infoToWorkWith = new FileInfo(path);
-            else if (Directory.Exists(path))
+            else if (DirectoryOperations.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
             else
             {

@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
 [Category("System & IO")]
 [Title("Recursive delete directory")]
@@ -25,7 +25,7 @@ public class DeleteDir : IService
         else if (interaction.Register is object pathObject &&
             pathObject.ToString() is string path)
         {
-            if (Directory.Exists(path))
+            if (DirectoryOperations.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
         }
         if (infoToWorkWith is DirectoryInfo info)

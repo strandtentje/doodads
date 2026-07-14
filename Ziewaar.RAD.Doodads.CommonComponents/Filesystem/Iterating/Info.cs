@@ -1,4 +1,6 @@
 ﻿#pragma warning disable 67
+using System.Runtime.CompilerServices;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 [Category("System & IO")]
@@ -70,7 +72,7 @@ public class Info : IService
         {
             if (File.Exists(path))
                 infoToWorkWith = new FileInfo(path);
-            else if (Directory.Exists(path))
+            else if (DirectoryOperations.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
             else
             {
@@ -85,47 +87,21 @@ public class Info : IService
                 OnElse?.Invoke(this, interaction);
                 return;
             }
-            var numberPrefix = new string(info.Name.TakeWhile(char.IsDigit).ToArray());
-            var afterNumberPrefix = new string(info.Name.SkipWhile(char.IsDigit).SkipWhile(c => c == '_' || c == '-').ToArray());
-
-            var payload = new SortedList<string, object>()
-            {
-                { "visibility", info.IsHidden() ? "visible" : "hidden" },
-                { "numberprefix", numberPrefix },
-                { "afternumber", afterNumberPrefix },
-                { PathVariable ?? "path", info.FullName },
-                { NameVariable ?? "name", info.Name },
-                { "write", info.LastWriteTimeUtc },
-                { "read", info.LastAccessTimeUtc },
-            };
-            payload["safepath"] = string.Concat(info.FullName.Select(x =>
-            {
-                if (char.IsLetterOrDigit(x))
-                    return x.ToString();
-                else
-                    return Uri.HexEscape(x);
-            }));
-            if (info is FileInfo fileInfo)
-            {
-                payload["extension"] = fileInfo.Extension;
-                payload["cleanext"] = fileInfo.Extension.TrimStart('.').ToLower();
-                payload["cleanname"] = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-                payload["size"] = fileInfo.Length;
-                payload["cleansize"] = ByteSizeFormatter.ToHumanReadable(fileInfo.Length);
-                payload["type"] = "file";
-            }
-            else if (info is DirectoryInfo directoryInfo)
-            {
-                payload["count"] = directoryInfo.GetFiles().Length;
-                payload["type"] = "dir";
-            }
             if (showHidden == true || !info.Attributes.HasFlag(FileAttributes.Hidden) && !info.Name.StartsWith("."))
-                OnThen?.Invoke(this, new CommonInteraction(interaction, register: info, memory: payload));
+            {
+                interaction = interaction.
+                    AppendRegister(info).AppendMemory(new FilesystemInfoPayload(info, PathVariable, NameVariable));
+                OnThen?.Invoke(this, interaction);
+            }
+
         }
         else
         {
             OnException?.Invoke(this, new CommonInteraction(interaction, "this is not a file or directory"));
         }
     }
+
+
+
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }

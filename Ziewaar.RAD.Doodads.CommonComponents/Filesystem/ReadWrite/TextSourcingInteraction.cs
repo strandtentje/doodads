@@ -1,7 +1,7 @@
 using System.Text;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.ReadWrite;
 
 public class TextSourcingInteraction(IInteraction parent, Stream data, Encoding encoding, MimeMapping.MimeTypeInfo mime)
     : ISourcingInteraction

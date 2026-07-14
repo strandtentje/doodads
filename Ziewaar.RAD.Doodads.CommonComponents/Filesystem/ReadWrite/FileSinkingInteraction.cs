@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.ReadWrite;
 #pragma warning disable 67
 public class FileSinkingInteraction(IInteraction interaction, Stream stream) : ISinkingInteraction
 {

@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 using System.Collections.Concurrent;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
 [Category("System & IO")]
 [Title("Produces a list of directories, given the path currently in the Register, and watch for changes")]
@@ -31,7 +31,7 @@ public class DirAndWatch : Dir
 
             void ChangeToPropagate(object sender, FileSystemEventArgs e)
             {
-                if (!Directory.Exists(e.FullPath))
+                if (!DirectoryOperations.Exists(e.FullPath))
                     return;
                 var di = new DirectoryInfo(e.FullPath);
                 bc.Add(di);

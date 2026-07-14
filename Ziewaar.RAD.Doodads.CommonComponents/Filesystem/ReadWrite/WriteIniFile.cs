@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 67
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.ReadWrite;
 
 [Category("System & IO")]
 [Title("Reads ini file into memory")]

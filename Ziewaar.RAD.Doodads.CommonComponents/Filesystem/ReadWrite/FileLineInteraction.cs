@@ -1,4 +1,4 @@
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.ReadWrite;
 
 public class FileLineInteraction : IInteraction
 {
