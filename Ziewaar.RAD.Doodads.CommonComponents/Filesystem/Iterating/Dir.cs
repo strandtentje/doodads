@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
 [Category("System & IO")]
 [Title("Produces a list of directories, given the path currently in the Register.")]

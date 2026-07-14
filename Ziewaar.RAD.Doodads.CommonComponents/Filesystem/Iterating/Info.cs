@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 using System.Runtime.CompilerServices;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
 [Category("System & IO")]
 [Title("Extra file and directory information reader")]

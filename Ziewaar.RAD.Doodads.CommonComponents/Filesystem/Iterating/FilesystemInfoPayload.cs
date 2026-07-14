@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 using System.Collections;
 
-namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
+namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
 public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
 {
