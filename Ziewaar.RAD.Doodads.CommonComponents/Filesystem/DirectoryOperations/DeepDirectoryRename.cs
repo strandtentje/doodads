@@ -23,13 +23,13 @@ public class DeepDirectoryRename : BasicService
         var parentPath = parent.FullName;
         var newPath = Path.Combine(parentPath, newName);
 
-        if (DirectoryOperations.Exists(newPath))
+        if (Directory.Exists(newPath))
             throw new BasicException("This rename operation would cause a collission");
 
         var filesToInspect = DetermineFilesToInspect(parent, constants.PrimaryConstant);
 
         InspectAndReplaceInFiles(filesToInspect, info.Name, newName);
-        DirectoryOperations.Move(oldPath, newPath);
+        Directory.Move(oldPath, newPath);
         InspectAndRenameDirectories(parent, info.Name, newName);
     }
 }

@@ -169,13 +169,20 @@ public class ServiceConstantExpression : IParityParser
             var newItem = new ServiceConstantExpression();
             newArrayExpressions.Add(newItem);
             newItem.UpdateFrom(ref text);
+            int commasSeen = 0;
             Token comma = null;
             do
             {
                 text = text.SkipWhitespace().TakeToken(TokenDescription.ArgumentSeparator, out comma);
+                if (comma?.IsValid == true)
+                    commasSeen++;
             } while (comma?.IsValid == true);
-            if (forcedArray && (comma == null || comma.IsValid == false))
-                break;
+
+            if (forcedArray)
+            {
+                if (commasSeen == 0)
+                    break;
+            }
         }
         ParityParsingState state = ParityParsingState.Unchanged;
         if (ConstantType != ConstantType.Array)
@@ -211,7 +218,7 @@ public class ServiceConstantExpression : IParityParser
         if (searchPath.Contains('@'))
         {
             // if there's an @ in there, something like s"somefile.rkop @ someplace" is happening.
-            searchPath = subPath.Split(['@'], 
+            searchPath = subPath.Split(['@'],
                 StringSplitOptions.RemoveEmptyEntries).
                 Select(x => x.Trim()).ElementAtOrDefault(0) ?? "";
         }

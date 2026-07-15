@@ -31,7 +31,7 @@ public class DirAndWatch : Dir
 
             void ChangeToPropagate(object sender, FileSystemEventArgs e)
             {
-                if (!DirectoryOperations.Exists(e.FullPath))
+                if (!Directory.Exists(e.FullPath))
                     return;
                 var di = new DirectoryInfo(e.FullPath);
                 bc.Add(di);

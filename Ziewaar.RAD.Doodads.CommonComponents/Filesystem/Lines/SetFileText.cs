@@ -50,8 +50,8 @@ public class SetFileText : IService
         }
 
         var info = new FileInfo(file);
-        if (!DirectoryOperations.Exists(info.Directory.FullName))
-            DirectoryOperations.CreateDirectory(info.Directory.FullName);
+        if (!Directory.Exists(info.Directory.FullName))
+            Directory.CreateDirectory(info.Directory.FullName);
         try
         {
             using (var writer = new StreamWriter(info.FullName))

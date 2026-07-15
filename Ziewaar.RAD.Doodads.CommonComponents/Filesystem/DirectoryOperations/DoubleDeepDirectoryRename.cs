@@ -47,13 +47,13 @@ public class DoubleDeepDirectoryRename : BasicService
         InspectAndReplaceInFiles(filesToInspect, oldInfoB.Name, newNameB);
         InspectAndReplaceInFiles(filesToInspect, intermediaryName, newNameA);
 
-        DirectoryOperations.Move(oldPathA, intermediaryNewPath);
+        Directory.Move(oldPathA, intermediaryNewPath);
         InspectAndRenameDirectories(parent, oldInfoA.Name, intermediaryName);
-
-        DirectoryOperations.Move(oldPathB, newPathB);
+            
+        Directory.Move(oldPathB, newPathB);
         InspectAndRenameDirectories(parent, oldInfoB.Name, newNameB);
 
-        DirectoryOperations.Move(intermediaryNewPath, newPathA);
+        Directory.Move(intermediaryNewPath, newPathA);
         InspectAndRenameDirectories(parent, intermediaryName, newNameA);
     }
 }

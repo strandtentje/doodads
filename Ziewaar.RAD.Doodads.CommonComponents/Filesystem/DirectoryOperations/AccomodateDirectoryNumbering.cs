@@ -76,7 +76,7 @@ public class AccomodateDirectoryNumbering : BasicService
         foreach (var renameDir in namedRenameDirs)
         {
             var newPath = Path.Combine(parent.FullName, renameDir.newName);
-            DirectoryOperations.Move(renameDir.directory.FullName, newPath);
+            Directory.Move(renameDir.directory.FullName, newPath);
             yield return (new DirectoryInfo(newPath), renameDir.oldSuffix);
         }
 

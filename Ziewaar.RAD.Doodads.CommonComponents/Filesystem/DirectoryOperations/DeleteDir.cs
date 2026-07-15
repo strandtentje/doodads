@@ -25,7 +25,7 @@ public class DeleteDir : IService
         else if (interaction.Register is object pathObject &&
             pathObject.ToString() is string path)
         {
-            if (DirectoryOperations.Exists(path))
+            if (Directory.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
         }
         if (infoToWorkWith is DirectoryInfo info)

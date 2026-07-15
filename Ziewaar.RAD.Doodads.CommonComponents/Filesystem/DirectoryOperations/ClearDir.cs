@@ -12,8 +12,8 @@ public class ClearDir : BasicService
     {
         if (interaction.Register.ToString() is not string dirPath)
             throw new BasicException("directory required in register");
-        if (DirectoryOperations.Exists(dirPath))
-            DirectoryOperations.Delete(dirPath, true);
-        DirectoryOperations.CreateDirectory(dirPath);
+        if (Directory.Exists(dirPath))
+            Directory.Delete(dirPath, true);
+        Directory.CreateDirectory(dirPath);
     }
 }

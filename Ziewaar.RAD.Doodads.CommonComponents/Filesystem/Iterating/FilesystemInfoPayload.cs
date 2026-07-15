@@ -1,5 +1,6 @@
 ﻿#pragma warning disable 67
 using System.Collections;
+using System.ComponentModel.Design;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
@@ -8,6 +9,7 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
     private const string
         KEY_VISIBILITY = "visibility", KEY_NUMBERPREFIX = "numberprefix", KEY_AFTERNUMBER = "afternumber",
         KEY_NEXTNUMBER = "nextnumberprefix", KEY_PREVNUMBER = "previousnumberprefix", KEY_PATH = "path",
+        KEY_FREENUMBER = "freenumber",
         KEY_NEXTAFTERNUMBER = "nextafternumber", KEY_PREVAFTERNUMBER = "prevafternumber",
         KEY_NAME = "name", KEY_LAST_WRITE_TIME = "write", KEY_LAST_READ_TIME = "read", KEY_URLSAFE_PATH = "safepath",
         KEY_EXTENSION = "extension", KEY_CLEAN_EXTENSION = "cleanext", KEY_CLEAN_NAME = "cleanname", KEY_SIZE = "size",
@@ -20,6 +22,7 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
     private string? PrevCalculatedNumber = null;
     private string? NextNumberlessFile;
     private string? PrevNumberlessFile;
+    private string? CachedFreeNumber;
 
     private string NumberPrefix => field ??= this.FilesystemInfo.GetNumberPrefix();
     private string AfterNumberPrefix => field ??= this.FilesystemInfo.GetAfterNumberPrefix();
@@ -55,7 +58,7 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
         {
             this.DirectoryInfo = di;
             Keys = [
-                KEY_VISIBILITY, KEY_NUMBERPREFIX, KEY_AFTERNUMBER,
+                KEY_VISIBILITY, KEY_NUMBERPREFIX, KEY_AFTERNUMBER, KEY_FREENUMBER,
                     KEY_NEXTNUMBER, KEY_PREVNUMBER, KEY_NEXTAFTERNUMBER, KEY_PREVAFTERNUMBER,
                     pathVariable ?? KEY_PATH, nameVariable ?? KEY_NAME,
                     KEY_LAST_WRITE_TIME, KEY_LAST_READ_TIME, KEY_URLSAFE_PATH, KEY_FILE_COUNT, KEY_DIR_OR_FILE,
@@ -163,6 +166,53 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
                 return true;
             case KEY_DIR_OR_FILE when this.FileInfo is { }:
                 value = "file";
+                return true;
+            case KEY_FREENUMBER when this.DirectoryInfo is { }:
+                if (CachedFreeNumber is string cfn)
+                {
+                    value = cfn;
+                    return true;
+                }
+                var lastDirectories = this.DirectoryInfo.GetDirectories().OrderByDescending(x => x.Name);
+                foreach (var item in lastDirectories)
+                {
+                    if (item.TryGetNumberPrefix(out var pfx, out var _))
+                    {
+                        if (pfx.Length > 0 && int.TryParse(pfx, out var pfxInt))
+                        {
+                            if ((pfxInt + 100) < 999)
+                            {
+                                value = CachedFreeNumber = $"{(pfxInt + 100):000}";
+                            }
+                            else if ((pfxInt + 50) < 999)
+                            {
+                                value = CachedFreeNumber = $"{(pfxInt + 50):000}";
+                            }
+                            else if ((pfxInt + 25) < 999)
+                            {
+                                value = CachedFreeNumber = $"{(pfxInt + 25):000}";
+                            }
+                            else if ((pfxInt + 10) < 999)
+                            {
+                                value = CachedFreeNumber = $"{(pfxInt + 10):000}";
+                            }
+                            else if ((pfxInt + 5) < 999)
+                            {
+                                value = CachedFreeNumber = $"{(pfxInt + 5):000}";
+                            }
+                            else if ((pfxInt + 1) < 999)
+                            {
+                                value = CachedFreeNumber = $"{(pfxInt + 1):000}";
+                            }
+                            else
+                            {
+                                value = CachedFreeNumber = "";
+                            }
+                            return true;
+                        }
+                    }
+                }
+                value = CachedFreeNumber = "100";
                 return true;
             case KEY_FILE_COUNT when this.DirectoryInfo is { }:
                 value = this.DirectoryInfo.GetFiles().Length;

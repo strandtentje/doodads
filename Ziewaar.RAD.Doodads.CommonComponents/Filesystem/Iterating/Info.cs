@@ -72,7 +72,7 @@ public class Info : IService
         {
             if (File.Exists(path))
                 infoToWorkWith = new FileInfo(path);
-            else if (DirectoryOperations.Exists(path))
+            else if (Directory.Exists(path))
                 infoToWorkWith = new DirectoryInfo(path);
             else
             {
