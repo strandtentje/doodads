@@ -11,6 +11,7 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
         KEY_NEXTNUMBER = "nextnumberprefix", KEY_PREVNUMBER = "previousnumberprefix", KEY_PATH = "path",
         KEY_FREENUMBER = "freenumber",
         KEY_NEXTAFTERNUMBER = "nextafternumber", KEY_PREVAFTERNUMBER = "prevafternumber",
+        KEY_NEXTNUMBEREDPATH = "nextnumberedpath", KEY_PREVNUMBEREDPATH = "prevnumberedpath",
         KEY_NAME = "name", KEY_LAST_WRITE_TIME = "write", KEY_LAST_READ_TIME = "read", KEY_URLSAFE_PATH = "safepath",
         KEY_EXTENSION = "extension", KEY_CLEAN_EXTENSION = "cleanext", KEY_CLEAN_NAME = "cleanname", KEY_SIZE = "size",
         KEY_CLEAN_SIZE = "cleansize", KEY_DIR_OR_FILE = "type", KEY_FILE_COUNT = "count";
@@ -21,7 +22,9 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
     private string? NextCalculatedNumber = null;
     private string? PrevCalculatedNumber = null;
     private string? NextNumberlessFile;
+    private string? NextPath;
     private string? PrevNumberlessFile;
+    private object? PrevPath;
     private string? CachedFreeNumber;
 
     private string NumberPrefix => field ??= this.FilesystemInfo.GetNumberPrefix();
@@ -109,9 +112,10 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
                     value = ncn;
                 else
                 {
-                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem);
+                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
                     value = this.NextCalculatedNumber = pfx;
                     this.NextNumberlessFile = rem;
+                    this.NextPath = path;
                 }
 
                 return true;
@@ -121,9 +125,10 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
                     value = pcn;
                 else
                 {
-                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem);
+                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
                     value = this.PrevCalculatedNumber = pfx;
                     this.PrevNumberlessFile = rem;
+                    this.PrevPath = path;
                 }
 
                 return true;
@@ -133,8 +138,9 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
                     value = nnlf;
                 else
                 {
-                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem);
+                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
                     this.NextCalculatedNumber = pfx;
+                    this.NextPath = path;
                     value = this.NextNumberlessFile = rem;
                 }
 
@@ -145,9 +151,36 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
                     value = pnlf;
                 else
                 {
-                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem);
+                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
                     this.PrevCalculatedNumber = pfx;
+                    this.PrevPath = path;
                     value = this.PrevNumberlessFile = rem;
+                }
+
+                return true;
+
+            case KEY_NEXTNUMBEREDPATH:
+                if (this.NextPath is string np)
+                    value = np;
+                else
+                {
+                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
+                    this.NextCalculatedNumber = pfx;
+                    this.NextNumberlessFile = rem;
+                    value = this.NextPath = path;
+                }
+
+                return true;
+
+            case KEY_PREVNUMBEREDPATH:
+                if (this.PrevPath is string pp)
+                    value = pp;
+                else
+                {
+                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
+                    this.PrevCalculatedNumber = pfx;
+                    this.PrevNumberlessFile = rem;
+                    value = this.PrevPath = path;
                 }
 
                 return true;

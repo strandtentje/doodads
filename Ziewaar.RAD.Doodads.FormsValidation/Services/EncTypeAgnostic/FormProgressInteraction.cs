@@ -6,6 +6,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic
     {
         public IInteraction Stack => stack;
         public object Register => stack.Register;
+        public RootByteReader Reader => reader;
         public IReadOnlyDictionary<string, object> Memory { get; } = new SwitchingDictionary(
         [
             "position", "length", "rate",

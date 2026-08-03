@@ -42,28 +42,36 @@ public static class FileSystemInfoExtensions
         _ => throw new ArgumentException("expected fileinfo or directoryinfo", nameof(fsi))
     };
 
-    public static void GetNextSplittable(this FileSystemInfo fsi, out string pfx, out string rem)
+    public static void GetNextSplittable(this FileSystemInfo fsi, out string pfx, out string rem, out string path)
     {
         var selfAndSiblingsAfter = fsi.GetSiblingsOfSameType().
             OrderBy(x => x.Name).SkipWhile(x => x.Name != fsi.Name);
         var siblingsAfter = selfAndSiblingsAfter.Skip(1);
         foreach (var item in siblingsAfter)
             if (item.TryGetNumberPrefix(out pfx, out rem))
+            {
+                path = item.FullName;
                 return;
+            }
+        path = "";
         pfx = "";
         rem = "";
         return;
     }
-    public static void GetPrevSplittable(this FileSystemInfo fsi, out string pfx, out string rem)
+    public static void GetPrevSplittable(this FileSystemInfo fsi, out string pfx, out string rem, out string path)
     {
         var selfAndSiblingsAfter = fsi.GetSiblingsOfSameType().
             OrderByDescending(x => x.Name).SkipWhile(x => x.Name != fsi.Name);
         var siblingsAfter = selfAndSiblingsAfter.Skip(1);
         foreach (var item in siblingsAfter)
             if (item.TryGetNumberPrefix(out pfx, out rem))
+            {
+                path = item.FullName;
                 return;
+            }
         pfx = "";
         rem = "";
+        path = "";
         return;
     }
 }

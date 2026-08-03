@@ -30,7 +30,7 @@ public class MultipartValueGroup : IGrouping<string, object>
             x.HeaderName.Equals("content-disposition", StringComparison.OrdinalIgnoreCase)).ToArray();
         fieldName = null;
         if (cdHeaderCandidates.Length < 1 ||
-            !cdHeaderCandidates[0].HeaderArgs?.TryGetValue("name", out fieldName) == false ||
+            cdHeaderCandidates[0].HeaderArgs?.TryGetValue("name", out fieldName) == false ||
             string.IsNullOrWhiteSpace(fieldName))
             fieldName = null;
         return fieldName != null;

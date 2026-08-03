@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+﻿using Define.Doodads.Expo.Timeline;
+using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
@@ -38,4 +39,15 @@ public class Format : IService
         this.OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+}
+
+public class SinkDump : BasicService
+{
+    public override event CallForInteraction? OnThen;
+    private readonly Format Format = new Format();
+    public override void TryEnter(StampedMap constants, IInteraction interaction)
+    {
+        Format.Enter(constants, interaction);
+        OnThen?.Invoke(this, interaction);
+    }
 }

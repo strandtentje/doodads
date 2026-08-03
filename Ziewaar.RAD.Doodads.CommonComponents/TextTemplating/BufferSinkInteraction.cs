@@ -1,6 +1,7 @@
 using System.Text;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
+
 public class BufferSinkInteraction : ISinkingInteraction
 {
     private readonly IInteraction Parent;
@@ -21,17 +22,41 @@ public class BufferSinkInteraction : ISinkingInteraction
     public string Delimiter => TrueSink.Delimiter;
     public void SetContentLength64(long contentLength)
     {
-        this.DeferredContentLength = contentLength;
+        if (SinkBuffer is ProxyBufferStream)
+            this.DeferredContentLength = contentLength;
+        else
+            TrueSink.SetContentLength64(contentLength);
     }
-    public Stream SinkBuffer { get; }
-    public string? SinkTrueContentType { get; set; }
+    public Stream SinkBuffer { get; private set; }
+    public string? SinkTrueContentType
+    {
+        get => field;
+        set
+        {
+            field = value;
+            if (SinkBuffer is not ProxyBufferStream)
+            {
+                TrueSink.SinkTrueContentType = value;
+            }
+        }
+    }
     public long LastSinkChangeTimestamp { get; set; }
     public void Flush()
     {
-        if (DeferredContentLength != -1)
-            TrueSink.SetContentLength64(DeferredContentLength);
-        ((ProxyBufferStream)SinkBuffer).FinalFlush();
-        TrueSink.SinkTrueContentType = SinkTrueContentType;
-        TrueSink.LastSinkChangeTimestamp = LastSinkChangeTimestamp;
+        if (SinkBuffer is ProxyBufferStream pbs)
+        {
+            if (DeferredContentLength != -1)
+                TrueSink.SetContentLength64(DeferredContentLength);
+            pbs.FinalFlush();
+            TrueSink.SinkTrueContentType = SinkTrueContentType;
+            TrueSink.LastSinkChangeTimestamp = LastSinkChangeTimestamp;
+        }
+    }
+    public void Bypass()
+    {
+        if (SinkBuffer is ProxyBufferStream pbs)
+        {
+            SinkBuffer = TrueSink.SinkBuffer;
+        }
     }
 }
