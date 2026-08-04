@@ -33,7 +33,7 @@ public class ValidatingButtonGroup(HtmlNode node) : IValidatingInputFieldInSet
         if (node.GetInputName() is not string inputName)
             return true;
 
-        var value = node.GetAttributeValue("value", "").Trim();
+        var value = node.GetAttributeValue("value", "");
 
         // Don't register button if it has no value (cannot validate)
         if (string.IsNullOrEmpty(value))

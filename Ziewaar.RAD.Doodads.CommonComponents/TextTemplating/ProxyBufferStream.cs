@@ -10,8 +10,14 @@ public class ProxyBufferStream : Stream
         _underlying = underlying ?? throw new ArgumentNullException(nameof(underlying));
     }
 
+    public void Terminate()
+    {
+        this.IsTerminated = true;
+    }
+
     public override void Write(byte[] buffer, int offset, int count)
     {
+        if (IsTerminated) return;
         if (_finalFlushed)
             throw new InvalidOperationException("Cannot write after FinalFlush");
         _buffer.Write(buffer, offset, count);
@@ -20,6 +26,7 @@ public class ProxyBufferStream : Stream
     public void FinalFlush()
     {
         if (_finalFlushed) return;
+        if (IsTerminated) return;
         _buffer.Position = 0;
         _buffer.CopyTo(_underlying);
         _underlying.Flush();
@@ -33,6 +40,8 @@ public class ProxyBufferStream : Stream
     public override bool CanWrite => !_finalFlushed;
     public override long Length => _buffer.Length;
     public override long Position { get => _buffer.Position; set => throw new NotSupportedException(); }
+    public bool IsTerminated { get; private set; }
+
     public override void Flush() { /* Ignore, do nothing */ }
     public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();

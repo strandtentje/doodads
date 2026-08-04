@@ -26,6 +26,8 @@ public class UploadForm : BasicService
 
     private const string PROGRESS_IFRAME = "progressiframe", FORM_IFRAME = "formiframe";
 
+    private int Interval = 1;
+
     public UploadForm()
     {
         FormPrepare.OnException += (s, e) => OnException?.Invoke(s, e);
@@ -69,13 +71,13 @@ public class UploadForm : BasicService
                     cpi.SinkTrueContentType = "text/html";
                 }
 
-                cpi.Write("""
+                cpi.Write($"""
                     <!DOCTYPE html>
                     <html>
                     <head>
                     	<meta charset="utf-8">
                     	<meta name="viewport" content="width=device-width, initial-scale=1">
-                        <meta http-equiv="refresh" content="1">
+                        <meta http-equiv="refresh" content="{Interval}">
                     </head>
                     <body>
                     """);
@@ -93,6 +95,11 @@ public class UploadForm : BasicService
                 }
 
                 cpi.Write("""</body></html>""");
+
+                if (e.TryGetClosest<BufferSinkInteraction>(out var bsi2) && bsi2 != null)
+                {
+                    bsi2.Terminate();
+                }
             }
             else if (formRequested)
             {
@@ -116,6 +123,10 @@ public class UploadForm : BasicService
                     """);
                 FormPrint.Enter(EmptyConstants, e);
                 cpi.Write("""</body></html>""");
+                if (e.TryGetClosest<BufferSinkInteraction>(out var bsi2) && bsi2 != null)
+                {
+                    bsi2.Terminate();
+                }
             }
             else
             {
@@ -199,6 +210,11 @@ public class UploadForm : BasicService
                 cpi.SinkTrueContentType = "text/html";
             }
             OnThen?.Invoke(this, e);
+
+            if (e.TryGetClosest<BufferSinkInteraction>(out var bsi2) && bsi2 != null)
+            {
+                bsi2.Terminate();
+            }
         };
         FormValidate.OnElse += (s, e) =>
         {
@@ -210,11 +226,27 @@ public class UploadForm : BasicService
                 cpi.SinkTrueContentType = "text/html";
             }
             OnElse?.Invoke(this, e);
+
+            if (e.TryGetClosest<BufferSinkInteraction>(out var bsi2) && bsi2 != null)
+            {
+                bsi2.Terminate();
+            }
         };
     }
 
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
+        if (constants.NamedItems.TryGetValue("interval", out var ival) && ival != null)
+        {
+            try
+            {
+                Interval = Convert.ToInt32(ival);
+            }
+            catch (Exception)
+            {
+                throw new BasicException("Invalid interval number");
+            }
+        }
         TemplateFileConstants.SetPrimary(constants.PrimaryConstant);
         MaxLengthConstants.SetValue("maxlength", constants.NamedItems.TryGetValue("maxlength", out var val) ? val : "4gb");
         FormPrepare.Enter(EmptyConstants, interaction);

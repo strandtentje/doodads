@@ -56,7 +56,47 @@ public class BufferSinkInteraction : ISinkingInteraction
     {
         if (SinkBuffer is ProxyBufferStream pbs)
         {
+            pbs.Terminate();
             SinkBuffer = TrueSink.SinkBuffer;
         }
+    }
+    private static readonly NullStream NullStream = new();
+    public void Terminate()
+    {
+        SinkBuffer = NullStream;
+    }
+}
+
+public class NullStream : Stream
+{
+    public override bool CanRead { get; } = true;
+    public override bool CanSeek { get; } = true;
+    public override bool CanWrite { get; } = true;
+    public override long Length { get; }
+    public override long Position { get; set; }
+
+    public override void Flush()
+    {
+
+    }
+
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        return 0;
+    }
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        return 0;
+    }
+
+    public override void SetLength(long value)
+    {
+
+    }
+
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+
     }
 }
