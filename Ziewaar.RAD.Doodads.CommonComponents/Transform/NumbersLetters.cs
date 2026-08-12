@@ -56,6 +56,7 @@ public class NumbersLetters : BasicService
             && (!char.IsDigit(mustBeLetter)))
         {
             letterPart.Append(mustBeLetter);
+            characters.Dequeue();
 
             while (characters.Any() && characters.Peek() is char character)
             {

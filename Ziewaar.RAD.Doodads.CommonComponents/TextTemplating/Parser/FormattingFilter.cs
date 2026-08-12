@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 public class FormattingFilter : ITemplateFilter
@@ -26,11 +28,11 @@ public class FormattingFilter : ITemplateFilter
     public string Render(object value)
     {
         if (value.ConvertNumericToDecimal() is decimal decimalValue)
-            return decimalValue.ToString(FormatString);
+            return decimalValue.ToString(FormatString, CultureInfo.InvariantCulture);
         else if (value is DateTime dateTimeValue)
-            return dateTimeValue.ToString(FormatString);
+            return dateTimeValue.ToString(FormatString, CultureInfo.InvariantCulture);
         else if (value is TimeSpan timespanValue)
-            return timespanValue.ToString(FormatString);
+            return timespanValue.ToString(FormatString, CultureInfo.InvariantCulture);
         else
             return value.ToString();
     }

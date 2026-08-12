@@ -19,7 +19,7 @@ public class SplitExactly : BasicService
         else if (constants.PrimaryConstant is not IEnumerable namesEnumerable)
             throw new BasicException("name array reqd as primary constant; something else given.");
         else
-            names = namesEnumerable.OfType<object>().Where(x => !x.IsntJustAnObject()).Select(x => x.ToString()).ToArray();
+            names = namesEnumerable.OfType<object>().Where(x => x.IsntJustAnObject()).Select(x => x.ToString()).ToArray();
 
         var splitter = constants.NamedItems.TryGetValue("splitter", out var splitterCandidate)
             && splitterCandidate is string stringSplitter ? stringSplitter.ElementAtOrDefault(0) : ' ';
