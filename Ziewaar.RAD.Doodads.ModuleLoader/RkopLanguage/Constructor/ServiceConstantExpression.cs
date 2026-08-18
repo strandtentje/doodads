@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
@@ -196,20 +197,33 @@ public class ServiceConstantExpression : IParityParser
         return state;
     }
 
-    private ParityParsingState SetPathValue(DirectoryInfo workingDirectory, string x)
+    private ParityParsingState SetPathValue(DirectoryInfo workingDirectory, string filename)
     {
         var state = ParityParsingState.Unchanged;
         if (ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
-        if (PathValue != (workingDirectory.FullName, x)) state |= ParityParsingState.Changed;
+        if (PathValue != (workingDirectory.FullName, filename)) state |= ParityParsingState.Changed;
         ConstantType = ConstantType.Path;
-        PathValue = (workingDirectory.FullName, x);
+
+        var dirsInDir = workingDirectory.GetDirectories();
+        var filesInDir = workingDirectory.GetFiles();
+
+        var candidateDirs = dirsInDir.Where(candidate => IsNameWithPrefix(candidate.Name, filename)).Select(x => x.Name);
+        var candidateFiles = filesInDir.Where(candidate => IsNameWithPrefix(candidate.Name, filename)).Select(x => x.Name);
+        var allCandidates = candidateDirs.Concat(candidateFiles).ToArray();
+                
+        if (allCandidates.Length == 1)
+            filename = allCandidates[0];
+        else if (allCandidates.Length != 0)
+            GlobalLog.Instance.Warning("For path in wd:{wd} Name prefix detection ambiguous for {name} between {candidates}; defaulting to non-prefixed.", workingDirectory, filename, string.Join(", ", allCandidates));
+
+        PathValue = (workingDirectory.FullName, filename);
 
         return state;
     }
 
     private ParityParsingState SetPathFoundAbove(CursorText ct, DirectoryInfo workingDirectory, string subPath)
     {
-        DirectoryInfo actualDirectory = workingDirectory;
+        DirectoryInfo searchingInDirectory = workingDirectory;
         var state = ParityParsingState.Unchanged;
         if (ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
 
@@ -223,22 +237,82 @@ public class ServiceConstantExpression : IParityParser
                 Select(x => x.Trim()).ElementAtOrDefault(0) ?? "";
         }
 
-        while (
-            !Directory.Exists(Path.Combine(actualDirectory.FullName, searchPath)) &&
-            !File.Exists(Path.Combine(actualDirectory.FullName, searchPath)))
+        DirectoryInfo trueDirectory;
+        string trueFile;
+        while (!TryFindOptionallyPrefixedInDir(searchingInDirectory, searchPath, out trueDirectory, out trueFile))
         {
-            if (actualDirectory.Parent != null)
-                actualDirectory = actualDirectory.Parent;
+            if (searchingInDirectory.Parent != null)
+                searchingInDirectory = searchingInDirectory.Parent;
             else
                 throw new ParsingException(ct,
                     $"Could not find sub-path `{searchPath}` in any parent directory of `{workingDirectory}`");
         }
 
-        if (PathValue != (actualDirectory.FullName, subPath)) state |= ParityParsingState.Changed;
+        var newValue = (trueDirectory.FullName, trueFile);
+
+        if (PathValue != newValue) state |= ParityParsingState.Changed;
         ConstantType = ConstantType.Path;
-        PathValue = (actualDirectory.FullName, subPath);
+        PathValue = newValue;
 
         return state;
+    }
+
+    private bool TryFindOptionallyPrefixedInDir(DirectoryInfo dir, string searchPath, out DirectoryInfo trueParent, out string trueChild)
+    {
+        var combined = Path.Combine(dir.FullName, searchPath);
+        if (File.Exists(combined))
+        {
+            trueParent = dir;
+            trueChild = searchPath;
+            return true;
+        } else if (Directory.Exists(combined))
+        {
+            trueParent = dir;
+            trueChild = searchPath;
+            return true;
+        }
+
+        var nonExistant = new DirectoryInfo(combined);
+        var lookingForFileOrDirName = nonExistant.Name;
+        var directoryAbove = nonExistant.Parent;
+
+        if (!directoryAbove.Exists)
+        {
+            trueParent = null;
+            trueChild = null;
+            return false;
+        }
+
+        var dirsInDir = directoryAbove.GetDirectories();
+        var filesInDir = directoryAbove.GetFiles();
+
+        var candidateDirs = dirsInDir.Where(candidate => IsNameWithPrefix(candidate.Name, lookingForFileOrDirName)).Select(x => x.Name);
+        var candidateFiles = filesInDir.Where(candidate => IsNameWithPrefix(candidate.Name, lookingForFileOrDirName)).Select(x => x.Name);
+        var allCandidates = candidateDirs.Concat(candidateFiles).ToArray();
+
+        if (allCandidates.Length == 1)
+        {
+            trueParent = directoryAbove;
+            trueChild = allCandidates[0];
+            return true;
+        } else if (allCandidates.Length != 0)
+        {
+            GlobalLog.Instance.Warning("For path in wd:{wd} Name prefix detection ambiguous for {name} between {candidates}; defaulting to non-prefixed.", directoryAbove, lookingForFileOrDirName, string.Join(", ", allCandidates));
+        }
+
+        trueParent = null;
+        trueChild = null;
+        return false;
+    }
+
+    private bool IsNameWithPrefix(string candidateName, string searchName)
+    {
+        if (candidateName.ElementAtOrDefault(3) != '-') return false;
+        if (candidateName.TakeWhile(char.IsNumber).Count() != 3) return false;
+        var afterDash = candidateName.Substring(4);
+        if (afterDash == searchName) return true;
+        if (Path.GetFileNameWithoutExtension(afterDash) == searchName) return true;
+        return false;
     }
 
     private ParityParsingState SetDecimalValue(decimal v)
