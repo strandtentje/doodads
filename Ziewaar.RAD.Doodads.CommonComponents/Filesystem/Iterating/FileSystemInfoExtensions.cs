@@ -25,8 +25,14 @@ public static class FileSystemInfoExtensions
         }
     }
     public static string GetNumberPrefix(this FileSystemInfo fsi) => new([.. fsi.Name.TakeWhile(char.IsDigit)]);
-    public static string GetAfterNumberPrefix(this FileSystemInfo fsi) =>
-        new([.. fsi.Name.SkipWhile(char.IsDigit).SkipWhile(c => c == '_' || c == '-')]);
+    public static string GetAfterNumberPrefix(this FileSystemInfo fsi)
+    {
+        string afterNumberPrefix = new([.. fsi.Name.SkipWhile(char.IsDigit).SkipWhile(c => c == '_' || c == '-')]);
+        if (fsi is FileInfo)
+            return Path.GetFileNameWithoutExtension(afterNumberPrefix);
+        else
+            return afterNumberPrefix;
+    }
 
     public static bool TryGetNumberPrefix(this FileSystemInfo fsi, out string pfx, out string rem)
     {

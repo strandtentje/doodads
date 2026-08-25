@@ -23,7 +23,7 @@ public class PathJoin : IService
     [NeverHappens] public event CallForInteraction? OnElse;
 
     [EventOccasion("When there were no path members")]
-    public event CallForInteraction? OnException;
+    public virtual event CallForInteraction? OnException;
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
