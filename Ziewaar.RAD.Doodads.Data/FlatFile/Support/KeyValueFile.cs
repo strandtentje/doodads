@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 
-namespace Ziewaar.RAD.Doodads.Data;
+namespace Ziewaar.RAD.Doodads.Data.FlatFile.Support;
 
 public class KeyValueFile : BasicService
 {

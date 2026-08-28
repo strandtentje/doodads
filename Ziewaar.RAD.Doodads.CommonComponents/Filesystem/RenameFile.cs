@@ -12,7 +12,9 @@ public class RenameFile : IService
                                Set this to true to allow the rename to imply a move to a different location
                                """)]
     private readonly UpdatingKeyValue AllowMovingConstant = new UpdatingKeyValue("allowmove");
+    private readonly UpdatingKeyValue RenumberAgainstCollission = new UpdatingKeyValue("dontcollide");
     private bool CurrentlyAllowsMoving;
+    private bool CurrentlyAvoidsCollission;
 
     [EventOccasion("Sink new filename here.")]
     public event CallForInteraction? SinkNewName;
@@ -31,6 +33,10 @@ public class RenameFile : IService
         if ((constants, AllowMovingConstant).IsRereadRequired(out bool? allowMoveCandidate))
         {
             this.CurrentlyAllowsMoving = allowMoveCandidate == true;
+        }
+        if ((constants, RenumberAgainstCollission).IsRereadRequired(out bool? avoidCollission))
+        {
+            this.CurrentlyAvoidsCollission = avoidCollission == true;
         }
 
         FileInfo? info = null;
@@ -66,6 +72,26 @@ public class RenameFile : IService
             var cleanedName = string.Concat(requestedName.Where(x => !delChars.Contains(x)));
             fullNewPath = ChangeFileNameOnly(info.FullName, cleanedName);
         }
+
+        while (this.CurrentlyAvoidsCollission && File.Exists(fullNewPath))
+        {
+            var proposedCollidingInfo = new FileInfo(fullNewPath);
+            var parentDirectory = proposedCollidingInfo.Directory;
+            var collidingName = proposedCollidingInfo.Name;
+
+            var numberPrefix = new string(collidingName.TakeWhile(char.IsNumber).ToArray());
+            var remainingName = new string(collidingName.SkipWhile(char.IsNumber).ToArray());
+
+            var currentNumber = 0;
+            if (numberPrefix.Length > 0 && int.TryParse(numberPrefix, out var parsedNumber))
+                currentNumber = parsedNumber;
+            currentNumber++;
+
+            var format = new string('0', Math.Min(3, numberPrefix.Length));
+            var newProposedName = $"{currentNumber.ToString(format)}{remainingName}";
+            fullNewPath = Path.Combine(parentDirectory.FullName, newProposedName);
+        }
+
         File.Move(info.FullName, fullNewPath);
 
         OnThen?.Invoke(this, new CommonInteraction(interaction, fullNewPath));

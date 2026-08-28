@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ziewaar.RAD.Doodads.CommonComponents\Ziewaar.RAD.Doodads.CommonComponents.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
   </ItemGroup>
 
