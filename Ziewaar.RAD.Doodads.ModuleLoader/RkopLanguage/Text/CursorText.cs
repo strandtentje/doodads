@@ -9,7 +9,7 @@ public class CursorText(
     CursorText scopeAbove,
     SortedList<string, object> localScope,
     IReadOnlyDictionary<string, object> policies,
-    int position = 0)
+    int position = 0) : ITextCursor
 {
     public bool LogFileExists { get; } = File.Exists($"{bareFileName}.log");
     private string LogFilePath { get; } = $"{bareFileName}.log";
@@ -72,6 +72,10 @@ public class CursorText(
     public SortedList<string, object> LocalScope => localScope;
 
     public string BareFile => bareFileName;
+
+    string ITextCursor.File => Path.Combine(this.WorkingDirectory.FullName, this.BareFile);
+    int ITextCursor.Line => this.GetCurrentLine();
+    int ITextCursor.Column => this.GetCurrentCol();
 
     public object this[string key]
     {

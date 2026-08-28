@@ -4,8 +4,24 @@ using Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.FileNumbering;
 
+[Category("System & IO")]
+[Title("Renumber files in directory")]
+[Description("""
+             Provided a directory in register, this will prefix files with somewhat evenly spaced numbers
+             so as to allow for easier re-sorting. Optionally, provide memory names for up or down, pointing
+             to file paths that also need to be moved up or down one place, in the process.
+             """)]
 public class AccomodateFileNumbering : BasicService
 {
+    [NamedSetting("up", """
+        Name of memory place where the path to move up one place is. (number-1)
+        """)]
+    private readonly UpdatingKeyValue UpMemoryName = new UpdatingKeyValue("up");
+    [NamedSetting("down", """
+        Name of memory place where the path to move down one place is. (number+1)
+        """)]
+    private readonly UpdatingKeyValue DownMemoryName = new UpdatingKeyValue("down");
+    public static event EventHandler<(string oldPath, string newPath)>? FileMoved;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
         var workingDirectory = interaction.Register.ToString();
@@ -48,6 +64,11 @@ public class AccomodateFileNumbering : BasicService
             File.Move(files.OldPath, files.IntermediatePath);
         foreach (var files in renumberedFiles)
             File.Move(files.IntermediatePath, files.FinalPath);
+
+        foreach (var item in renumberedFiles)
+        {
+            FileMoved?.Invoke(this, (item.OldPath, item.FinalPath));
+        }
     }
 
 

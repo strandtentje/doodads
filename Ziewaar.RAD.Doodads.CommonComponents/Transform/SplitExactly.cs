@@ -4,8 +4,24 @@ using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 
+[Category("Input & Validation")]
+[Title("Split text into memory names")]
+[Description("""
+             Provide an arbitrary amount of memory names in the primary constant, and this 
+             will split register text into the memory names, in the order they were specified in 
+             the primary constant.
+
+             Splitter string & defaults may optionally be provided.
+             """)]
 public class SplitExactly : BasicService
 {
+    [PrimarySetting("Array of memory names to split into")]
+    private readonly UpdatingPrimaryValue TargetNames = new UpdatingPrimaryValue();
+    [NamedSetting("splitter", "Splitter character to use instead of space")]
+    private readonly UpdatingKeyValue SplitterChar = new UpdatingKeyValue("splitter");
+    [NamedSetting("defNAME", "Optionally provide default values here by prefixing memoryname with def as constant name")]
+    private readonly UpdatingKeyValue DefaultAssignment = new UpdatingKeyValue("defNAME");
+
     private const string DEFAULT = "def";
 
     public override event CallForInteraction? OnThen;

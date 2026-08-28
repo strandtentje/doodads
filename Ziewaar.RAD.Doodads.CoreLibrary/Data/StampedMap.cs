@@ -3,11 +3,21 @@
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Data;
 #nullable enable
 
+public interface ITextCursor
+{
+    string? File { get; }
+    int Line { get; }
+    int Column { get; }
+}
+
 public class StampedMap
 {
     private readonly ConcurrentDictionary<string, object> BackingStore;
     private readonly ConcurrentDictionary<string, long> BackingLog;
-    public readonly string? DefiningFile;
+    public readonly ITextCursor? PositionInFile;
+    public string? DefiningFile => PositionInFile?.File;
+    public int Line => PositionInFile?.Line ?? 0;
+    public int Column => PositionInFile?.Column ?? 0;
     private readonly object LockObject = new();
 
     public SortedList<string, object> ToSortedList() =>
@@ -30,14 +40,14 @@ public class StampedMap
         this.BackingLog = new();
     }
 
-    public StampedMap(object primaryConstant, IReadOnlyDictionary<string, object> origin, string? definingFile = null)
+    public StampedMap(object primaryConstant, IReadOnlyDictionary<string, object> origin, ITextCursor? definingFile = null)
     {
         var age = GlobalStopwatch.Instance.ElapsedTicks;
         this.PrimaryLog = age;
         this.PrimaryConstant = primaryConstant;
         this.BackingStore = new();
         this.BackingLog = new();
-        this.DefiningFile = definingFile;
+        this.PositionInFile = definingFile;
         foreach (var o in origin)
         {
             lock (LockObject)

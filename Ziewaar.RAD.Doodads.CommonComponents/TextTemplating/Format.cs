@@ -41,8 +41,15 @@ public class Format : IService
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
 
+[Category("Printing & Formatting")]
+[Title("Dump template to sink & continue")]
+[Description("""
+             Works like format, but will OnThen after it has printed to the sink, so that it can be inlined
+             with existing chains.
+             """)]
 public class SinkDump : BasicService
 {
+    [EventOccasion("When the format was printed to sink")]
     public override event CallForInteraction? OnThen;
     private readonly Format Format = new Format();
     public override void TryEnter(StampedMap constants, IInteraction interaction)

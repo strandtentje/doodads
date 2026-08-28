@@ -79,6 +79,8 @@ public class Template : IService
                    """)]
     public event CallForInteraction? OnException;
 
+    public bool IsNeverTouchedBefore = true;
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<IInteraction>(out var targetInteraction,
@@ -120,7 +122,8 @@ public class Template : IService
             using (var sr = templatefile.GetDisposingSinkReader())
             {
                 txt = sr.ReadToEnd();
-                GlobalLog.Instance?.Information("Got template text of length {l}", txt.Length);
+                GlobalLog.Instance?.Information("Got template text of length {l} - {df}@{li}:{co} - because fresh: {fr}", txt.Length, constants.DefiningFile, constants.Line, constants.Column, IsNeverTouchedBefore);
+                IsNeverTouchedBefore = false;
             }
             Parser.RefreshTemplateData(txt);
             GlobalLog.Instance?.Information("New template has {count} commands", Parser.TemplateCommands.Count);

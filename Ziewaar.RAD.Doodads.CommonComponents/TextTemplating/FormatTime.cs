@@ -14,6 +14,14 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
              """)]
 public class FormatTime : IService
 {
+    private readonly ReadTime TimeReader = new ReadTime();
+    private readonly Format DateFormatter = new Format();
+    private StampedMap LastConstants = new StampedMap("");
+    public FormatTime()
+    {
+        TimeReader.OnThen += (s, e) => DateFormatter.Enter(LastConstants, e);
+    }
+
     [EventOccasion("When the timespan was printed")]
     public event CallForInteraction? OnThen;
     [NeverHappens]
@@ -22,10 +30,7 @@ public class FormatTime : IService
     public event CallForInteraction? OnException;
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        var timeReader = new ReadTime();
-        var dateFormatter = new Format();
-        timeReader.OnThen += (s, e) => dateFormatter.Enter(constants, e);
-        timeReader.Enter(new StampedMap(""), interaction);
+        TimeReader.Enter(new StampedMap(""), interaction);
         OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

@@ -12,7 +12,7 @@ public class RenumberingFile(FileInfo info, Fraction fraction)
         get
         {
             if (field != null) return field;
-            field = new string(OldName.SkipWhile(char.IsNumber).SkipWhile(char.IsSymbol).ToArray());
+            field = new string(OldName.SkipWhile(char.IsNumber).SkipWhile(char.IsSymbol).ToArray()).Trim().Trim('-').Trim();
             return field;
         }
     }

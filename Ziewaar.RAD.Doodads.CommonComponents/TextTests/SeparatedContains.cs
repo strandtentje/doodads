@@ -5,9 +5,38 @@ using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTests;
 
+[Category("Input & Validation")]
+[Title("String Set")]
+[Description("""
+    Splits a string into a sorted set provided a delimiter (duplicate entries will propagate as single.)
+    Will check if a substring under a memoryname is contained in this set. If not, it will be added & OnElse is triggered with the 
+    new delimited string set in register. If it was present, it will be removed & OnThen is triggered with the new delimited string
+    set in register.
+    """)]
 public class SeparatedContains : BasicService
 {
+    [PrimarySetting("""
+        Provide an array of 2 or 3 items here, in order;
+         - memory name from which to acquire the string to ingest into a set.
+         - memory name from which to acquire the string that will be matched against the set
+         - optionally a string describing the delimiter; defaults to a comma.
+        """)]
+    private readonly UpdatingPrimaryValue CompoundMemoryNames = new UpdatingPrimaryValue();
+    [NamedSetting("superset", """
+        Name of the memory name where the string lives that is to be ingested into a set.
+        """)]
+    private readonly UpdatingKeyValue SuperSetName = new UpdatingKeyValue("superset");
+    [NamedSetting("subset", """
+        Name of the memory name where the string lives that is to be matched against the set.
+        """)]
+    private readonly UpdatingKeyValue SubSetName = new UpdatingKeyValue("subset");
+    [NamedSetting("separator", """
+        Delimiter string, defaults to a comma.
+        """)]
+    private readonly UpdatingKeyValue SeparatorName = new UpdatingKeyValue("separator");
+    [EventOccasion("When the subset string was present in the superset, the superset comes out in register with the subset item removed.")]
     public override event CallForInteraction? OnThen;
+    [EventOccasion("When the subset string was not present in the superset, the superset comes out in register with the subset item added.")]
     public override event CallForInteraction? OnElse;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {

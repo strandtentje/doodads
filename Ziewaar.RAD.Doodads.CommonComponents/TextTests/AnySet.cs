@@ -4,9 +4,18 @@ using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTests;
 
+[Category("Input & Validation")]
+[Title("Check for any memory places being set")]
+[Description("""
+    Provide multiple memory names in the primary constant, to check if any memory name has a value assigned.
+    When any name is populated, will terminate & send OnThen with the name of the first present memory name 
+    in the register. In case no name has been assigned to, OnElse will trigger.
+    """)]
 public class AnySet : BasicService
 {
+    [EventOccasion("When any name was set, has the memory name in register")]
     public override event CallForInteraction? OnThen;
+    [EventOccasion("When no names were set.")]
     public override event CallForInteraction? OnElse;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {

@@ -9,6 +9,7 @@ namespace Define.Doodads.Expo.Timeline
     {
         public virtual event CallForInteraction? OnThen;
         public virtual event CallForInteraction? OnElse;
+        [EventOccasion("When something goes wrong on the implementing service, a description of the failure is in register.")]
         public virtual event CallForInteraction? OnException;
 
         public void Enter(StampedMap constants, IInteraction interaction)

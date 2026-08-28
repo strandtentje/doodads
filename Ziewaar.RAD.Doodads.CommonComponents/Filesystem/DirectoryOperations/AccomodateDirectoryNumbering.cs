@@ -5,6 +5,12 @@ using static Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
+[Category("System & IO")]
+[Title("Renumber directories in directory")]
+[Description("""
+             Provided a directory in register, this will prefix directories with somewhat evenly spaced numbers
+             so as to allow for easier re-sorting.
+             """)]
 public class AccomodateDirectoryNumbering : BasicService
 {
     public override void TryEnter(StampedMap constants, IInteraction interaction)

@@ -5,8 +5,26 @@ using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 
+[Category("Printing & Formatting")]
+[Title("Split register into numeric and textual component")]
+[Description("""
+             Takes the text in register and consumes the (decimal) numeric part it starts with, 
+             sticks it into memory, then takes the remaining non-numeric suffix and sticks it into 
+             memory too. Will always produce output based on defaults. Useful for ie. parsing apart
+             expressions like 10cm or 50W
+             """)]
 public class NumbersLetters : BasicService
 {
+    [PrimarySetting("Memory name prefix; resulting numbers will be in [prefix]numbers, letters in [prefix]letters.")]
+    private readonly UpdatingPrimaryValue MemoryPrefix = new UpdatingPrimaryValue();
+    [NamedSetting("defaultnumbers", "If no numbers could be derived from register, use this default value")]
+    private readonly UpdatingKeyValue DefaultNumberPart = new UpdatingKeyValue("defaultnumbers");
+    [NamedSetting("defaultletters", "If no letters could be derived from the tail end of the register, use these default letters.")]
+    private readonly UpdatingKeyValue DefaultLetterPart = new UpdatingKeyValue("defaultletters");
+    [EventOccasion("""
+        After splitting has happened, will have numbers and letters in memory. Memory names will be prefixed according to
+        primary constant.
+        """)]
     public override event CallForInteraction? OnThen;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {

@@ -28,6 +28,8 @@ public static class DeepRenameUtils
     {
         foreach (var file in suspectFiles)
         {
+            if (file.Length > 1024 * 1024)
+                continue;
             var oldText = File.ReadAllText(file.FullName);
             var newText = oldText.Replace(oldName, newName);
             if (newText != oldText)
@@ -61,7 +63,7 @@ public static class DeepRenameUtils
         if (filesToCheck is System.Collections.IEnumerable ie)
             foreach (var item in ie)
                 namesToInspect.Add(item.ToString());
-        List<FileInfo> infosToInspect = new();        
+        List<FileInfo> infosToInspect = new();
         foreach (var item in namesToInspect)
             infosToInspect.AddRange(parent.GetFiles(item, SearchOption.AllDirectories));
         FileInfo[] filesToInspect = [.. infosToInspect];

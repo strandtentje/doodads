@@ -69,8 +69,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
         }
 
         this.Constants = new StampedMap(
-            primaryValue ?? NullBuster, constants,
-            Path.Combine(atPosition.WorkingDirectory.FullName, atPosition.BareFile));
+            primaryValue ?? NullBuster, constants, atPosition);
 
         this.Instance.OnThen += DiagnosticOnThen;
         CleanupPropagation.Push(() => this.Instance.OnThen -= DiagnosticOnThen);
