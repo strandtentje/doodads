@@ -7,7 +7,9 @@ namespace Define.Doodads.Expo.Timeline
 {
     public abstract class BasicService : IService
     {
+        [NeverHappens]
         public virtual event CallForInteraction? OnThen;
+        [NeverHappens]
         public virtual event CallForInteraction? OnElse;
         [EventOccasion("When something goes wrong on the implementing service, a description of the failure is in register.")]
         public virtual event CallForInteraction? OnException;

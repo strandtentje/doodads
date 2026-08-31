@@ -1,11 +1,19 @@
 ﻿using Define.Doodads.Expo.Timeline;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.Data.FlatFile.Support;
 
 namespace Ziewaar.RAD.Doodads.Data.FlatFile;
 
+[Category("Databases & Querying")]
+[Title("Isolate a flatfile key")]
+[Description("""
+    Provided an open flatfile, find the member with the key provided in register. Provide the 
+    desired members as named constants with their defaults. If no item was found, defaults will
+    be used entirely.
+    """)]
 public class FlatFileMembersOf : BasicService
 {
     public override event CallForInteraction? OnThen;

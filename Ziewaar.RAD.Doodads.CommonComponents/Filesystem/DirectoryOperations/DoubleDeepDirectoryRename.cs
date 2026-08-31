@@ -9,7 +9,9 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 [Description("""
              Renames two directories, typically to make them trade names or number prefixes, while also doing
              a deep search and replace in the parent directory, replacing occurences in the old name in both 
-             text files and subdirectory names. Will not deep replace in files larger than ~1Mb
+             text files and subdirectory names. Will not deep replace in files larger than ~1Mb. For providing 
+             path memory names, provide two named constants, such that each constant name is a memory name with 
+             the old path, and each of its string assignments is a memory name with the new directory name in it.
              """)]
 public class DoubleDeepDirectoryRename : BasicService
 {

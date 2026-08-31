@@ -12,6 +12,9 @@ public class RenameFile : IService
                                Set this to true to allow the rename to imply a move to a different location
                                """)]
     private readonly UpdatingKeyValue AllowMovingConstant = new UpdatingKeyValue("allowmove");
+    [NamedSetting("dontcollide", """
+        Set this to true to avoid name collissions by increasing the number prefix.
+        """)]
     private readonly UpdatingKeyValue RenumberAgainstCollission = new UpdatingKeyValue("dontcollide");
     private bool CurrentlyAllowsMoving;
     private bool CurrentlyAvoidsCollission;

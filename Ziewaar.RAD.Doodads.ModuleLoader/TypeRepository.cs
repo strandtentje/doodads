@@ -79,8 +79,13 @@ public class TypeRepository : IDisposable
                             "Missing Category, Title or Description attributes on {typeName}",
                             serviceType.Name);
 
+                    var staticEvents = serviceType.GetEvents(BindingFlags.Static | BindingFlags.Public);
+
                     foreach (var item in serviceType.GetEvents())
                     {
+                        if (staticEvents.Contains(item))
+                            continue;
+
                         var ca = item.GetCustomAttributes();
                         if (!ca.Any(x => x is EventOccasionAttribute || x is NeverHappensAttribute))
                         {

@@ -2,14 +2,24 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.Data.FlatFile.Support;
 
 namespace Ziewaar.RAD.Doodads.Data.FlatFile;
 
+[Category("Databases & Querying")]
+[Title("Query a flatfile's properties")]
+[Description("""
+    Provided an open flatfile, iterate thru members that have a certain assignment. 
+    Provide the name of the property in the primary constant. The value will be taken from register.
+    Provide the desired members as named constants with their defaults.
+    """)]
 public class FlatFileKeysWith : IteratingService
 {
+    [PrimarySetting("Provide name of property to look for")]
+    private readonly UpdatingPrimaryValue NameOfProperty = new UpdatingPrimaryValue();
     protected override bool RunElse { get; } = false;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {

@@ -1,12 +1,20 @@
 ﻿using Define.Doodads.Expo.Timeline;
 using System.Collections.Generic;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.Data.FlatFile.Support;
 
 namespace Ziewaar.RAD.Doodads.Data.FlatFile;
 
+[Category("Databases & Querying")]
+[Title("Iterate a flatfile")]
+[Description("""
+    Provided an open flatfile, iterates through it member objects, 
+    Puts keys in register, and the object parts in memory. Provide the 
+    desired members as named constants with their defaults.
+    """)]
 public class FlatFileKeys : IteratingService
 {
     protected override bool RunElse { get; } = false;

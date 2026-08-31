@@ -5,6 +5,13 @@ using static Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
+[Category("System & IO")]
+[Title("Rename directory preserving number prefix & replace occurences.")]
+[Description("""
+             Renames a directory with a number prefix. Preserves the number prefix of the directory,
+             and renames any children of the parent that also have this name, along with any occurences in
+             small files.
+             """)]
 public class NumberPreservingDeepDirectoryRename : BasicService
 {
     public override void TryEnter(StampedMap constants, IInteraction interaction)

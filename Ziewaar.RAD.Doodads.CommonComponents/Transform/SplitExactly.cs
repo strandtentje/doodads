@@ -23,7 +23,7 @@ public class SplitExactly : BasicService
     private readonly UpdatingKeyValue DefaultAssignment = new UpdatingKeyValue("defNAME");
 
     private const string DEFAULT = "def";
-
+    [EventOccasion("has memory names with split values, register remains unchanged")]
     public override event CallForInteraction? OnThen;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {

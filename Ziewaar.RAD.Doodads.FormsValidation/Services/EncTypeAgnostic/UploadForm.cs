@@ -4,12 +4,37 @@ using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
+[Category("Input & Validation")]
+[Title("Terse upload-only form")]
+[Description("""
+             This is a combination of FileTemplate/HtmlFormPrepare/Applicable/Print/Validate 
+             for facilitating an upload form specifically. Provide path to main form html in
+             primary constant, and stick upload progress html under OnUploading. 
+             UploadForm service will then take care of iframes and all that jazz.
+             """)]
 public class UploadForm : BasicService
 {
+    [PrimarySetting("Path to main form template")]
+    private readonly UpdatingPrimaryValue MainFormTemplate = new UpdatingPrimaryValue();
+    [NamedSetting("interval", "Upload progress check interval in milliseconds")]
+    private readonly UpdatingKeyValue ProgressInterval = new UpdatingKeyValue("interval");
+    [NamedSetting("maxlength", "Max file size. Units allowed, ie. 25mb, 100kb")]
+    private readonly UpdatingKeyValue MaxFileSize = new UpdatingKeyValue("maxlength");
+
+    [EventOccasion("When the upload was done")]
     public override event CallForInteraction? OnThen;
+    [EventOccasion("When form wasn't accepted")]
     public override event CallForInteraction? OnElse;
+    [EventOccasion("Propagates any exception from the services that make uploadform work")]
     public override event CallForInteraction? OnException;
+    [EventOccasion("When the incoming call wasn't applicable to our form")]
     public event CallForInteraction? OnRejection;
+    [EventOccasion("""
+        Sink upload form here; puts the following names in memory:        
+        "position", "length", "rate",
+        "progress", "size", "speed", 
+        "percentage", "state"
+        """)]
     public event CallForInteraction? OnUploading;
 
     private readonly StampedMap

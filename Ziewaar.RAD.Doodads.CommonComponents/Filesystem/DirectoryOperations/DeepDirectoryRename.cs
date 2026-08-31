@@ -4,6 +4,12 @@ using static Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
+[Category("System & IO")]
+[Title("Rename directory & replace occurences.")]
+[Description("""
+             Renames a directory and renames any children of the parent that also have this name, 
+             along with any occurences in small files.
+             """)]
 public class DeepDirectoryRename : BasicService
 {
     public override void TryEnter(StampedMap constants, IInteraction interaction)

@@ -1,11 +1,19 @@
 ﻿using Define.Doodads.Expo.Timeline;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.Data.FlatFile.Support;
 
 namespace Ziewaar.RAD.Doodads.Data.FlatFile;
 
+[Category("Databases & Querying")]
+[Title("Overwrite a flatfile key")]
+[Description("""
+    Provided an open flatfile, find the member with the key provided in register. Provide the 
+    desired members as named constants with their defaults. Then overwrite that flatfile key
+    with values available in memory, otherwise the defaults.
+    """)]
 public class FlatFileOverwrite : BasicService
 {
     public override void TryEnter(StampedMap constants, IInteraction interaction)
