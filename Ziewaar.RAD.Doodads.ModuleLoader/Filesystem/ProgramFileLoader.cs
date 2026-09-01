@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
@@ -16,6 +17,7 @@ public class ProgramFileLoader : IDisposable
         this.Emitter = emitter;
         emitter.CursorTextAvailable += Emitter_HandleNewCursorText;
     }
+    private static readonly Log DisposeFail = Log.Warn("Disposal of {definition} failed due to {exception}");
     private void CleanDefinitions()
     {
         Definitions ??= new();
@@ -26,7 +28,7 @@ public class ProgramFileLoader : IDisposable
                 definition.Dispose();
             } catch(Exception ex)
             {
-                GlobalLog.Instance?.Warning(ex, "while disposing {name}", definition.Name);
+                Log.Post(DisposeFail, definition.Name, ex);
             }
         }
         Definitions.Clear();

@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic;
+﻿using Ejije.Logging;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -56,6 +57,8 @@ public class MatchDir : IteratingService
     protected override bool RunElse { get; } = false;
     [EventOccasion("When there's an explanation for a match or no match")]
     public event CallForInteraction? OnExplanation;
+    private static readonly Log
+        DirDslError = Log.Warn("DirDsl {error}");
     private IEnumerable<(IReverseFileExpression ex, DirectoryInfo dir)> MapExpressions(IEnumerable<DirectoryInfo> infos)
     {
         foreach (var item in infos)
@@ -68,7 +71,7 @@ public class MatchDir : IteratingService
             {
                 var tup = (ex: ContainingBlock.ParseFrom(item.Name, out var errors), dir: item);
                 foreach (var err in errors)
-                    GlobalLog.Instance?.Warning("RFEx Error: {item}", err);
+                    Log.Post(DirDslError, err);
                 cachedDirs[item.Name] = tup.ex;
                 yield return tup;
             }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Ejije.Logging;
+using System.Runtime.CompilerServices;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 
@@ -88,7 +89,11 @@ public static class ReaderExtensions
             [{text.Depth}] {accos} {csDesc} AT {rkopDesc} DOES {parseDesc} YIELD {outDesc}
             """);
     }
-
+    private static readonly Log SyntaxError = Log.Oops("""
+                Syntax error at {line}:{col}, 
+                Expected: {description}
+                {hint}
+                """);
     public static CursorText ValidateToken(
         this CursorText text,
         TokenDescription description,
@@ -103,11 +108,7 @@ public static class ReaderExtensions
             return continued;
         else
         {
-            GlobalLog.Instance?.Error("""
-                Syntax error at {line}:{col}, 
-                Expected: {description}
-                {hint}
-                """, text.GetCurrentLine(), text.GetCurrentCol(), description.HumanReadable, hint);
+            Log.Post(SyntaxError, text.GetCurrentLine(), text.GetCurrentCol(), description.HumanReadable, hint);
             throw new SyntaxException(text, $"""
                 Syntax error at {text.GetCurrentLine()}:{text.GetCurrentCol()}, 
                 Expected: {description.HumanReadable}

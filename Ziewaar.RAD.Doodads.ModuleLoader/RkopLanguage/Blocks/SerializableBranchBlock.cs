@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.SeriesParsers;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
@@ -23,6 +24,8 @@ public class CompoundKey : IComparable, IComparable<CompoundKey>, IEquatable<Com
 public class SerializableBranchBlock<TResultSink>
     where TResultSink : class, IInstanceWrapper, new()
 {
+    private static readonly Log
+        DuplicateBranch = Log.Oops("Duplicate branch definition for {name}; using last.");
     public SortedList<string, ServiceExpression<TResultSink>> Convert()
     {
         SortedList<string, ServiceExpression<TResultSink>> result = new();
@@ -32,7 +35,7 @@ public class SerializableBranchBlock<TResultSink>
             foreach (var key in item.Item1.Members)
             {
                 if (result.ContainsKey(key))
-                    GlobalLog.Instance?.Warning("Duplicate branch definition for {name}; using last.", key);
+                    Log.Post(DuplicateBranch, key);
                 result[key] = item.value;
             }
         }

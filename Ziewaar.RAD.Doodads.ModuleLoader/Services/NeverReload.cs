@@ -1,5 +1,6 @@
 #nullable enable
 #pragma warning disable 67
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 
@@ -23,7 +24,8 @@ public class NeverReload : IService
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely happens when no filename was provided.")]
     public event CallForInteraction? OnException;
-
+    private static readonly Log
+        SwitchLocks = Log.Tech("Switching out filename locks from {a} to {b}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, FilenameConstant).IsRereadRequired(out object? filename))
@@ -40,8 +42,7 @@ public class NeverReload : IService
         this.NextFilename = (new FileInfo(this.NextFilename).FullName);
         if (this.CurrentFilename != null)
             ResilientCursorTextEmitter.ReloadLocked.Remove(this.CurrentFilename);
-        GlobalLog.Instance?.Information("Switching out filename locks from {a} to {b}", CurrentFilename,
-            NextFilename);
+        Log.Post(SwitchLocks, CurrentFilename, NextFilename);
         this.CurrentFilename = NextFilename;
         ResilientCursorTextEmitter.ReloadLocked.Add(this.CurrentFilename!);
     }

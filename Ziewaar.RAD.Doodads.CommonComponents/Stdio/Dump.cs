@@ -1,3 +1,4 @@
+using Ejije.Logging;
 using Newtonsoft.Json;
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
@@ -23,6 +24,12 @@ public class Dump : IService
     [NeverHappens] public event CallForInteraction? OnElse;
     [NeverHappens] public event CallForInteraction? OnException;
 
+    private static readonly Log
+        DumpStart = Log.Tech("[{dumpHeader}|Start]"),
+        DumpBlob = Log.Tech("[{dumpHeader}|{depth}] : {blob}"),
+        DumpTime = Log.Tech("[{dumpHeader}|OnThen Counting]"),
+        DumpDuration = Log.Tech("[{dumpHeader}|OnThen Finished] {duration}ms");
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!DumpSwitch.IsEnabled || interaction.TryGetClosest<DumpStopper>(out var _)) return;
@@ -46,7 +53,7 @@ public class Dump : IService
             dumpHeader = CurrentDumpName;
         dumpHeader = $"{nameof(Dump)}|{dumpHeader}|{GlobalStopwatch.Instance.ElapsedMilliseconds:x8}";
         var depth = 0;
-        GlobalLog.Instance?.Debug("[{dumpHeader}|Start]", dumpHeader);
+        Log.Post(DumpStart, dumpHeader);
 
         for (var working = interaction; working is not StopperInteraction; working = working.Stack)
         {
@@ -66,15 +73,14 @@ public class Dump : IService
                     })).ToArray(),
                 Register = working.Register.ToString()
             }, Formatting.Indented);
-            GlobalLog.Instance?.Debug("[{dumpHeader}|{depth}] : {blob}", dumpHeader,
-                $"{depth++:0000}", dumpBlob);
+            Log.Post(DumpBlob, dumpHeader, $"{depth++:0000}", dumpBlob);
         }
 
-        GlobalLog.Instance?.Debug("[{dumpHeader}|OnThen Counting]", dumpHeader);
+        Log.Post(DumpTime, dumpHeader);
         var offset = GlobalStopwatch.Instance.ElapsedMilliseconds;
         OnThen?.Invoke(this, interaction);
         var duration = GlobalStopwatch.Instance.ElapsedMilliseconds - offset;
-        GlobalLog.Instance?.Debug("[{dumpHeader}|OnThen Finished] {duration}ms", dumpHeader, duration);
+        Log.Post(DumpDuration, dumpHeader, duration);
     }
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

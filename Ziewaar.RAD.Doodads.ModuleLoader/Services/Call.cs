@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
@@ -39,13 +40,14 @@ public class Call : IService, IDisposable
 
     [EventOccasion("Likely when a module file or definition name wasn't given or wasn't found")]
     public event CallForInteraction? OnException;
-
+    private static readonly Log
+        EnterDisposed = Log.Oops("Request to enter disposed Call {file} @ {name}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (IsDisposing)
         {
             if (!IsWarned)
-                GlobalLog.Instance?.Warning("Request to enter disposed Call {file} @ {name}", DefinitionFile, CurrentModuleName);
+                Log.Post(EnterDisposed, DefinitionFile, CurrentModuleName);
             IsWarned = true;
             return;
         }

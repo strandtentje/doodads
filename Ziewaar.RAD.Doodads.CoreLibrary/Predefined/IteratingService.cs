@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using Serilog.Core;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
@@ -19,6 +20,9 @@ public abstract class IteratingService : IService, IDisposable
     public virtual event CallForInteraction? OnException;
     protected virtual bool IsRepeatNameRequired => true;
     protected abstract bool RunElse { get; }
+    private static readonly Log
+        DisposingThenFailed = Log.Warn("Got {exception} while trying to dispose then-enumerator of {name}"),
+        DisposingElseFailed = Log.Warn("Got {exception} while trying to dispose else-enumerator of {name}")
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, RepeatNameConstant).IsRereadRequired(
@@ -47,7 +51,7 @@ public abstract class IteratingService : IService, IDisposable
 
                     } catch(Exception ex)
                     {
-                        GlobalLog.Instance?.Warning(ex, "while trying to dispose then-enumerator of {name}", this.CurrentRepeatName);
+                        Log.Post(DisposingThenFailed, ex, this.CurrentRepeatName);
                     }
                 }
 
@@ -88,7 +92,7 @@ public abstract class IteratingService : IService, IDisposable
 
                     } catch(Exception ex)
                     {
-                        GlobalLog.Instance?.Warning(ex, "while trying to dispose else-enumerator of {name}", this.CurrentRepeatName);
+                        Log.Post(DisposingThenFailed, ex, this.CurrentRepeatName);
                     }
                 }
 

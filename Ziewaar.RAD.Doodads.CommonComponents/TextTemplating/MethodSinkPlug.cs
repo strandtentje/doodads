@@ -1,4 +1,6 @@
 #pragma warning disable 67
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
 [Category("Sourcing & Sinking")]
@@ -20,14 +22,15 @@ public class MethodSinkPlug : IService
     public event CallForInteraction? OnElse;
     [EventOccasion("Likely when no original sink could be found")]
     public event CallForInteraction? OnException;
+    private static readonly Log
+        FlushAbort = Log.Tech("Not flushing due to {rn} abort");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, ContinueNameConstant).IsRereadRequired(out string? continueNameCandidate))
             this.ContinueName = continueNameCandidate;
 
         if (!interaction.TryGetClosest<IHttpHeadInteraction>(
-            out var httpHead, httpHead => this.ContinueName?.Contains(
-                httpHead.Method, StringComparison.OrdinalIgnoreCase) == true))
+            out var httpHead, httpHead => (this.ContinueName?.ToUpper() ?? "").Contains(httpHead.Method)))
         {
             OnElse?.Invoke(this, interaction);
             return;
@@ -50,7 +53,7 @@ public class MethodSinkPlug : IService
                 if (ri.IsRunning || ri.RepeatName == "")
                     bsi.Flush();
                 else
-                    GlobalLog.Instance?.Debug("Not flushing due to {rn} abort", ri.RepeatName);
+                    Log.Post(FlushAbort, ri.RepeatName);
             }
         });
     }

@@ -1,3 +1,4 @@
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
 
 #pragma warning disable 67
@@ -32,7 +33,9 @@ public class HtmlForm : IService
 
     [EventOccasion("When there was no sink")]
     public event CallForInteraction? OnException;
-
+    private static readonly Log 
+        FormError = Log.Oops("Form {method} {url} didn't come in quite right"),
+        FieldError = Log.Tech("On item {name} we got a failure:{result} due to value {value}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var targetSink) || targetSink == null)
@@ -115,12 +118,11 @@ public class HtmlForm : IService
                 }
                 else
                 {
-                    GlobalLog.Instance?.Debug("Form {method} {url} didn't come in quite right", candidateMethod,
+                    Log.Post(FormError, candidateMethod,
                         candiateUrl);
                     foreach (var item in result)
                     {
-                        GlobalLog.Instance?.Debug("On item {name} we got a failure:{result} due to value {value}",
-                            item.name, item.isError, item.value);
+                        Log.Post(FieldError, item.name, item.isError, item.value);
                     }
 
                     foreach (var item in result.Where(x => x.isError))

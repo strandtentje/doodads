@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Ejije.Logging;
 using System.Threading.Tasks;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
@@ -30,6 +31,13 @@ public class TypeRepository : IDisposable
 
         return this;
     }
+
+    private static readonly Log 
+        DuplicateShortname = Log.Oops("Duplicate definition of short name {sn}"),
+        MissingMainDoc = Log.Oops("Missing Category, Title or Description attributes on {typeName}"),
+        MissingEvent = Log.Oops("Missing EventOccasion or NeverHappens Attribute on {typeName}:{eventName}"),
+        MissingConfigDoc = Log.Oops("Missing PrimarySettingAttribute on {typeName}:{settingName}"),
+        MissingNamedConfigDoc = Log.Oops("Missing NamedSettingAttribute on {typeName}:{settingName}");
 
     public TypeRepository PopulateWith(Assembly assembly)
     {
@@ -64,8 +72,7 @@ public class TypeRepository : IDisposable
                 foreach (var shortName in serviceShortNames)
                 {
                     if (ShortNamedServiceTypes.Remove(shortName))
-                        GlobalLog.Instance?.Warning("Duplicate definition of short name {sn}",
-                            shortName);
+                        Log.Post(DuplicateShortname, shortName);
                     else
                         ShortNamedServiceTypes.Add(shortName, serviceType);
                 }
@@ -75,9 +82,7 @@ public class TypeRepository : IDisposable
                     if (!attributes.Any(x => x is TitleAttribute) ||
                         !attributes.Any(x => x is CategoryAttribute) ||
                         !attributes.Any(x => x is DescriptionAttribute))
-                        GlobalLog.Instance?.Warning(
-                            "Missing Category, Title or Description attributes on {typeName}",
-                            serviceType.Name);
+                        Log.Post(MissingMainDoc, serviceType.Name);
 
                     var staticEvents = serviceType.GetEvents(BindingFlags.Static | BindingFlags.Public);
 
@@ -89,9 +94,7 @@ public class TypeRepository : IDisposable
                         var ca = item.GetCustomAttributes();
                         if (!ca.Any(x => x is EventOccasionAttribute || x is NeverHappensAttribute))
                         {
-                            GlobalLog.Instance?.Warning(
-                                "Missing EventOccasion or NeverHappens Attribute on {typeName}:{eventName}",
-                                serviceType.Name, item.Name);
+                            Log.Post(MissingEvent, serviceType.Name, item.Name);
                         }
                     }
 
@@ -101,15 +104,11 @@ public class TypeRepository : IDisposable
                     {
                         if (typeof(UpdatingPrimaryValue).IsAssignableFrom(setting.FieldType) &&
                             !setting.GetCustomAttributes().Any(x => x is PrimarySettingAttribute))
-                            GlobalLog.Instance?.Warning(
-                                "Missing PrimarySettingAttribute on {typeName}:{settingName}",
-                                serviceType.Name, setting.Name);
+                            Log.Post(MissingConfigDoc, serviceType.Name, setting.Name);
                         else if (typeof(UpdatingKeyValue).IsAssignableFrom(setting.FieldType) &&
                                  !setting.GetCustomAttributes()
                                      .Any(x => x is NamedSettingAttribute))
-                            GlobalLog.Instance?.Warning(
-                                "Missing NamedSettingAttribute on {typeName}:{settingName}",
-                                serviceType.Name, setting.Name);
+                            Log.Post(MissingNamedConfigDoc, serviceType.Name, setting.Name);
                     }
                 });
             }
@@ -134,6 +133,10 @@ public class TypeRepository : IDisposable
         return service;
     }
 
+    private static readonly Log
+        ShorthandDiscourage = Log.Warn("Shorthand is discouraged! But we'll allow retrieving `{type}` by `{shortand}` for now."),
+        ShorthandReject = Log.Fail("Shorthand REJECTED! `{type}` may not be retrieved by `{shortand}`.");
+
     private bool TryGetByShortHand(ShorthandNamePolicy policy, string shorthand, out Type type)
     {
         if (!ShortNamedServiceTypes.TryGetValue(shorthand, out type))
@@ -144,16 +147,11 @@ public class TypeRepository : IDisposable
             case ShorthandNamePolicy.Accepted:
                 return true;
             case ShorthandNamePolicy.Discouraged:
-                GlobalLog.Instance?.Warning(
-                    "Shorthand is discouraged! But we'll allow retrieving `{type}` by `{shortand}` for now.",
-                    type.Name,
-                    shorthand);
+                Log.Post(ShorthandDiscourage, type.Name, shorthand);
                 return true;
             case ShorthandNamePolicy.Rejected:
             default:
-                GlobalLog.Instance?.Error(
-                    "Shorthand REJECTED! `{type}` may not be retrieved by `{shortand}`.", type.Name,
-                    shorthand);
+                Log.Post(ShorthandReject, type.Name, shorthand);
                 return false;
         }
     }

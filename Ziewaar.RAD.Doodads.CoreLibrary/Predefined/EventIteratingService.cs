@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
@@ -6,6 +7,8 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 public abstract class EventIteratingService<TArgs> : IteratingService
 {
     protected abstract EventBlocker<TArgs>? CreateBlocker(StampedMap constants, IInteraction interaction);
+    private static readonly Log
+        DisposeFail = Log.Oops("Event Iterate Got {exception} while trying to dispose name");
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
         using (var blocker = CreateBlocker(constants, repeater))
@@ -23,7 +26,7 @@ public abstract class EventIteratingService<TArgs> : IteratingService
                 }
                 catch (Exception ex)
                 {
-                    GlobalLog.Instance?.Warning(ex, "while trying to dispose {name}", (repeater as RepeatInteraction)?.RepeatName);
+                    Log.Post(DisposeFail, ex, (repeater as RepeatInteraction)?.RepeatName);
                 }
             };
             this.InternalDisposeEvent += DisposalHandler;

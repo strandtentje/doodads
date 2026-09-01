@@ -1,3 +1,5 @@
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
 
 public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
@@ -24,14 +26,13 @@ public class ValidatingTextInput(HtmlNode node) : IValidatingInputFieldInSet
     public List<IValidatingInputField> AltValidators { get; } = new();
     public bool IsRequired { get; private set; }
     public bool IsMaxUnbound => false;
-
+    private static readonly Log NoLength = 
+        Log.Warn("A field named {name} has no maxlength configured, or has it set to 0! Perhaps, this form never validates.");
     public bool TryValidate(string[] submittedValue, out IEnumerable result)
     {
         if (MaxLength < 1)
         {
-            GlobalLog.Instance?.Warning(
-                "A field named {name} has no maxlength configured, or has it set to 0! Perhaps, this form never validates.",
-                node.GetInputName());
+            Log.Post(NoLength, node.GetInputName());
         }
 
         if (TextInputType == "password")

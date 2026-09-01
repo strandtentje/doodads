@@ -1,3 +1,4 @@
+using Ejije.Logging;
 using System.Text;
 using Ziewaar.RAD.Doodads.EnumerableStreaming.Readers;
 using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingMultipart;
@@ -43,6 +44,11 @@ public class HtmlFormApplicable : IService
 
     [EventOccasion("Likely when this wasn't preceeded by HtmlFormPrepare or an HTTP reqeust.")]
     public event CallForInteraction? OnException;
+
+    private static readonly Log
+        FormdataTooLong = Log.Warn("URL Query formdata too long; configure maxlength if this shouldn't be happening"),
+        NoContentLength = Log.Warn("No content length provided, but required for this form. Switch off requirecontentlength to be more lenient."),
+        MaxlengthExceed = Log.Warn("maxlength exceeded on Content Length header.");
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
@@ -91,8 +97,7 @@ public class HtmlFormApplicable : IService
                 if (queryString.Length > CurrentByteLimit)
                 {
                     OnRejection?.Invoke(this, interaction);
-                    GlobalLog.Instance?.Debug(
-                        "URL Query formdata too long; configure maxlength if this shouldn't be happening");
+                    Log.Post(FormdataTooLong);
                     return;
                 }
                 else
@@ -130,8 +135,7 @@ public class HtmlFormApplicable : IService
         if (RequireContentLength && incomingLength == -1)
         {
             OnRejection?.Invoke(this, interaction);
-            GlobalLog.Instance?.Debug(
-                "No content length provided, but required for this form. Switch off requirecontentlength to be more lenient.");
+            Log.Post(NoContentLength);
             return;
         }
 
@@ -141,7 +145,7 @@ public class HtmlFormApplicable : IService
             if (incomingLength > CurrentByteLimit)
             {
                 OnRejection?.Invoke(this, interaction);
-                GlobalLog.Instance?.Debug("maxlength exceeded on Content Length header.");
+                Log.Post(MaxlengthExceed);
                 return;
             }
             else

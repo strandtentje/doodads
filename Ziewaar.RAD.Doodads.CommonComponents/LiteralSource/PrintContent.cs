@@ -47,8 +47,7 @@ public class
             {
                 OnException?.Invoke(this, new CommonInteraction(interaction, "file is required as primary constant"));
                 return;
-            }
-            //GlobalLog.Instance?.Information("Re-reading new file is required {file} for determining printout settings", constants.PrimaryConstant);
+            }            
             var fileInfo = new FileInfo(file.ToString());
             var mime = MimeMapping.GetMimeInfo(fileInfo);
             this.ContentTypeSettings = new("", new SortedList<string, object>()
@@ -63,7 +62,7 @@ public class
         }
         else
         {
-            //GlobalLog.Instance?.Information("It wasnt neccesary to re-read {file} for printout settings", constants.PrimaryConstant);
+            
         }
 
         ContentService.Enter(ContentTypeSettings, interaction);

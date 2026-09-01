@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
@@ -20,6 +21,7 @@ public class FileWatcherFactory : IDisposable
             StopOne(item);
         }
     }
+    private static readonly Log DisposeFail = Log.Warn("Disposal of Filewatcher failed due to {exception}");
     private static void StopOne(FileSystemWatcher item)
     {
         try
@@ -29,7 +31,7 @@ public class FileWatcherFactory : IDisposable
         }
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Error(ex, "when stopping {name}", nameof(FileWatcherFactory));
+            Log.Post(DisposeFail, ex);
         }
     }
     public void Watch(string directory, string file, Action onChange, Action onDelete)

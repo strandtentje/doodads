@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Ejije.Logging;
+using System.Collections.Concurrent;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
@@ -6,6 +7,8 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 public static class BlockingCollectionExtensions
 {
     public enum BlockingTakeResult { Complete, ItemSuccess, ListFailure, ItemFailure, }
+    private static readonly Log
+        BlockingCollectionTakeFail = Log.Warn("Got {exception} while taking item of {type} from blocking collection");
     extension<TOutput>(BlockingCollection<TOutput> collection)
     {
         public BlockingTakeResult TryTakeResillientBlocking(Action<TOutput> callback, out TOutput? item)
@@ -38,7 +41,7 @@ public static class BlockingCollectionExtensions
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Warning(ex, "While taking item of {type}", typeof(TOutput).Name);
+                Log.Post(BlockingCollectionTakeFail, ex, typeof(TOutput).Name);
                 return BlockingTakeResult.ItemFailure;
             }
         }

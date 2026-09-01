@@ -1,4 +1,5 @@
 ﻿#pragma warning disable 67
+using Ejije.Logging;
 using System.Diagnostics;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
@@ -18,7 +19,8 @@ public class KillByName : IService
     public event CallForInteraction? OnElse;
     [EventOccasion("Process name (or part thereof) wasn't present in register")]
     public event CallForInteraction? OnException;
-
+    private static readonly Log
+        FailedToKill = Log.Warn("Failed to kill {pid} of {exe} due to {exception}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         var exeName = interaction.Register?.ToString();
@@ -37,7 +39,7 @@ public class KillByName : IService
                     item.Kill();
                 } catch(Exception ex)
                 {
-                    GlobalLog.Instance?.Warning(ex, "Couldn't kill process {pid} - {exe}", item.Id, item.ProcessName);
+                    Log.Post(FailedToKill, item.Id, item.ProcessName, ex);
                     OnException?.Invoke(this, new CommonInteraction(interaction, ex.Message));
                 }
                 OnThen?.Invoke(this, interaction);

@@ -1,3 +1,5 @@
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
 [Category("Diagnostics & Debug")]
@@ -15,6 +17,10 @@ public class ErrorMessage : IService
     public event CallForInteraction? OnElse;
     [NeverHappens]
     public event CallForInteraction? OnException;
+
+    private static readonly SortedList<string, Log>
+        AvailableLogs = new SortedList<string, Log>();
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, DumpFormatConstant).IsRereadRequired(out string? formatCandidate))
@@ -36,7 +42,10 @@ public class ErrorMessage : IService
             OfType<object>().
             ToArray();
 
-        GlobalLog.Instance?.Error(messageTemplate: DumpFormat, propertyValues: values);
+        if (!AvailableLogs.TryGetValue(DumpFormat, out var log))
+            AvailableLogs[DumpFormat] = log = Log.Fail(DumpFormat);
+
+        Log.Post(log, values);
 
         OnThen?.Invoke(this, interaction);
     }

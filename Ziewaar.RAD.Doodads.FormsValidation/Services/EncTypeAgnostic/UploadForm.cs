@@ -1,4 +1,5 @@
 using Define.Doodads.Expo.Timeline;
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 
@@ -52,7 +53,12 @@ public class UploadForm : BasicService
     private const string PROGRESS_IFRAME = "progressiframe", FORM_IFRAME = "formiframe";
 
     private int Interval = 1;
-
+    private static readonly Log
+        NotApplicable = Log.Tech("Form {fmethod} {action} was not applicable for validation on {rmethod} {url}"),
+        DisplayProgress = Log.Tech("For form {fmethod} {action}, displaying progress window"),
+        DisplayEntry = Log.Tech("For form {fmethod} {action}, displaying entry window"),
+        DisplayIframes = Log.Tech("For form {fmethod} {action}, displaying iframes"),
+        Uploading = Log.Cool("File upload {x}b of {y}b");
     public UploadForm()
     {
         FormPrepare.OnException += (s, e) => OnException?.Invoke(s, e);
@@ -79,7 +85,7 @@ public class UploadForm : BasicService
             if (!e.TryGetClosest<ISinkingInteraction>(out var cpi) || cpi == null)
                 throw new BasicException("Sink required");
 
-            GlobalLog.Instance?.Information("Form {fmethod} {action} was not applicable for validation on {rmethod} {url}",
+            Log.Post(NotApplicable,
                 fsi.HttpMethod, fsi.ActionUrl, httpHead.Method, httpHead.RouteString);
 
             var progressRequested = httpHead.QueryString.Contains(PROGRESS_IFRAME);
@@ -87,8 +93,7 @@ public class UploadForm : BasicService
 
             if (progressRequested)
             {
-                GlobalLog.Instance?.Information("For form {fmethod} {action}, displaying progress window",
-                    fsi.HttpMethod, fsi.ActionUrl);
+                Log.Post(DisplayProgress, fsi.HttpMethod, fsi.ActionUrl);
 
                 if (e.TryGetClosest<BufferSinkInteraction>(out var bsi) && bsi != null)
                 {
@@ -134,7 +139,7 @@ public class UploadForm : BasicService
                     cpi.SinkTrueContentType = "text/html";
                 }
 
-                GlobalLog.Instance?.Information("For form {fmethod} {action}, displaying entry window",
+                Log.Post(DisplayEntry,
                     fsi.HttpMethod, fsi.ActionUrl);
 
                 cpi.Write("""
@@ -157,8 +162,7 @@ public class UploadForm : BasicService
             {
                 string progressUrl, formUrl;
 
-                GlobalLog.Instance?.Information("For form {fmethod} {action}, displaying iframes",
-                    fsi.HttpMethod, fsi.ActionUrl);
+                Log.Post(DisplayIframes, fsi.HttpMethod, fsi.ActionUrl);
 
                 var parts = fsi.ActionUrl.Split('?');
                 if (parts.Length == 1)
@@ -212,7 +216,7 @@ public class UploadForm : BasicService
                         formProgress.Reader.ErrorState == null &&
                         formProgress.Reader.AtEnd == false)
                     {
-                        GlobalLog.Instance?.Information("File upload {x}b of {y}b", formProgress.Reader.Cursor, formProgress.Reader.Limit);
+                        Log.Post(Uploading, formProgress.Reader.Cursor, formProgress.Reader.Limit);
                     }
                 }
                 catch (ObjectDisposedException)

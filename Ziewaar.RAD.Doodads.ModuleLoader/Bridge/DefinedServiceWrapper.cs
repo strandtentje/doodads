@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
@@ -105,9 +106,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
 
     private void Instance_OnException(object sender, IInteraction interaction)
     {
-        GlobalLog.Instance?.Error(
-            $"Service indicates exceptional situation; {JsonConvert.SerializeObject(
-                new ExceptionPayload(Constants, Type, Position, interaction), Formatting.Indented)}");
+        new ExceptionPayload(Constants, Type, Position, interaction).PrintToLog();
     }
 
     public void OnThen(CallForInteraction dlg)
@@ -138,6 +137,8 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
     bool isInCleanLoop = false;
     private readonly object cleanLock = new();
 
+    private static readonly Log DisposeFail = Log.Warn("Disposal of service {type} failed due to {exception}");
+
     public void Cleanup()
     {
         if (isInCleanLoop) return;
@@ -166,7 +167,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
         }
         catch (Exception e)
         {
-            GlobalLog.Instance?.Error($"While disposing: {e}");
+            Log.Post(DisposeFail, this.TypeName, e);
         }
     }
 
@@ -183,6 +184,8 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
             return [];
     }
 
+    private static readonly Log InstanceFatal = Log.Fail("Service {type} caused really bad {error}");
+
     void IProfilable<IInteraction>.Run(IInteraction data)
     {
         try
@@ -193,7 +196,7 @@ public class DefinedServiceWrapper : IAmbiguousServiceWrapper, IProfilable<IInte
 #if !DEBUG || true
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Error(ex, "Fatal on {0}", Type?.Name ?? "Unknown Type");
+            Log.Post(InstanceFatal, this.TypeName, ex);
             Instance!.HandleFatal(new CommonInteraction(data, ex.ToString()), ex);
         }
 #endif

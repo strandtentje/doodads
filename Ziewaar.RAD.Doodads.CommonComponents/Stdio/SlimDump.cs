@@ -1,3 +1,5 @@
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 #pragma warning disable 67
 
@@ -17,6 +19,8 @@ public class SlimDump : IService
     public event CallForInteraction? OnElse;
     [NeverHappens]
     public event CallForInteraction? OnException;
+    private static readonly SortedList<string, Log>
+        AvailableLogs = new SortedList<string, Log>();
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (DumpSwitch.IsEnabled && !interaction.TryGetClosest<DumpStopper>(out var _))
@@ -40,7 +44,11 @@ public class SlimDump : IService
                 OfType<object>().
                 ToArray();
 
-            GlobalLog.Instance?.Debug(messageTemplate: DumpFormat, propertyValues: values);
+
+            if (!AvailableLogs.TryGetValue(DumpFormat, out var log))
+                AvailableLogs[DumpFormat] = log = Log.Tech(DumpFormat);
+
+            Log.Post(log, values);
         }
         OnThen?.Invoke(this, interaction);
     }

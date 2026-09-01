@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
@@ -26,6 +27,10 @@ public class ProgramDefinition : IDisposable
     public ServiceBuilder? CurrentBuilder => (CurrentSeries?.ResultSink as IInstanceWrapper) as ServiceBuilder;
     public IEntryPoint? EntryPoint => CurrentBuilder;
     public void Dispose() => CurrentBuilder?.Cleanup();
+    private static readonly Log 
+        AdditionalDefinition = Log.Tech("found additional definition {name} in {file}"),
+        OutOfDefinitions = Log.Tech("in file {file}, no more defs were found after {row}:{col}"),
+        StoppedFault = Log.Fail("stopped reading definitions in file {file} at {row}:{col} due to {exception}; the syntax error is likely before.");
     public static bool TryCreate(ref CursorText cursor, out ProgramDefinition programDefinition)
     {
         programDefinition = new();
@@ -33,22 +38,18 @@ public class ProgramDefinition : IDisposable
         {
             if (programDefinition.CurrentSeries.UpdateFrom(Path.GetFileName(cursor.BareFile), ref cursor))
             {
-                GlobalLog.Instance?.Information("found additional definition {name} in {file}", programDefinition.Name,
-                    cursor.BareFile);
+                Log.Post(AdditionalDefinition, programDefinition.Name, cursor.BareFile);
                 return true;
             }
             else
             {
-                GlobalLog.Instance?.Information("in file {file}, no more defs were found after {row}:{col}",
-                    cursor.BareFile, cursor.GetCurrentLine(), cursor.GetCurrentCol());
+                Log.Post(OutOfDefinitions, cursor.BareFile, cursor.GetCurrentLine(), cursor.GetCurrentCol());
                 return false;
             }
         }
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Warning(ex,
-                "stopped reading definitions in file {file} at {row}:{col} due to an exception; the syntax error is likely before.",
-                cursor.BareFile, cursor.GetCurrentCol(), cursor.GetCurrentLine());
+            Log.Post(StoppedFault, cursor.BareFile, cursor.GetCurrentCol(), cursor.GetCurrentLine(), ex);
             return false;
         }
     }

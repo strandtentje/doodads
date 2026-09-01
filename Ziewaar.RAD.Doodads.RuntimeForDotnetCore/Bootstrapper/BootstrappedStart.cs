@@ -27,7 +27,6 @@ public class BootstrappedStart(
 
     public IDisposable Run(IInteraction? rootInteraction = null, Func<IInteraction, IInteraction>? interactionInjection = null)
     {
-        // GlobalLog.Instance?.Information("Bootstrapped start information: {info}", JsonConvert.SerializeObject(this, Formatting.Indented));
         Environment.CurrentDirectory = WorkingDirectory;
         foreach (var item in populateAssemblies)
             TypeRepository.Instance.PopulateWith(item);

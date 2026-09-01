@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using Ejije.Logging;
+using System.Globalization;
 using System.Xml.Schema;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
@@ -80,7 +81,10 @@ public class Template : IService
     public event CallForInteraction? OnException;
 
     public bool IsNeverTouchedBefore = true;
-
+    private static readonly Log
+        TemplateCacheMiss = Log.Warn("Template Cache Miss; {file}"),
+        GotTemplateText = Log.Tech("Got template text of length {l} - {df}@{li}:{co} - because fresh: {fr}"),
+        CommandCount = Log.Tech("New template has {count} commands");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<IInteraction>(out var targetInteraction,
@@ -97,7 +101,7 @@ public class Template : IService
             if (updateChecker.IsRequired)
             {
                 // OnException?.Invoke(this, new CommonInteraction(interaction, "Template Cache Miss"));
-                GlobalLog.Instance?.Warning("Template Cache Miss; {file}", templatefile);
+                Log.Post(TemplateCacheMiss, templatefile);
                 templatefile.SinkBuffer.Dispose();
                 templatefile = null;
             }
@@ -122,14 +126,14 @@ public class Template : IService
             using (var sr = templatefile.GetDisposingSinkReader())
             {
                 txt = sr.ReadToEnd();
-                GlobalLog.Instance?.Information("Got template text of length {l} - {df}@{li}:{co} - because fresh: {fr}", txt.Length, constants.DefiningFile, constants.Line, constants.Column, IsNeverTouchedBefore);
+                Log.Post(GotTemplateText, txt.Length, constants.DefiningFile, constants.Line, constants.Column, IsNeverTouchedBefore);
                 IsNeverTouchedBefore = false;
             }
             Parser.RefreshTemplateData(txt);
-            GlobalLog.Instance?.Information("New template has {count} commands", Parser.TemplateCommands.Count);
+            Log.Post(CommandCount, Parser.TemplateCommands.Count);
         } else
         {
-            //GlobalLog.Instance?.Information("Already had template with {count} commands", Parser.TemplateCommands.Count);
+            
         }
 
         if (templatefile.SinkTrueContentType?.Contains('*') == false)

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\source\repos\Ziewaar.TtLog\Ziewaar.TtLog\Ziewaar.TtLog.csproj" />
     <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
   </ItemGroup>
 

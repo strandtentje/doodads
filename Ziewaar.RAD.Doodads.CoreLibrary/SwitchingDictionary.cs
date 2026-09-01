@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using Serilog;
 namespace Ziewaar.RAD.Doodads.CoreLibrary;
 public class SwitchingDictionary(
     string[] members,
@@ -27,9 +26,4 @@ public class SwitchingDictionary(
     }
     IEnumerator IEnumerable.GetEnumerator() =>
         members.ToDictionary(x => x, valueSource).GetEnumerator();
-}
-
-public static class GlobalLog
-{
-    public static ILogger? Instance = null;
 }

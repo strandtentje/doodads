@@ -1,3 +1,4 @@
+using Ejije.Logging;
 using System.Collections;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
@@ -5,10 +6,11 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 public class SplitExactlyMemory(string[] names, Dictionary<string, object> replacements, string[] splitValues) : IReadOnlyDictionary<string, object>
 {
     public string FinalDefault => replacements.TryGetValue("", out var dc) && dc.ToString() is string dcs ? dcs : "";
-
+    private static readonly Log
+        CircularDefaults = Log.Warn("Circular defaults in SplitExactly; {names}");
     public bool TryGetValue(string key, out object value)
     {
-        var position = names.IndexOf(key);
+        var position = Array.IndexOf(names, key);
         if (position < 0)
         {
             value = string.Empty;
@@ -24,12 +26,12 @@ public class SplitExactlyMemory(string[] names, Dictionary<string, object> repla
                 {
                     if (!antiCircularSet.Add(newKeyString))
                     {
-                        GlobalLog.Instance?.Warning("Circular defaults in SplitExactly; {names}", string.Join(",", antiCircularSet));
+                        Log.Post(CircularDefaults, string.Join(",", antiCircularSet));
                         value = FinalDefault;
                         return true;
                     }
                     key = newKeyString;
-                    position = names.IndexOf(key);
+                    position = Array.IndexOf(names, key);
                 } else
                 {
                     value = FinalDefault;

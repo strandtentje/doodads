@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Ejije.Logging;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
@@ -197,6 +198,9 @@ public class ServiceConstantExpression : IParityParser
         return state;
     }
 
+    private static readonly Log Ambiguous =
+        Log.Oops("For path in wd:{wd} Name prefix detection ambiguous for {name} between {candidates}; defaulting to non-prefixed.");
+
     private ParityParsingState SetPathValue(DirectoryInfo workingDirectory, string filename)
     {
         var state = ParityParsingState.Unchanged;
@@ -214,7 +218,7 @@ public class ServiceConstantExpression : IParityParser
         if (allCandidates.Length == 1)
             filename = allCandidates[0];
         else if (allCandidates.Length != 0)
-            GlobalLog.Instance.Warning("For path in wd:{wd} Name prefix detection ambiguous for {name} between {candidates}; defaulting to non-prefixed.", workingDirectory, filename, string.Join(", ", allCandidates));
+            Log.Post(Ambiguous, workingDirectory, filename, string.Join(", ", allCandidates));
 
         PathValue = (workingDirectory.FullName, filename);
 
@@ -257,6 +261,9 @@ public class ServiceConstantExpression : IParityParser
         return state;
     }
 
+    private static readonly Log
+        Ambiguous2 = Log.Oops("For path in wd:{wd} Name prefix detection ambiguous for {name} between {candidates}; defaulting to non-prefixed.");
+
     private bool TryFindOptionallyPrefixedInDir(DirectoryInfo dir, string searchPath, out DirectoryInfo trueParent, out string trueChild)
     {
         var combined = Path.Combine(dir.FullName, searchPath);
@@ -297,7 +304,7 @@ public class ServiceConstantExpression : IParityParser
             return true;
         } else if (allCandidates.Length != 0)
         {
-            GlobalLog.Instance.Warning("For path in wd:{wd} Name prefix detection ambiguous for {name} between {candidates}; defaulting to non-prefixed.", directoryAbove, lookingForFileOrDirName, string.Join(", ", allCandidates));
+            Log.Post(Ambiguous2, directoryAbove, lookingForFileOrDirName, string.Join(", ", allCandidates));
         }
 
         trueParent = null;

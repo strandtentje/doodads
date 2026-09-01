@@ -1,4 +1,6 @@
 #nullable enable
+using Ejije.Logging;
+using System.Xml;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Delegates;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
@@ -14,18 +16,22 @@ public class ResilientCursorTextEmitter(FileInfo file)
     public FileInfo FileInfo => file;
     public long LastReadTime { get; private set; }
     public static List<string> ReloadLocked = new();
+    private static readonly Log
+        NotReloadingHasntChanged = Log.Tech("No reloading {file} again because its reloading or hasn't changed"),
+        NotReloadingLocked = Log.Tech("No reloading {file} again because it was already loaded and in the reload lock"),
+        MakingEmpty = Log.Warn("making empty file for {file}");
     private void LockCatchRetry(Action readCallback, int attemptNumber = 0, int maxAttempts = 6)
     {
         file.Refresh();
         if (!WorkingState.TryDoWorkOrWait() || LastReadTime == file.LastWriteTime.Ticks)
         {
-            GlobalLog.Instance?.Verbose("No reloading {file} again because its reloading or hasn't changed", file);
+            Log.Post(NotReloadingHasntChanged, file);
             return;
         }
 
         if (LastReadTime > 0 && ReloadLocked.Contains(file.FullName))
         {
-            GlobalLog.Instance?.Verbose("No reloading {file} again because it was already loaded and in the reload lock", file);
+            Log.Post(NotReloadingLocked, file);
             return;
         }
         try
@@ -33,7 +39,7 @@ public class ResilientCursorTextEmitter(FileInfo file)
             if (!file.Exists)
             {
                 file.Create().Close();
-                GlobalLog.Instance?.Information("making empty file for {file}", file.FullName);
+                Log.Post(MakingEmpty, file.FullName);
             }
 
             readCallback();
@@ -77,11 +83,13 @@ public class ResilientCursorTextEmitter(FileInfo file)
             GC.Collect();
         }
     }
+    private static readonly Log
+        ReloadingProgram = Log.Info("Reloading {program}");
     public void RequestLoad()
     {
         LockCatchRetry(() =>
         {
-            GlobalLog.Instance?.Information("Reloading program {filename}", file.Name);
+            Log.Post(ReloadingProgram, file.Name);
             var cursor = CursorText.Create(this.DirectoryInfo, file.Name, File.ReadAllText(file.FullName));
             CursorTextAvailable?.Invoke(this, cursor);
         });

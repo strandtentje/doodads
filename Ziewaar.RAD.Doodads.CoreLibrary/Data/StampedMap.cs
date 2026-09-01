@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Ejije.Logging;
+using System.Collections.Concurrent;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Data;
 #nullable enable
@@ -39,7 +40,8 @@ public class StampedMap
         this.BackingStore = new();
         this.BackingLog = new();
     }
-
+    private static readonly Log
+        FailedToAdd = Log.Warn("Failed to add {key} to settings map");
     public StampedMap(object primaryConstant, IReadOnlyDictionary<string, object> origin, ITextCursor? definingFile = null)
     {
         var age = GlobalStopwatch.Instance.ElapsedTicks;
@@ -54,7 +56,7 @@ public class StampedMap
             {
                 if (!(this.BackingLog.TryAdd(o.Key, age) && this.BackingStore.TryAdd(o.Key, o.Value)))
                 {
-                    GlobalLog.Instance?.Warning("failed to add {key} to settings map", o.Key);
+                    Log.Post(FailedToAdd, o.Key);
                 }
             }
         }
@@ -83,7 +85,8 @@ public class StampedMap
             }
         }
     }
-
+    private static readonly Log
+        FailedToRemove = Log.Warn("failed to remove {key} from settings map");
     public void DeleteValue(string key)
     {
         lock (LockObject)
@@ -91,7 +94,7 @@ public class StampedMap
             BackingLog[key] = GlobalStopwatch.Instance.ElapsedTicks;
             if (!BackingStore.TryRemove(key, out var _))
             {
-                GlobalLog.Instance?.Warning("failed to remove {key} from settings map", key);
+                Log.Post(FailedToRemove, key);
             }
         }
     }

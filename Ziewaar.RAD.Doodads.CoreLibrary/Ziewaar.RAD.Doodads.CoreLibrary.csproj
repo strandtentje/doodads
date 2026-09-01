@@ -8,7 +8,11 @@
 
     <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-      <PackageReference Include="Serilog" Version="4.3.1" />
+      
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\source\repos\Ziewaar.TtLog\Ziewaar.TtLog\Ziewaar.TtLog.csproj" />
     </ItemGroup>
 
     <ItemGroup>

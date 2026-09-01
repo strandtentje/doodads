@@ -1,4 +1,5 @@
 #pragma warning disable 67
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CommonComponents.Control;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
@@ -27,6 +28,8 @@ public class SinkPlug : IService
     [NeverHappens] public event CallForInteraction? OnElse;
     [EventOccasion("Likely when no original sink could be found")]
     public event CallForInteraction? OnException;
+    private static readonly Log
+        FlushAbort = Log.Tech("Not flushing due to {rn} abort");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, ContinueNameConstant).IsRereadRequired(out string? continueNameCandidate))
@@ -49,7 +52,7 @@ public class SinkPlug : IService
                 if (ri.IsRunning || ri.RepeatName == "")
                     bsi.Flush();
                 else
-                    GlobalLog.Instance?.Debug("Not flushing due to {rn} abort", ri.RepeatName);
+                    Log.Post(FlushAbort, ri.RepeatName);
             }
         });
     }

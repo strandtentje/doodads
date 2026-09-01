@@ -29,8 +29,7 @@ public class IntervalLimit : IService
         var startTime = GlobalStopwatch.Instance.ElapsedMilliseconds;
         OnThen?.Invoke(this, interaction);
         var spentTime = GlobalStopwatch.Instance.ElapsedMilliseconds - startTime;
-        var compensationTime = Math.Max(1, Math.Min(1000000, CurrentBlockTime - spentTime)) ;
-        // GlobalLog.Instance?.Information("Job was done in {spenttime}ms so wasting {compensation}ms", spentTime, compensationTime);
+        var compensationTime = Math.Max(1, Math.Min(1000000, CurrentBlockTime - spentTime)) ;        
         Thread.Sleep((int)compensationTime);
     }
 

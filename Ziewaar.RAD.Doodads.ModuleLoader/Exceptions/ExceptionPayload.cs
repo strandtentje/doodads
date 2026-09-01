@@ -1,12 +1,15 @@
 ﻿#nullable enable
+using Ejije.Logging;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 
 public class ExceptionPayload
 {
+    private static long FailCounter = 1;
     public ExceptionPayload(StampedMap? consts, Type? type, CursorText? text, IInteraction? interaction)
     {
+        this.FailIndex = Interlocked.Increment(ref FailCounter);
         this.BackingInteraction = interaction;
         PrimaryConstant = consts?.PrimaryConstant?.ToString() ?? "No Primary Constant";
         PrimaryConstantStamp = consts?.PrimaryLog ?? -1;
@@ -92,7 +95,29 @@ public class ExceptionPayload
         }
     }
 
+
+    private static readonly Log
+        AnnouncementLog = Log.Fail(
+            "Failure {index} - [{service}] indicates exceptional situation having",
+            "{directory} {file} {line} {column} {primary} with",
+            "{primarystamp} {timetstamp}"),
+        RegisterHistoryLog = Log.Tech("Reg. History {index} - [{distance}] {value}"),
+        MemoryValues = Log.Tech("Mem. Values {index} - [{key}] {value}"),
+        DiagConst = Log.Tech("Diag. Values {index} - [{key}] {value} ({timestamp})");
+
+    internal void PrintToLog()
+    {
+        Log.Post(AnnouncementLog, FailIndex, Type, Directory, File, Line, Column, PrimaryConstant, PrimaryConstantStamp, CurrentTimeStamp);
+        for (int i = 0; i < LastRegister.Length; i++)
+            Log.Post(RegisterHistoryLog, FailIndex, string.Format("{0}/{1}", i, LastRegister.Length), LastRegister[i]);
+        foreach (var item in Memory)
+            Log.Post(MemoryValues, FailIndex, item.Key, item.Value);
+        foreach (var item in Constants)
+            Log.Post(DiagConst, FailIndex, item.Key, item.Value, item.Timestamp);
+    }
+
     public readonly string[] LastRegister;
+    private long FailIndex;
     [JsonIgnore]
     private readonly IInteraction? BackingInteraction;
     public readonly string Type, Directory, File, PrimaryConstant;

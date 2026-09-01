@@ -1,4 +1,5 @@
 ﻿#pragma warning disable 67
+using Ejije.Logging;
 using System.Collections;
 using System.Data;
 
@@ -23,6 +24,8 @@ public class MultipleDelete : IService
     public event CallForInteraction? OnElse;
     [EventOccasion("When no pattern was provided.")]
     public event CallForInteraction? OnException;
+    private static readonly Log
+        FailDelete = Log.Fail("Multiple Deleting {file} caused {exception}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, DirectoryPathConst).IsRereadRequired(out object? dpc))
@@ -44,7 +47,7 @@ public class MultipleDelete : IService
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Warning(ex, "While deleting file");
+                Log.Post(FailDelete, "While deleting file", ex);
             }
         }
     }

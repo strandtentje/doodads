@@ -1,4 +1,5 @@
 #nullable enable
+using Ejije.Logging;
 using System.Collections.Concurrent;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
@@ -42,6 +43,8 @@ public sealed class ServiceProfiler
             FinishedServiceTotals.AddOrUpdate(nextService, runtime, (_, existing) => existing + runtime);
         threadStack.Push(new ProfilingScopedServiceFrame(nextService, risingTime));
     });
+    private static readonly Log
+        FrameAlreadyStopped = Log.Warn("Frame was already stopped, so runtime was not registered {serviceInfo}");
     private void PopScopeEnabled() => ForThreadInstant((fallingTime, threadStack) =>
     {
         var afterExecution = threadStack.Pop();
@@ -49,9 +52,7 @@ public sealed class ServiceProfiler
         if (afterExecution.IsRunning)
             FinishedServiceTotals.AddOrUpdate(afterExecution.Service, frameTime, (_, existing) => existing + frameTime);
         else
-            GlobalLog.Instance?.Warning(
-                "Frame was already stopped, so runtime was not registered {serviceInfo}",
-                afterExecution.Service);
+            Log.Post(FrameAlreadyStopped, afterExecution.Service);
         if (threadStack.Count > 0)
             threadStack.Peek().TryResume(fallingTime);
     });

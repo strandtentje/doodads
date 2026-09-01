@@ -1,0 +1,3 @@
+[submodule "ttlog"]
+	path = ttlog
+	url = git@github.com:strandtentje/ttlog.git

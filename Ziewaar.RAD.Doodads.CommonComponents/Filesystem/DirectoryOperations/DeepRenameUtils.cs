@@ -1,5 +1,6 @@
 ﻿#pragma warning disable 67
 using Define.Doodads.Expo.Timeline;
+using Ejije.Logging;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 
@@ -24,6 +25,9 @@ public static class DeepRenameUtils
         newName = validName;
     }
 
+    private static readonly Log
+        InnerRename = Log.Tech("Deep rename found it neccesary to change `{oldName}` into `{newName}` in the file `{file}`");
+
     public static void InspectAndReplaceInFiles(FileInfo[] suspectFiles, string oldName, string newName)
     {
         foreach (var file in suspectFiles)
@@ -34,13 +38,15 @@ public static class DeepRenameUtils
             var newText = oldText.Replace(oldName, newName);
             if (newText != oldText)
             {
-                GlobalLog.Instance?.Information(
-                    "Deep rename found it neccesary to change `{oldName}` into `{newName}` in the file `{file}`",
+                Log.Post(InnerRename,
                     oldName, newName, file.FullName);
                 File.WriteAllText(file.FullName, newText);
             }
         }
     }
+
+    private static readonly Log
+        DirRename = Log.Tech("Deep rename found it neccesary to change name of directory `{oldPath}` into `{newName}`");
 
     public static void InspectAndRenameDirectories(DirectoryInfo parent, string oldName, string newName)
     {
@@ -48,9 +54,7 @@ public static class DeepRenameUtils
         foreach (var collission in collidingDirectories)
         {
             var oldPath = collission.FullName;
-            GlobalLog.Instance?.Information(
-                "Deep rename found it neccesary to change name of directory `{oldPath}` into `{newName}`",
-                oldPath, newName);
+            Log.Post(DirRename, oldPath, newName);
             var newPath = Path.Combine(collission.Parent.FullName, newName);
             Directory.Move(oldPath, newPath);
         }
