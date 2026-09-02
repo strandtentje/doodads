@@ -1,19 +1,14 @@
-﻿using System.Data;
-using System.Reflection.Metadata;
-using Serilog;
-using Ziewaar.RAD.Doodads.CommonComponents;
+﻿using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
-using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.Cryptography;
 using Ziewaar.RAD.Doodads.Cryptography.Secrets;
 using Ziewaar.RAD.Doodads.Data.Services;
-using Ziewaar.RAD.Doodads.FormsValidation.Services;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 using Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Bootstrapper;
 using Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+using Ziewaar.TtLog.Utilities;
 using DataRow = Ziewaar.RAD.Doodads.Data.Services.DataRow;
 
 namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
@@ -23,19 +18,8 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
     {
         private static void Main(string[] args)
         {
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "doodads",
-                "logging");
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-            string logfilePath = Path.Combine(dir, $"{DateTime.Now:yyMMddHHmm}.log.txt");
-            GlobalLog.Instance = new LoggerConfiguration().WriteTo.File(
-                    logfilePath
-                ).WriteTo.Console().
-#if DEBUG
-                MinimumLevel.Debug().
-#endif
-                CreateLogger();
-            GlobalLog.Instance.Information("Logfile in: {file}", logfilePath);
+            SpecialPaths.AppName = "ziewaar-doodads";
+            Log.Start();
 
             var myDir = Path.GetDirectoryName(typeof(Program).Assembly.Location);
             FrameworkTypeAdaptorRepository.Instance.Register(DateOnlyAdaptor.Instance).Register(TimeOnlyAdaptor.Instance);

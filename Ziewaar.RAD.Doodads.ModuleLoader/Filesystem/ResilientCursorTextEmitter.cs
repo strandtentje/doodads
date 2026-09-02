@@ -17,18 +17,15 @@ public class ResilientCursorTextEmitter(FileInfo file)
     public long LastReadTime { get; private set; }
     public static List<string> ReloadLocked = new();
     private static readonly Log
-        NotReloadingHasntChanged = Log.Tech("No reloading {file} again because its reloading or hasn't changed"),
+        ReloadingHasChanged = Log.Tech("File has changed or is new {file}"),
         NotReloadingLocked = Log.Tech("No reloading {file} again because it was already loaded and in the reload lock"),
         MakingEmpty = Log.Warn("making empty file for {file}");
     private void LockCatchRetry(Action readCallback, int attemptNumber = 0, int maxAttempts = 6)
     {
         file.Refresh();
         if (!WorkingState.TryDoWorkOrWait() || LastReadTime == file.LastWriteTime.Ticks)
-        {
-            Log.Post(NotReloadingHasntChanged, file);
-            return;
-        }
-
+            return;        
+        Log.Post(ReloadingHasChanged, file);        
         if (LastReadTime > 0 && ReloadLocked.Contains(file.FullName))
         {
             Log.Post(NotReloadingLocked, file);

@@ -83,7 +83,7 @@ public class Template : IService
     public bool IsNeverTouchedBefore = true;
     private static readonly Log
         TemplateCacheMiss = Log.Warn("Template Cache Miss; {file}"),
-        GotTemplateText = Log.Tech("Got template text of length {l} - {df}@{li}:{co} - because fresh: {fr}"),
+        GotTemplateText = Log.Tech("Got template text of {length} - {file} - {because}"),
         CommandCount = Log.Tech("New template has {count} commands");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
@@ -126,7 +126,7 @@ public class Template : IService
             using (var sr = templatefile.GetDisposingSinkReader())
             {
                 txt = sr.ReadToEnd();
-                Log.Post(GotTemplateText, txt.Length, constants.DefiningFile, constants.Line, constants.Column, IsNeverTouchedBefore);
+                Log.Post(GotTemplateText, txt.Length, $"{constants.DefiningFile}@{constants.Line}:{constants.Column}", IsNeverTouchedBefore ? "new" : "stale");
                 IsNeverTouchedBefore = false;
             }
             Parser.RefreshTemplateData(txt);

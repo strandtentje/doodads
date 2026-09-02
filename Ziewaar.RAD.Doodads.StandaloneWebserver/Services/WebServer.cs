@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks.Sources;
+﻿using Ejije.Logging;
+using System.Threading.Tasks.Sources;
 
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
@@ -93,7 +94,7 @@ public class WebServer : IService, IDisposable
                 var requestInteraction = new HttpRequestInteraction(headInteraction, context);
                 var responseInteraction = new HttpResponseInteraction(requestInteraction, context);
                 OnThen?.Invoke(this, responseInteraction);
-                GlobalLog.Instance?.Debug("Replying to {method} {url} with {code}", context.Request.HttpMethod, context.Request.Url, context.Response.StatusCode);
+                Log.Post(ReplyLog, context.Request.HttpMethod, context.Request.Url, context.Response.StatusCode);
             };
             this.StartingInteraction = new CommonInteraction(
                 interaction, memory: new SwitchingDictionary(
@@ -104,16 +105,14 @@ public class WebServer : IService, IDisposable
                         "localhostnameurl" => Prefixes.ActiveExpandedPrefixes.LocalHostnameURL,
                         _ => throw new KeyNotFoundException(),
                     }));
-            startable.GiveCommand(ServerCommand.Start);
-            // GlobalLog.Instance?.Information("Server started {prefixes}",
-            // JsonConvert.SerializeObject(Prefixes.ActiveExpandedPrefixes, Formatting.Indented));
+            startable.GiveCommand(ServerCommand.Start);            
             OnStarted?.Invoke(this, StartingInteraction);
         } else if (wasReset)
         {
             OnStopping?.Invoke(this, interaction);
         }
     }
-
+    private static readonly Log ReplyLog = Log.Tech("Webserver Replying to {method} {url} with {code}");
     private IControlCommandReceiver<ServerCommand> ListenerWrapperFactory()
     {
         return new ResilientHttpListenerWrapper(prefixes: ActivePrefixStrings, threadCount: (int)this.CurrentThreadCount);

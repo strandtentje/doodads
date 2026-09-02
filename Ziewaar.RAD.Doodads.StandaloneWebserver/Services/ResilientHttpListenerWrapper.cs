@@ -1,3 +1,5 @@
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
 public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : IControlCommandReceiver<ServerCommand>
@@ -21,6 +23,14 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
                 break;
         }
     }
+    private static readonly Log
+        StartedOnPrefixes = Log.Cool("Webserver started on {prefixes}"),
+        AccessDenied = Log.Warn("Received {exception} while starting webserver; likely due to url acl violation"),
+        OtherFailure = Log.Fail("Received {exception} while starting webserver; restarting in {ms}."),
+        FixAcl = Log.Oops("Attempting to fix the acl for webserver"),
+        StartingWebserverAttempt = Log.Tech("Starting webserver {attempt}"),
+        FailedToStart = Log.Fail("Failed to start the server after 10 attempt; will stop trying.");
+
     private void StartListening()
     {
         if (CurrentState != ServerCommand.Start) throw new InvalidOperationException("Current state must be started");
@@ -30,13 +40,47 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
             CurrentControlBox = new(new(threadCount, threadCount), new());
             foreach (string prefix in prefixes)
                 CurrentControlBox.Listener.Prefixes.Add(prefix);
-            CurrentControlBox.Listener.Start();
+            bool isStarted = false;
+            for (int i = 0; i < 10; i++)
+            {
+                Log.Post(StartingWebserverAttempt, i);
+                try
+                {
+                    CurrentControlBox.Listener.Start();
+                    Log.Post(StartedOnPrefixes, string.Join(',', prefixes));
+                    isStarted = true;
+                    break;
+                }
+                catch (HttpListenerException ex)
+                {
+                    if (ex.ErrorCode == 5)
+                    {
+                        Log.Post(AccessDenied, ex);
+                        Log.Post(FixAcl);
+                        UrlAccessGuarantor.WipeUrlFile();
+                        UrlAccessGuarantor.EnsureUrlAcls(prefixes);
+                    }
+                    else
+                    {
+                        var timeout = Random.Shared.Next(1280, 2560);
+                        Log.Post(OtherFailure, timeout);
+                        Thread.Sleep(timeout);
+                    }
+                }
+            }
+            if (!isStarted)
+            {
+                Log.Post(FailedToStart);
+                return;
+            }
         }
         Task.Run(ServerLoop);
     }
+    private static readonly Log
+        StartingWebserverLoop = Log.Tech("Starting webserver loop");
     private void ServerLoop()
     {
-        GlobalLog.Instance?.Information("Starting webserver loop");
+        Log.Post(StartingWebserverLoop);
         lock (LoopLock)
         {
             while (true)
@@ -57,11 +101,19 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
             CurrentControlBox?.Slots.Dispose();
         }
     }
+    private static readonly Log
+        NoOrigin = Log.Warn("Request without originating server"),
+        GetContextFail = Log.Fail("Failed to get http context due to {exception}"),
+        GetContextStop = Log.Tech("Http context not gotten because the server was stopped."),
+        RejectUnstarted = Log.Oops("Webserver not started; rejecting request"),
+        RejectWrongInstance = Log.Oops("Wrong http listener instance; rejecting request"),
+        KillStrangeFail = Log.Warn("The unexpected HTTP server that sent us a request, could not be killed. due to {exception}"),
+        ResponseCloseFail = Log.Oops("Http Response couldnt be closed; it probably was already dead.");
     private void RequestContextOpened(IAsyncResult ar)
     {
         if (ar.AsyncState is not ControlBox sourceControlBox)
         {
-            GlobalLog.Instance?.Warning("Request without originating server.");
+            Log.Post(NoOrigin);
             return;
         }
 
@@ -74,15 +126,15 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
         catch (Exception ex)
         {
             if (CurrentState == ServerCommand.Start)
-                GlobalLog.Instance?.Error(ex, "When trying to get the http context");
+                Log.Post(GetContextFail, ex);
             else
-                GlobalLog.Instance?.Information("Stopped waiting for context due to server stop.");
+                Log.Post(GetContextStop);
             return;
         }
 
         if (CurrentState != ServerCommand.Start)
         {
-            GlobalLog.Instance?.Warning("Rejecting request while server not started");
+            Log.Post(RejectUnstarted);
             context.Response.StatusCode = 500;
             context.Response.Close();
             return;
@@ -90,7 +142,7 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
 
         if (sourceControlBox != CurrentControlBox)
         {
-            GlobalLog.Instance?.Warning("Rejecting request from wrong listener instance");
+            Log.Post(RejectWrongInstance);
             context.Response.StatusCode = 500;
             context.Response.Close();
             try
@@ -99,7 +151,7 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Error(ex, "Attempted to kill server behind strange request but failed.");
+                Log.Post(KillStrangeFail);
             }
 
             return;
@@ -121,32 +173,39 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
             }
             catch (Exception ex)
             {
-                GlobalLog.Instance?.Error(ex, "Couldn't Close Response");
+                Log.Post(ResponseCloseFail);
             }
         }
     }
+    private static readonly Log
+        StopWaitControl = Log.Tech("Stopping webserver; waiting for control lock"),
+        StopDoneControl = Log.Tech("Stopping webserver; control lock ours"),
+        StopWaitLoop = Log.Tech("Stopping webserver; waiting for loop stop"),
+        StopDoneLoop = Log.Tech("Stopping webserver; loop stopped"),
+        StopWaitControlAgain = Log.Tech("Stopping webserver; waiting for control lock again"),
+        StopDoneControlEmpty = Log.Tech("Stopping webserver; control empied, webserver should be down.");
     private void StopListening()
     {
         if (CurrentState == ServerCommand.Start)
             throw new InvalidOperationException("Can't stop when state is set to started.");
 
-        GlobalLog.Instance?.Information("Stopping webserver; waiting for control to become available.");
+        Log.Post(StopWaitControl);
         lock (ControlLock)
         {
             if (CurrentControlBox == null) throw new InvalidOperationException();
-            GlobalLog.Instance?.Information("Stopping webserver; control available.");
+            Log.Post(StopDoneControl);
         }
 
-        GlobalLog.Instance?.Information("Stopping webserver; waiting for loop to exit.");
+        Log.Post(StopWaitLoop);
         lock (LoopLock)
         {
-            GlobalLog.Instance?.Information("Stopping webserver; loop ended.");
+            Log.Post(StopDoneLoop);
         }
 
-        GlobalLog.Instance?.Information("Stopping webserver; waiting for control to become available again");
+        Log.Post(StopWaitControlAgain);
         lock (ControlLock)
         {
-            GlobalLog.Instance?.Information("Stopping webserver; control emptied.");
+            Log.Post(StopDoneControlEmpty);
             CurrentControlBox = null;
         }
     }

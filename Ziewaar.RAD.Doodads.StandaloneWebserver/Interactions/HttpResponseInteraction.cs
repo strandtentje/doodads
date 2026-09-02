@@ -1,3 +1,5 @@
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpResponseInteraction(
     IInteraction parent,
@@ -15,14 +17,16 @@ public class HttpResponseInteraction(
     public long LastSinkChangeTimestamp { get; set; } = GlobalStopwatch.Instance.ElapsedTicks;
     public string Delimiter { get; } = "";
     public void SetContentLength64(long contentLength) => context.Response.ContentLength64 = contentLength;
-
+    private static readonly Log
+        RedirectIn = Log.Tech("Setting redirect {code} to {url}..."),
+        RedirectOut = Log.Tech("Done setting redirect code and Location: {code} - {location}");
     public void RedirectTo(string url, bool preservePost = false)
     {
         var desiredCode = preservePost ? (int)HttpStatusCode.TemporaryRedirect : (int)HttpStatusCode.SeeOther;
-        GlobalLog.Instance?.Debug("Setting redirect code {code} to url {url}...", desiredCode, url);
+        Log.Post(RedirectIn, desiredCode, url);
         context.Response.StatusCode = desiredCode;
         context.Response.RedirectLocation = url;
-        GlobalLog.Instance?.Debug("Code and Location: {code} - {location}", context.Response.StatusCode, context.Response.RedirectLocation);
+        Log.Post(RedirectOut, context.Response.StatusCode, context.Response.RedirectLocation);
     }
     public int StatusCode
     {

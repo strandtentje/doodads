@@ -1,15 +1,28 @@
-﻿namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
+﻿using Ejije.Logging;
+
+namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 
 public class UrlAccessGuarantor
 {
-    public static void EnsureUrlAcls(IEnumerable<string> prefixes)
+    private static readonly Log
+        PrefixFileLog = Log.Tech("Using {prefixfile} for keeping track of registered http prefixes");
+
+    public static string GetUrlFile()
     {
-        if (!OperatingSystem.IsWindows()) return;
-        
         var prefixdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "doodads-prefixes");
         if (!Directory.Exists(prefixdir)) Directory.CreateDirectory(prefixdir);
         var prefixfile = Path.Combine(prefixdir, "prefixes.txt");
-        GlobalLog.Instance?.Information($"using {prefixfile} for keeping track of registered prefixes");
+        return prefixfile;
+    }
+    public static void WipeUrlFile()
+    {
+        File.Delete(GetUrlFile());
+    }
+    public static void EnsureUrlAcls(IEnumerable<string> prefixes)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var prefixfile = GetUrlFile();
+        Log.Post(PrefixFileLog, prefixfile);
         if (!File.Exists(prefixfile)) File.WriteAllText(prefixfile, "");
         var prefixLines = File.ReadAllLines(prefixfile).Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
@@ -23,7 +36,6 @@ public class UrlAccessGuarantor
             }
         }
     }
-
     private static void AddUrlAcl(string prefix)
     {
         if (!OperatingSystem.IsWindows()) return;
@@ -42,22 +54,40 @@ public class UrlAccessGuarantor
             WindowStyle = ProcessWindowStyle.Normal,
         };
 
+        Log.Post(NetShDump, arguments);
+
         try
         {
             using (var p = Process.Start(psi))
             {
                 if (p != null)
+                {
                     p.WaitForExit();
+                    if (p.ExitCode == 0)
+                    {
+                        Log.Post(NetShExit0, arguments, prefix);
+                    } else
+                    {
+                        Log.Post(NetShExitNot0, arguments, prefix);
+                    }
+                }
                 else
-                    GlobalLog.Instance?.Error("URL ACL didn't start");
+                {
+                    Log.Post(NetShDidntStart, arguments);
+                }
             }
         }
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Error("Failed to add URL ACL for {Prefix}: {ExMessage}", prefix, ex.Message);
+            Log.Post(NetShException, ex, arguments, prefix);
         }
     }
-
+    private static readonly Log
+        NetShDump = Log.Tech("Running netsh {args}"),
+        NetShDidntStart = Log.Fail("Failed to run netsh {args}"),
+        NetShException = Log.Fail("Got {exception} while trying to start netsh {args} for {prefix}"),
+        NetShExit0 = Log.Cool("Netsh {args} ran successfully for {prefix}"),
+        NetShExitNot0 = Log.Fail("Netsh {args} got {exitcode} for {prefix}");
     private static void RemoveUrlAcl(string prefix)
     {
         if (!OperatingSystem.IsWindows()) return;
@@ -72,19 +102,33 @@ public class UrlAccessGuarantor
             WindowStyle = ProcessWindowStyle.Normal,
         };
 
+        Log.Post(NetShDump, arguments);
+
         try
         {
             using (var p = Process.Start(psi))
             {
                 if (p != null)
+                {
                     p.WaitForExit();
+                    if (p.ExitCode == 0)
+                    {
+                        Log.Post(NetShExit0, arguments, prefix);
+                    }
+                    else
+                    {
+                        Log.Post(NetShExitNot0, arguments, prefix);
+                    }
+                }
                 else
-                    GlobalLog.Instance?.Error("URL ACL didn't start");
+                {
+                    Log.Post(NetShDidntStart, arguments);
+                }
             }
         }
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Error("Failed to remove URL ACL for {Prefix}: {ExMessage}", prefix, ex.Message);
+            Log.Post(NetShException, ex, arguments, prefix);
         }
     }
 }

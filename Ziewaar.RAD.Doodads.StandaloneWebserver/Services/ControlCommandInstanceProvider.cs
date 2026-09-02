@@ -1,3 +1,5 @@
+using Ejije.Logging;
+
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 #pragma warning disable 67
 public class ControlCommandInstanceProvider<TCommandEnum>
@@ -27,7 +29,8 @@ public class ControlCommandInstanceProvider<TCommandEnum>
         result = (TResult?)CurrentInstance;
         return result != null;
     }
-
+    private static readonly Log
+        DisposeFail = Log.Warn("Webserver Failed to Dispose due to {exception}");
     public void Reset()
     {
         try
@@ -36,7 +39,7 @@ public class ControlCommandInstanceProvider<TCommandEnum>
         }
         catch (Exception ex)
         {
-            GlobalLog.Instance?.Error(ex, "Failed to reset {type}", CurrentInstance?.GetType().Name ?? "null");
+            Log.Post(DisposeFail, ex);
         }
         finally
         {

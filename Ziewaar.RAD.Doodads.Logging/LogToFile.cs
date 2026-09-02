@@ -1,8 +1,5 @@
 ﻿#nullable enable
 #pragma warning disable 67
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 using System;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;

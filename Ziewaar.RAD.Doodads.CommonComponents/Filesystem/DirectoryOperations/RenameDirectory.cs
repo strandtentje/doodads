@@ -1,5 +1,4 @@
 ﻿#pragma warning disable 67
-using Serilog.Core;
 using System.Runtime.CompilerServices;
 using Ziewaar.RAD.Doodads.CommonComponents.Generate;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTests;
