@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\source\repos\Ziewaar.TtLog\Ziewaar.TtLog\Ziewaar.TtLog.csproj" />
+      <ProjectReference Include="..\ttlog\Ziewaar.TtLog\Ziewaar.TtLog.csproj" />
     </ItemGroup>
 
     <ItemGroup>
