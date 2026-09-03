@@ -25,7 +25,7 @@ public class ResilientCursorTextEmitter(FileInfo file)
         file.Refresh();
         if (!WorkingState.TryDoWorkOrWait() || LastReadTime == file.LastWriteTime.Ticks)
             return;        
-        Log.Post(ReloadingHasChanged, file);        
+        // Log.Post(ReloadingHasChanged, file);        
         if (LastReadTime > 0 && ReloadLocked.Contains(file.FullName))
         {
             Log.Post(NotReloadingLocked, file);

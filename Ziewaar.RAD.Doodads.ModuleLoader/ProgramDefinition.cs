@@ -28,8 +28,6 @@ public class ProgramDefinition : IDisposable
     public IEntryPoint? EntryPoint => CurrentBuilder;
     public void Dispose() => CurrentBuilder?.Cleanup();
     private static readonly Log 
-        AdditionalDefinition = Log.Tech("found additional definition {name} in {file}"),
-        OutOfDefinitions = Log.Tech("in file {file}, no more defs were found after {row}:{col}"),
         StoppedFault = Log.Fail("stopped reading definitions in file {file} at {row}:{col} due to {exception}; the syntax error is likely before.");
     public static bool TryCreate(ref CursorText cursor, out ProgramDefinition programDefinition)
     {
@@ -37,13 +35,11 @@ public class ProgramDefinition : IDisposable
         try
         {
             if (programDefinition.CurrentSeries.UpdateFrom(Path.GetFileName(cursor.BareFile), ref cursor))
-            {
-                Log.Post(AdditionalDefinition, programDefinition.Name, cursor.BareFile);
+            {                
                 return true;
             }
             else
             {
-                Log.Post(OutOfDefinitions, cursor.BareFile, cursor.GetCurrentLine(), cursor.GetCurrentCol());
                 return false;
             }
         }

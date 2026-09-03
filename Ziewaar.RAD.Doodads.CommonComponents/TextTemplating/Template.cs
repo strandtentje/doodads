@@ -83,8 +83,7 @@ public class Template : IService
     public bool IsNeverTouchedBefore = true;
     private static readonly Log
         TemplateCacheMiss = Log.Warn("Template Cache Miss; {file}"),
-        GotTemplateText = Log.Tech("Got template text of {length} - {file} - {because}"),
-        CommandCount = Log.Tech("New template has {count} commands");
+        GotTemplateText = Log.Tech("{template} of {length} loaded {reason} with {commands}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<IInteraction>(out var targetInteraction,
@@ -125,16 +124,13 @@ public class Template : IService
             string txt = "";
             using (var sr = templatefile.GetDisposingSinkReader())
             {
-                txt = sr.ReadToEnd();
-                Log.Post(GotTemplateText, txt.Length, $"{constants.DefiningFile}@{constants.Line}:{constants.Column}", IsNeverTouchedBefore ? "new" : "stale");
-                IsNeverTouchedBefore = false;
+                txt = sr.ReadToEnd();        
             }
             Parser.RefreshTemplateData(txt);
-            Log.Post(CommandCount, Parser.TemplateCommands.Count);
-        } else
-        {
-            
-        }
+            Log.Post(GotTemplateText, $"{constants.DefiningFile}@{constants.Line}:{constants.Column}", txt.Length,
+                IsNeverTouchedBefore ? "new" : "stale", Parser.TemplateCommands.Count);
+            IsNeverTouchedBefore = false;
+        } 
 
         if (templatefile.SinkTrueContentType?.Contains('*') == false)
             output.SinkTrueContentType ??= templatefile.SinkTrueContentType;

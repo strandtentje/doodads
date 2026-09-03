@@ -38,7 +38,7 @@ public class ExceptionPayload
 
             while (workingInteraction != null && history.Count < 7)
             {
-                if (workingInteraction.GetType().Name != (lastInteractionType ?? "") || 
+                if (workingInteraction.GetType().Name != (lastInteractionType ?? "") ||
                     (workingInteraction.Register.ToString() ?? "") != (lastRegister ?? ""))
                 {
                     lastInteractionType = workingInteraction.GetType().Name;
@@ -97,23 +97,31 @@ public class ExceptionPayload
 
 
     private static readonly Log
-        AnnouncementLog = Log.Fail(
-            "Failure {index} - [{service}] indicates exceptional situation having",
-            "{directory} {file} {line} {column} {primary} with",
-            "{primarystamp} {timetstamp}"),
-        RegisterHistoryLog = Log.Tech("Reg. History {index} - [{distance}] {value}"),
-        MemoryValues = Log.Tech("Mem. Values {index} - [{key}] {value}"),
-        DiagConst = Log.Tech("Diag. Values {index} - [{key}] {value} ({timestamp})");
+        AnnouncementLog = Log.Fail("{failID} {service} says {fault} {in}"),
+        ChangeDates = Log.Tech("{failID} {primarystamp} {timestamp}"),
+        RegisterHistoryLog = Log.Tech("{failID} {registerproximity} {value}"),
+        MemoryValues = Log.Tech("{failID} {memoryname} {value}"),
+        DiagConst = Log.Tech("{failID} {diagnostickey} {value} ({timestamp})");
+
+    private static readonly object SingleErrorPrintLock = new object();
 
     internal void PrintToLog()
     {
-        Log.Post(AnnouncementLog, FailIndex, Type, Directory, File, Line, Column, PrimaryConstant, PrimaryConstantStamp, CurrentTimeStamp);
-        for (int i = 0; i < LastRegister.Length; i++)
-            Log.Post(RegisterHistoryLog, FailIndex, string.Format("{0}/{1}", i, LastRegister.Length), LastRegister[i]);
-        foreach (var item in Memory)
-            Log.Post(MemoryValues, FailIndex, item.Key, item.Value);
-        foreach (var item in Constants)
-            Log.Post(DiagConst, FailIndex, item.Key, item.Value, item.Timestamp);
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            lock (SingleErrorPrintLock)
+            {
+                Log.Post(AnnouncementLog, FailIndex, $"{Type}({PrimaryConstant})", 
+                    LastRegister.ElementAtOrDefault(0), $"{Path.Combine(Directory, File)}@{Line}:{Column}");
+                Log.Post(ChangeDates, FailIndex, PrimaryConstantStamp, CurrentTimeStamp);
+                for (int i = 1; i < LastRegister.Length; i++)
+                    Log.Post(RegisterHistoryLog, FailIndex, string.Format("{0}/{1}", i, LastRegister.Length), LastRegister[i]);
+                foreach (var item in Memory)
+                    Log.Post(MemoryValues, FailIndex, item.Key, item.Value);
+                foreach (var item in Constants)
+                    Log.Post(DiagConst, FailIndex, item.Key, item.Value, item.Timestamp);
+            }
+        }, null);
     }
 
     public readonly string[] LastRegister;

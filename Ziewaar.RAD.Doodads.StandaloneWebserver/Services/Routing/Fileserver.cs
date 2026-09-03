@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 
@@ -39,14 +40,9 @@ public class Fileserver : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, DirectoryToServeConst).IsRereadRequired(out FileInWorkingDirectory? candidate) && candidate is FileInWorkingDirectory workingFile)
-        {
-            this.DirectoryToServe = workingFile.ToString();
-        }
-        else if ((constants, DirectoryToServeConst).IsRereadRequired(out string? newDirectory) && !string.IsNullOrWhiteSpace(newDirectory))
-        {
-            this.DirectoryToServe = newDirectory;
-        }
+        if (constants.PrimaryConstant is { } workingDirCandidate && workingDirCandidate.IsntJustAnObject())
+            this.DirectoryToServe = workingDirCandidate.ToString();
+
         if ((constants, DefaultIndexFilesConst).IsRereadRequired(out object? indexCandidates) && indexCandidates != null)
         {
             if (indexCandidates is string singleCandidate)
@@ -64,7 +60,7 @@ public class Fileserver : IService
 
         if (string.IsNullOrWhiteSpace(this.DirectoryToServe))
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "No newDirectory specified for fileserver."));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "No working directory specified for fileserver."));
             return;
         }
         if (!interaction.TryGetClosest<RelativeRouteInteraction>(out var routeEval) ||

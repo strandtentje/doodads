@@ -7,6 +7,7 @@ using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
 
 #pragma warning disable CS0162 // Unreachable code detected
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
+
 public class ProgramFileLoader : IDisposable
 {
     public IInteraction? AutoStartOnReloadParams;
@@ -26,7 +27,8 @@ public class ProgramFileLoader : IDisposable
             try
             {
                 definition.Dispose();
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Log.Post(DisposeFail, definition.Name, ex);
             }
@@ -34,6 +36,8 @@ public class ProgramFileLoader : IDisposable
         Definitions.Clear();
         GC.Collect();
     }
+    private static readonly Log
+        FoundDefinitions = Log.Tech("Found {definitions} in {file}");
     private void Emitter_HandleNewCursorText(object sender, CursorText text)
     {
         CleanDefinitions();
@@ -49,7 +53,7 @@ public class ProgramFileLoader : IDisposable
                     ignoreCase: true, out var snp)
                     ? snp
                     : ShorthandNamePolicy.Rejected);
-        
+
         while (seenTerminator && ProgramDefinition.TryCreate(ref text, out ProgramDefinition newDefinition))
         {
             Definitions!.Add(newDefinition);
@@ -61,7 +65,12 @@ public class ProgramFileLoader : IDisposable
                 seenTerminator |= terminator.IsValid;
             } while (terminator.IsValid);
         }
-       
+
+        Log.Post(FoundDefinitions, 
+            string.Join(", ", 
+            Definitions.Select(x => string.IsNullOrWhiteSpace(x.Name) ? "(unnamed)" : x.Name).ToArray()), 
+            text.BareFile);
+
         text = text.SkipWhile(char.IsWhiteSpace);
         if (text.Position != text.Text.Length)
             throw new SyntaxException(text, "parsing stopped unexpectedly");
