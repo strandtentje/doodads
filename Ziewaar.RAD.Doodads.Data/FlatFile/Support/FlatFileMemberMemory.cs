@@ -16,8 +16,8 @@ public class FlatFileMemberMemory(IReadOnlyDictionary<string, object> defaults, 
     public bool TryGetValue(string key, out object value)
     {
         value = "";
-        if (!defaults.ContainsKey(key)) return false;
-        value = assigns.TryGetValue(key, out var cand) ? cand : "";
+        if (!defaults.TryGetValue(key, out var dflt)) return false;
+        value = assigns.TryGetValue(key, out var cand) ? cand : dflt;
         return true;
     }
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

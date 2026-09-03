@@ -8,7 +8,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
              """)]
 public class RenameFile : IService
 {
-    public static event EventHandler<(string oldPath, string newPath)>? FileMoved;
+    public static event EventHandler<(string oldPath, long oldLength, string newPath, long newLength)>? FileMoved;
     [NamedSetting("allowmove", """
                                Set this to true to allow the rename to imply a move to a different location
                                """)]
@@ -96,8 +96,10 @@ public class RenameFile : IService
             fullNewPath = Path.Combine(parentDirectory.FullName, newProposedName);
         }
 
-        File.Move(info.FullName, fullNewPath);
-        FileMoved?.Invoke(this, (info.FullName, fullNewPath));
+        var oldPath = info.FullName;
+        var oldLength = info.Length;
+        File.Move(oldPath, fullNewPath);
+        FileMoved?.Invoke(this, (oldPath, oldLength, fullNewPath, (new FileInfo(fullNewPath)).Length));
 
         OnThen?.Invoke(this, new CommonInteraction(interaction, fullNewPath));
     }

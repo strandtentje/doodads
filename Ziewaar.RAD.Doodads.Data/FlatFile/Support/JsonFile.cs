@@ -23,15 +23,16 @@ public class JsonFile
     {
         lock (ReloadLock)
         {
-            if (LastReadTime == CurrentVersionTime && BackingStore != null)
-                return BackingStore;
-            LastReadTime = CurrentVersionTime;
-            lock (AccessLock)
+            if (LastReadTime != CurrentVersionTime || BackingStore == null)
             {
-                if (!File.Exists(BackingFile))
-                    File.WriteAllText(BackingFile, "{}");
-                BackingStore = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(File.ReadAllText(BackingFile));
-                BackingStore ??= new Dictionary<string, Dictionary<string, object>>();
+                LastReadTime = CurrentVersionTime;
+                lock (AccessLock)
+                {
+                    if (!File.Exists(BackingFile))
+                        File.WriteAllText(BackingFile, "{}");
+                    BackingStore = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, object>>>(File.ReadAllText(BackingFile));
+                    BackingStore ??= new Dictionary<string, Dictionary<string, object>>();
+                }
             }
             if (modifyingCallback != null)
             {

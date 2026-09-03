@@ -3,6 +3,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.Data.FlatFile.Support;
 
 namespace Ziewaar.RAD.Doodads.Data.FlatFile;
@@ -16,6 +17,7 @@ namespace Ziewaar.RAD.Doodads.Data.FlatFile;
     """)]
 public class FlatFileSet : BasicService
 {
+    public override event CallForInteraction? OnThen;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetCustom<JsonFile>(out var flatFile) || flatFile == null)
@@ -24,5 +26,6 @@ public class FlatFileSet : BasicService
             throw new BasicException("flat file key expected");
         var imd = new InteractionMirroringDictionary(interaction);
         flatFile.Set(flatFileKey, new FlatFileMemberMemory(constants.NamedItems, imd));
+        OnThen?.Invoke(this, interaction);
     }
 }

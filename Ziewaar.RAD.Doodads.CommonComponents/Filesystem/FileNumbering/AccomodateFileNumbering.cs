@@ -21,7 +21,7 @@ public class AccomodateFileNumbering : BasicService
         Name of memory place where the path to move down one place is. (number+1)
         """)]
     private readonly UpdatingKeyValue DownMemoryName = new UpdatingKeyValue("down");
-    public static event EventHandler<(string oldPath, string newPath)>? FileMoved;
+    public static event EventHandler<(string oldPath, long oldLength, string newPath, long newLength)>? FileMoved;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
         var workingDirectory = interaction.Register.ToString();
@@ -60,14 +60,21 @@ public class AccomodateFileNumbering : BasicService
             new RenumberingFileList(reorderFile, direction), (acc, fi) => acc.Append(fi), x => x.Build()).ToArray();
         var renumberedFiles = allFilesNumbered.Where(x => x.IsRenameNeeded).ToArray();
 
+        SortedList<string, long> oldLengths = new();
+
         foreach (var files in renumberedFiles)
+        {
+            oldLengths[files.OldPath] = files.InfoBeforeRename.Length;
             File.Move(files.OldPath, files.IntermediatePath);
+        }
         foreach (var files in renumberedFiles)
+        {
             File.Move(files.IntermediatePath, files.FinalPath);
+        }
 
         foreach (var item in renumberedFiles)
         {
-            FileMoved?.Invoke(this, (item.OldPath, item.FinalPath));
+            FileMoved?.Invoke(this, (item.OldPath, oldLengths[item.OldPath], item.FinalPath, (new FileInfo(item.FinalPath)).Length));
         }
     }
 
