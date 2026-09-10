@@ -27,7 +27,7 @@ namespace Define.Doodads.Expo.Timeline
             ForNullOrEmpty(value, message, out value);
         }
 
-        public static void ForConstraint(string text, int min, int max, string message, out int value)
+        public static void ForConstraint(string? text, int min, int max, string message, out int value)
         {
             ForNullOrEmpty(text, message, out var _);
             if (!int.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out value))
