@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 public struct TemplateCommand
 {
@@ -14,7 +16,7 @@ public struct TemplateCommand
         }
         else if (overrideText != null)
         {
-            return Convert.ToString(overrideText);
+            return Convert.ToString(overrideText, CultureInfo.InvariantCulture);
         }
         else
         {

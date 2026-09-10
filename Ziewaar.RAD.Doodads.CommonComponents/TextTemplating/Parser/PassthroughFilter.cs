@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 public class PassthroughFilter : ITemplateFilter
@@ -16,5 +18,5 @@ public class PassthroughFilter : ITemplateFilter
         return true;
     }
 
-    public string Render(object value) => Convert.ToString(value);
+    public string Render(object value) => Convert.ToString(value, CultureInfo.InvariantCulture);
 }

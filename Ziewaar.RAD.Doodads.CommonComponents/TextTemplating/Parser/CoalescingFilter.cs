@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 
 public class CoalescingFilter : ITemplateFilter
@@ -31,7 +33,7 @@ public class CoalescingFilter : ITemplateFilter
 
     public string Render(object value)
     {
-        var converted = Convert.ToString(value);
+        var converted = Convert.ToString(value, CultureInfo.InvariantCulture);
         return string.IsNullOrWhiteSpace(converted) ? Alternative : converted;
     }
 }
