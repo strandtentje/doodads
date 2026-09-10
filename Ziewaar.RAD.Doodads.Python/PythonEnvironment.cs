@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
+﻿using Ejije.Logging;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 
 namespace Ziewaar.RAD.Doodads.Python;
 
@@ -43,6 +44,13 @@ public class PythonEnvironment : IService, IDisposable
                    """)]
     public event CallForInteraction? OnException;
 
+    private static readonly Log 
+        NoPython = Log.Oops("No python environment or environment expired; disposing and rebuilding..."),
+        RebuiltPython = Log.Tech("Rebuilt Python Environment"),
+        AcquiredEnvironment = Log.Cool("Acquired python {version} environment"),
+        PythonWorkingDetermined = Log.Tech("Python wording dir {wd}"),
+        PythonPathFound = Log.Tech("Python {PATH}");
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if ((constants, WorkingDirectoryConstant).IsRereadRequired(out object? workingDirectoryCandidate))
@@ -68,12 +76,11 @@ public class PythonEnvironment : IService, IDisposable
             if (this.CurrentEnvironmentGuid != Guid.Empty)
                 Environments.Return(this.CurrentEnvironmentParameters, this.CurrentEnvironmentGuid);
             this.CurrentEnvironmentParameters = this.NewEnvironmentParameters;
-            GlobalLog.Instance?.Information(
-                "No python environment or environment expired; disposing and rebuilding...");
+            Log.Post(NoPython);
             (this.CurrentEnvironmentGuid, this.CurrentEnvironment) =
                 Environments.Take(this.CurrentEnvironmentParameters,
                     CurrentlyOffline ? OfflineEnvironmentFactory : EnvironmentFactory);
-            GlobalLog.Instance?.Information("Rebuilt.");
+            Log.Post(RebuiltPython);
         }
 
         if (this.CurrentEnvironment == null)
@@ -83,14 +90,14 @@ public class PythonEnvironment : IService, IDisposable
         }
 
         IPythonEnvironment environment = this.CurrentEnvironment.GetRequiredService<IPythonEnvironment>();
-        GlobalLog.Instance?.Information("Acquired python {version} environment", environment.Version);
+        Log.Post(AcquiredEnvironment, environment.Version);
 
         // Current working dir and module search paths
         var paths = environment.ExecuteExpression("(__import__('os').getcwd(), list(__import__('sys').path))");
         var arr = paths.AsEnumerable<PyObject>().ToArray();
-        GlobalLog.Instance?.Information("Python wording dir {wd}", arr[0].As<string>());
+        Log.Post(PythonWorkingDetermined, arr[0].As<string>());
         foreach (var p in arr[1].AsEnumerable<PyObject>())
-            GlobalLog.Instance?.Information("Python PATH: " + p.As<string>());
+            Log.Post(PythonPathFound, p.As<string>());
 
         OnThen?.Invoke(this, new PythonEnvironmentInteraction(
             interaction, environment));
