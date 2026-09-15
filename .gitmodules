@@ -1,3 +1,6 @@
 [submodule "ttlog"]
 	path = ttlog
 	url = git@github.com:strandtentje/ttlog.git
+[submodule "libmpv2netstd"]
+	path = libmpv2netstd
+	url = git@github.com:strandtentje/libmpv2netstd.git

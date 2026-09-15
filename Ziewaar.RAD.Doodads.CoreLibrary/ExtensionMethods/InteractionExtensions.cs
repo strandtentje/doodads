@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
@@ -16,6 +17,28 @@ public static class InteractionExtensions
         else
             return new ResurfacedSinkingInteraction(canonicalInteraction,
                 sinkingInteraction);
+    }
+
+    private static bool IsntJustAnObject(
+        this object? obj)
+    {
+        if (obj == null) return false;
+        if (obj.GetType().IsAssignableFrom(typeof(object))) return false;
+        return true;
+    }
+
+    public static string ReplaceWhenMemory(
+        this IInteraction interaction,
+        string literal)
+    {
+        if (literal.StartsWith("{{") && literal.EndsWith("}}"))
+            return literal.TrimStart('{').TrimEnd('}');
+        else if (literal.StartsWith("{") && literal.EndsWith("}") &&
+                 interaction.TryFindVariable(literal.TrimStart('{').TrimEnd('}'), out object? v) &&
+                 v.IsntJustAnObject() && v != null && Convert.ToString(v, CultureInfo.InvariantCulture) is { } nonNullV)
+            return nonNullV;
+        else
+            return literal;
     }
 
     public static IEnumerable<TInteraction> FindInStack<TInteraction>(
@@ -89,8 +112,9 @@ public static class InteractionExtensions
         Action<RepeatInteraction> run)
     {
         using CancellationTokenSource cts = new();
-        var cancellers = offset.interaction.GetAllOf<CancellationInteraction>(
-            x => string.IsNullOrWhiteSpace(x.Name) || x.Name == offset.name);
+        var cancellers =
+            offset.interaction.GetAllOf<CancellationInteraction>(x =>
+                string.IsNullOrWhiteSpace(x.Name) || x.Name == offset.name);
         void Cancelled(object? o, EventArgs e) => cts.Cancel();
         foreach (var canceller in cancellers)
             canceller.Cancelled += Cancelled;
@@ -106,8 +130,11 @@ public static class InteractionExtensions
         }
     }
 
-    public static bool IsCancelled(this IInteraction interaction) => ((RepeatInteraction)interaction).CancellationToken.IsCancellationRequested;
-    public static CancellationToken GetCancellationToken(this IInteraction interaction) => ((RepeatInteraction)interaction).CancellationToken;
+    public static bool IsCancelled(this IInteraction interaction) =>
+        ((RepeatInteraction)interaction).CancellationToken.IsCancellationRequested;
+
+    public static CancellationToken GetCancellationToken(this IInteraction interaction) =>
+        ((RepeatInteraction)interaction).CancellationToken;
 #nullable enable
     public static bool TryFindVariable<TType>(
         this IInteraction interaction,
@@ -162,6 +189,7 @@ public static class InteractionExtensions
         invoke?.Invoke(offset.service, sinker);
         sunkText = sinker.ReadAllText();
     }
+
     public static void SinkEnum<TEnum>(
         this (IService service, IInteraction interaction) offset,
         CallForInteraction? invoke,
@@ -174,5 +202,4 @@ public static class InteractionExtensions
         if (!Enum.TryParse<TEnum>(sunkText, out result))
             result = fallbackValue;
     }
-
 }
