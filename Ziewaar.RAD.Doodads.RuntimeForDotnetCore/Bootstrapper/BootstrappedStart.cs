@@ -24,12 +24,14 @@ public class BootstrappedStart(
     public IReadOnlyList<string> LoadFiles => loadFiles;
     public string StartFile => startFile;
     public IReadOnlyDictionary<string, object> RootInteractionMemory => rootInteractionMemory;
-
-    public IDisposable Run(IInteraction? rootInteraction = null, Func<IInteraction, IInteraction>? interactionInjection = null)
+    private static readonly object RepoLock = new();
+    public IDisposable Run(IInteraction? rootInteraction = null,
+        Func<IInteraction, IInteraction>? interactionInjection = null)
     {
         Environment.CurrentDirectory = WorkingDirectory;
-        foreach (var item in populateAssemblies)
-            TypeRepository.Instance.PopulateWith(item);
+        lock (RepoLock)
+            foreach (var item in populateAssemblies)
+                TypeRepository.Instance.PopulateWith(item);
         rootInteraction ??= new RootInteraction("", rootInteractionMemory);
         if (interactionInjection != null)
             rootInteraction = interactionInjection(rootInteraction);
@@ -54,6 +56,7 @@ public class BootstrappedStart(
         {
             FileWatcherFactory.Instance.Dispose();
         }
+
         return multipleDisposables;
     }
 }

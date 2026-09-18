@@ -19,12 +19,17 @@ public class RelativeRouteDictionary(SortedList<string, object> routeVars, strin
 {
     private const string
         CURRENT_LOCATION = "currentlocation",
-        URL_PEEK_PREFIX = "urlpeek";
+        URL_PEEK_PREFIX = "urlpeek",
+        REMAINDER = "urlremainder";
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value)
     {
         if (StringComparer.OrdinalIgnoreCase.Equals(key, CURRENT_LOCATION))
         {
             value = current;
+            return true;
+        } else if (key.StartsWith(REMAINDER))
+        {
+            value = string.Join('/', remaining.Select(HttpUtility.UrlDecode));
             return true;
         }
         else if (key.StartsWith(URL_PEEK_PREFIX, StringComparison.OrdinalIgnoreCase))

@@ -45,9 +45,11 @@ public class PathJoin : IService
 
         var formattedPathMembers = CurrentPathMembers.Select(FormatMember(interaction))
             .Zip(Enumerable.Range(0, CurrentPathMembers.Length), SanitizePath).ToArray();
-        var finalPath = string.Join(Path.DirectorySeparatorChar.ToString(), formattedPathMembers);
+        var finalPath = JoinPath(formattedPathMembers, interaction);
         HandleCombinedPath(interaction, finalPath);
     }
+    
+    protected virtual string JoinPath(string[] members, IInteraction interaction) => string.Join(Path.DirectorySeparatorChar.ToString(), members);
 
     protected virtual void HandleCombinedPath(IInteraction interaction, string finalPath)
     {

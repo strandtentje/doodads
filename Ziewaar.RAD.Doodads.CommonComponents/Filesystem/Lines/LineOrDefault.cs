@@ -18,8 +18,8 @@ public class LineOrDefault : IService
 
     public void Enter(StampedMap constants, IInteraction interaction)
     {
-        if ((constants, DefaultLineConstant).IsRereadRequired(out string? candidateRepeater))
-            CurrentDefaultText = candidateRepeater;
+        if ((constants, DefaultLineConstant).IsRereadRequired(out object? candidateRepeater) && candidateRepeater?.IsntJustAnObject() == true && candidateRepeater.ToString() is { } dtCandidate)
+            CurrentDefaultText = dtCandidate;
         if (string.IsNullOrWhiteSpace(CurrentDefaultText) || CurrentDefaultText == null)
         {
             OnException?.Invoke(this, interaction.AppendRegister("Default text required"));
