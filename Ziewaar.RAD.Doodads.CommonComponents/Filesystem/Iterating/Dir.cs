@@ -24,18 +24,23 @@ public class Dir : IteratingService
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
         DirectoryInfo info = GetDirectoryInfo(constants, repeater, out var dirSearchPattern, out var _);
-        DirectoryInfo[] subDirectories =
-        [
-            .. info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly)
-                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-        ];
+        var onlyVisible =
+            constants.PrimaryConstant.ToString()?.StartsWith("visible", StringComparison.OrdinalIgnoreCase) == true;
+        var subDirectories =
+            info.GetDirectories(dirSearchPattern, SearchOption.TopDirectoryOnly)
+                .Where(x => !onlyVisible || (!x.Attributes.HasFlag(FileAttributes.Hidden) && !x.Name.StartsWith(".")))
+                .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
         return subDirectories.Select(x => repeater.AppendRegister(x).AppendMemory(("onlyname", x.Name)));
     }
 
     protected override IEnumerable<IInteraction> GetElseItems(StampedMap constants, IInteraction repeater)
     {
         DirectoryInfo info = GetDirectoryInfo(constants, repeater, out var _, out var fileSearchPattern);
-        FileInfo[] subFiles = info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly);
+        var onlyVisible =
+            constants.PrimaryConstant.ToString()?.StartsWith("visible", StringComparison.OrdinalIgnoreCase) == true;
+        var subFiles = info.GetFiles(fileSearchPattern, SearchOption.TopDirectoryOnly)
+            .Where(x => !onlyVisible || (!x.Attributes.HasFlag(FileAttributes.Hidden) && !x.Name.StartsWith(".")))
+            .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase);
         return subFiles.Select(x => repeater.AppendRegister(x).AppendMemory(("onlyname",x.Name)));
     }
 

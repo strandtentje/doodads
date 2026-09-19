@@ -29,7 +29,7 @@ public class RelativeRouteDictionary(SortedList<string, object> routeVars, strin
             return true;
         } else if (key.StartsWith(REMAINDER))
         {
-            value = string.Join('/', remaining.Select(HttpUtility.UrlDecode));
+            value = string.Join('/', remaining.Select(HttpUtility.UrlDecode)).Trim('/');
             return true;
         }
         else if (key.StartsWith(URL_PEEK_PREFIX, StringComparison.OrdinalIgnoreCase))

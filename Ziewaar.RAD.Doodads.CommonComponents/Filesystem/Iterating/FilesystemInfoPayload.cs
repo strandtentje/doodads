@@ -4,21 +4,62 @@ using System.ComponentModel.Design;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
-public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
+[Flags]
+public enum FilesystemInfoPayloadKeys : uint
 {
-    private const string
-        KEY_VISIBILITY = "visibility", KEY_NUMBERPREFIX = "numberprefix", KEY_AFTERNUMBER = "afternumber",
-        KEY_NEXTNUMBER = "nextnumberprefix", KEY_PREVNUMBER = "previousnumberprefix", KEY_PATH = "path",
-        KEY_FREENUMBER = "freenumber",
-        KEY_NEXTAFTERNUMBER = "nextafternumber", KEY_PREVAFTERNUMBER = "prevafternumber",
-        KEY_NEXTNUMBEREDPATH = "nextnumberedpath", KEY_PREVNUMBEREDPATH = "prevnumberedpath",
-        KEY_NAME = "name", KEY_LAST_WRITE_TIME = "write", KEY_LAST_READ_TIME = "read", KEY_URLSAFE_PATH = "safepath",
-        KEY_EXTENSION = "extension", KEY_CLEAN_EXTENSION = "cleanext", KEY_CLEAN_NAME = "cleanname", KEY_SIZE = "size",
-        KEY_CLEAN_SIZE = "cleansize", KEY_DIR_OR_FILE = "type", KEY_FILE_COUNT = "count";
-    private readonly FileInfo? FileInfo;
-    private readonly DirectoryInfo? DirectoryInfo;
-    private readonly FileSystemInfo FilesystemInfo;
-    private readonly string? PathVariable, NameVariable;
+    Visibility = 1 << 0,
+    NumberPrefix = 1 << 1,
+    AfterNumber = 1 << 2,
+    NextNumberPrefix = 1 << 3,
+    PreviousNumberPrefix = 1 << 4,
+    Path = 1 << 5,
+    FreeNumber = 1 << 6,
+    EmojiFileType = 1 << 7,
+    NextAfterNumber = 1 << 8,
+    PrevAfterNumber = 1 << 9,
+    NextNumberedPath = 1 << 10,
+    PrevNumberedPath = 1 << 11,
+    Name = 1 << 12,
+    Write = 1 << 13,
+    Read = 1 << 14,
+    SafePath = 1 << 15,
+    Extension = 1 << 16,
+    CleanExt = 1 << 17,
+    CleanName = 1 << 18,
+    Size = 1 << 19,
+    CleanSize = 1 << 20,
+    Type = 1 << 21,
+    Count = 1 << 22,
+    AllCount = 1 << 23,
+
+    ForFile = Visibility | NumberPrefix | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
+              PrevAfterNumber | FreeNumber | EmojiFileType | NextNumberedPath | PrevNumberedPath | Write |
+              Read | SafePath | Extension | CleanExt | CleanName | Size | CleanSize | Type,
+
+    ForDirectory = Visibility | NumberPrefix | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
+                   PrevAfterNumber | FreeNumber | NextNumberedPath | PrevNumberedPath | Write | Read |
+                   SafePath | Type | Count | AllCount,
+
+    ForPathAndName = Path | Name,
+}
+
+public class FilesystemInfoPayload(
+    FileSystemInfo filesystemInfo,
+    string? optionalPathVariable,
+    string? optionalNameVariable) : IReadOnlyDictionary<string, object>
+{
+    private FileInfo? FileInfo => filesystemInfo as FileInfo;
+    private DirectoryInfo? DirectoryInfo => filesystemInfo as DirectoryInfo;
+    private string PathVariable => field ??=
+        (optionalPathVariable ?? Enum.GetName(typeof(FilesystemInfoPayloadKeys), FilesystemInfoPayloadKeys.Path))!;
+    private string NameVariable => field ??=
+        (optionalNameVariable ?? Enum.GetName(typeof(FilesystemInfoPayloadKeys), FilesystemInfoPayloadKeys.Name))!;
+    
+    private static readonly IReadOnlyDictionary<string, FilesystemInfoPayloadKeys> KeyLUT =
+        Enum.GetValues(typeof(FilesystemInfoPayloadKeys)).Cast<FilesystemInfoPayloadKeys>()
+            .ToDictionary(x => Enum.GetName(typeof(FilesystemInfoPayloadKeys), x)!.ToLower(), x => x,
+                StringComparer.Ordinal);
+
     private string? NextCalculatedNumber = null;
     private string? PrevCalculatedNumber = null;
     private string? NextNumberlessFile;
@@ -27,105 +68,89 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
     private object? PrevPath;
     private string? CachedFreeNumber;
 
-    private string NumberPrefix => field ??= this.FilesystemInfo.GetNumberPrefix();
-    private string AfterNumberPrefix => field ??= this.FilesystemInfo.GetAfterNumberPrefix();
-    private string SafePath => string.Concat(FilesystemInfo.FullName.Select(x =>
-    {
-        if (char.IsLetterOrDigit(x))
-            return x.ToString();
-        else
-            return Uri.HexEscape(x);
-    }));
+    private string NumberPrefix => field ??= filesystemInfo.GetNumberPrefix();
+    private string AfterNumberPrefix => field ??= filesystemInfo.GetAfterNumberPrefix();
 
-    public IEnumerable<string> Keys { get; }
+    private string SafePath => field ??=
+        string.Concat(filesystemInfo.FullName.Select(x => char.IsLetterOrDigit(x) ? x.ToString() : Uri.HexEscape(x)));
+
+    private IEnumerable<string> GetNamesForMask(FilesystemInfoPayloadKeys mask) => Enum
+        .GetValues(typeof(FilesystemInfoPayloadKeys))
+        .Cast<FilesystemInfoPayloadKeys>()
+        .Where(x => mask.HasFlag(x) && x != mask)
+        .Select(x => Enum.GetName(typeof(FilesystemInfoPayloadKeys), x));
+
+    private IEnumerable<string> AppropariateBaseKeys => field ??= filesystemInfo switch
+    {
+        System.IO.DirectoryInfo => GetNamesForMask(FilesystemInfoPayloadKeys.ForDirectory),
+        System.IO.FileInfo => GetNamesForMask(FilesystemInfoPayloadKeys.ForFile),
+        _ => throw new InvalidOperationException("unsupported fs entity type"),
+    };
+
+    public IEnumerable<string> Keys => field ??= AppropariateBaseKeys
+        .Append(NameVariable)
+        .Append(PathVariable).Select(x => x!.ToLower());
+
     public IEnumerable<object> Values => Keys.Select(x => this[x]);
     public int Count => Keys.Count();
-
-    public FilesystemInfoPayload(FileSystemInfo filesystemInfo, string? pathVariable, string? nameVariable)
-    {
-        this.FilesystemInfo = filesystemInfo;
-        this.PathVariable = pathVariable;
-        this.NameVariable = nameVariable;
-        if (filesystemInfo is FileInfo fi)
-        {
-            this.FileInfo = fi;
-            Keys = [
-                KEY_VISIBILITY, KEY_NUMBERPREFIX, KEY_AFTERNUMBER,
-                    KEY_NEXTNUMBER, KEY_PREVNUMBER, KEY_NEXTAFTERNUMBER, KEY_PREVAFTERNUMBER,
-                    pathVariable ?? KEY_PATH, nameVariable ?? KEY_NAME,
-                    KEY_LAST_WRITE_TIME, KEY_LAST_READ_TIME, KEY_URLSAFE_PATH, KEY_EXTENSION,
-                    KEY_CLEAN_EXTENSION, KEY_CLEAN_NAME, KEY_SIZE, KEY_CLEAN_SIZE, KEY_DIR_OR_FILE,
-                ];
-        }
-        else if (filesystemInfo is DirectoryInfo di)
-        {
-            this.DirectoryInfo = di;
-            Keys = [
-                KEY_VISIBILITY, KEY_NUMBERPREFIX, KEY_AFTERNUMBER, KEY_FREENUMBER,
-                    KEY_NEXTNUMBER, KEY_PREVNUMBER, KEY_NEXTAFTERNUMBER, KEY_PREVAFTERNUMBER,
-                    pathVariable ?? KEY_PATH, nameVariable ?? KEY_NAME,
-                    KEY_LAST_WRITE_TIME, KEY_LAST_READ_TIME, KEY_URLSAFE_PATH, KEY_FILE_COUNT, KEY_DIR_OR_FILE,
-                ];
-        }
-        else
-        {
-            throw new ArgumentException("Expected fileinfo or directoryinfo", nameof(filesystemInfo));
-        }
-    }
 
     public object this[string key] =>
         TryGetValue(key, out var val) ? val : throw new KeyNotFoundException();
 
     public bool ContainsKey(string key) => Keys.Contains(key);
 
-    public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-    {
-        foreach (var item in Keys)
-            yield return new KeyValuePair<string, object>(item, this[item]);
-    }
+    public IEnumerator<KeyValuePair<string, object>> GetEnumerator() =>
+        Keys.Select(item => new KeyValuePair<string, object>(item, this[item])).GetEnumerator();
 
     public bool TryGetValue(string key, out object value)
     {
-        if (key == (this.PathVariable ?? KEY_PATH))
+        if (string.Equals(key, this.PathVariable, StringComparison.Ordinal))
         {
-            value = this.FilesystemInfo.FullName;
+            value = filesystemInfo.FullName;
             return true;
         }
-        if (key == (this.NameVariable ?? KEY_NAME))
+
+        if (string.Equals(key, this.NameVariable, StringComparison.Ordinal))
         {
-            value = this.FilesystemInfo.Name;
+            value = filesystemInfo.Name;
             return true;
         }
-        switch (key)
+
+        if (!KeyLUT.TryGetValue(key, out var selection))
         {
-            case KEY_VISIBILITY:
-                value = this.FilesystemInfo.IsHidden() ? "visible" : "hidden";
+            value = string.Empty;
+            return false;
+        }
+
+        switch (selection)
+        {
+            case FilesystemInfoPayloadKeys.Visibility:
+                value = filesystemInfo.IsHidden() ? "visible" : "hidden";
                 return true;
-            case KEY_NUMBERPREFIX:
+            case FilesystemInfoPayloadKeys.NumberPrefix:
                 value = NumberPrefix;
                 return true;
-            case KEY_AFTERNUMBER:
+            case FilesystemInfoPayloadKeys.AfterNumber:
                 value = AfterNumberPrefix;
                 return true;
-            case KEY_NEXTNUMBER:
+            case FilesystemInfoPayloadKeys.NextNumberPrefix:
                 if (this.NextCalculatedNumber is string ncn)
                     value = ncn;
                 else
                 {
-                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
+                    filesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
                     value = this.NextCalculatedNumber = pfx;
                     this.NextNumberlessFile = rem;
                     this.NextPath = path;
                 }
 
                 return true;
-
-            case KEY_PREVNUMBER:
+            case FilesystemInfoPayloadKeys.PreviousNumberPrefix:
                 if (this.PrevCalculatedNumber is string pcn)
                     value = pcn;
                 else
                 {
-                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
+                    filesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
                     value = this.PrevCalculatedNumber = pfx;
                     this.PrevNumberlessFile = rem;
                     this.PrevPath = path;
@@ -133,12 +158,12 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
 
                 return true;
 
-            case KEY_NEXTAFTERNUMBER:
+            case FilesystemInfoPayloadKeys.NextAfterNumber:
                 if (this.NextNumberlessFile is string nnlf)
                     value = nnlf;
                 else
                 {
-                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
+                    filesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
                     this.NextCalculatedNumber = pfx;
                     this.NextPath = path;
                     value = this.NextNumberlessFile = rem;
@@ -146,12 +171,12 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
 
                 return true;
 
-            case KEY_PREVAFTERNUMBER:
+            case FilesystemInfoPayloadKeys.PrevAfterNumber:
                 if (this.PrevNumberlessFile is string pnlf)
                     value = pnlf;
                 else
                 {
-                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
+                    filesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
                     this.PrevCalculatedNumber = pfx;
                     this.PrevPath = path;
                     value = this.PrevNumberlessFile = rem;
@@ -159,12 +184,12 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
 
                 return true;
 
-            case KEY_NEXTNUMBEREDPATH:
+            case FilesystemInfoPayloadKeys.NextNumberedPath:
                 if (this.NextPath is string np)
                     value = np;
                 else
                 {
-                    this.FilesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
+                    filesystemInfo.GetNextSplittable(out var pfx, out var rem, out var path);
                     this.NextCalculatedNumber = pfx;
                     this.NextNumberlessFile = rem;
                     value = this.NextPath = path;
@@ -172,40 +197,47 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
 
                 return true;
 
-            case KEY_PREVNUMBEREDPATH:
+            case FilesystemInfoPayloadKeys.PrevNumberedPath:
                 if (this.PrevPath is string pp)
                     value = pp;
                 else
                 {
-                    this.FilesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
+                    filesystemInfo.GetPrevSplittable(out var pfx, out var rem, out var path);
                     this.PrevCalculatedNumber = pfx;
                     this.PrevNumberlessFile = rem;
                     value = this.PrevPath = path;
                 }
 
                 return true;
-
-            case KEY_LAST_WRITE_TIME:
-                value = this.FilesystemInfo.LastWriteTimeUtc;
+            case FilesystemInfoPayloadKeys.EmojiFileType
+                when EmojiFileIcons.Mapping.TryGetValue(FileInfo.Extension, out var emoji):
+                value = emoji;
                 return true;
-            case KEY_LAST_READ_TIME:
-                value = this.FilesystemInfo.LastAccessTimeUtc;
+            case FilesystemInfoPayloadKeys.EmojiFileType:
+                value = EmojiFileIcons.DEFAULT_FILE;
                 return true;
-            case KEY_URLSAFE_PATH:
+            case FilesystemInfoPayloadKeys.Write:
+                value = filesystemInfo.LastWriteTimeUtc;
+                return true;
+            case FilesystemInfoPayloadKeys.Read:
+                value = filesystemInfo.LastAccessTimeUtc;
+                return true;
+            case FilesystemInfoPayloadKeys.SafePath:
                 value = this.SafePath;
                 return true;
-            case KEY_DIR_OR_FILE when this.DirectoryInfo is { }:
+            case FilesystemInfoPayloadKeys.Type when filesystemInfo is DirectoryInfo:
                 value = "dir";
                 return true;
-            case KEY_DIR_OR_FILE when this.FileInfo is { }:
+            case FilesystemInfoPayloadKeys.Type when filesystemInfo is FileInfo:
                 value = "file";
                 return true;
-            case KEY_FREENUMBER when this.DirectoryInfo is { }:
+            case FilesystemInfoPayloadKeys.FreeNumber when this.DirectoryInfo is { }:
                 if (CachedFreeNumber is string cfn)
                 {
                     value = cfn;
                     return true;
                 }
+
                 var lastDirectories = this.DirectoryInfo.GetDirectories().OrderByDescending(x => x.Name);
                 foreach (var item in lastDirectories)
                 {
@@ -241,29 +273,34 @@ public class FilesystemInfoPayload : IReadOnlyDictionary<string, object>
                             {
                                 value = CachedFreeNumber = "";
                             }
+
                             return true;
                         }
                     }
                 }
+
                 value = CachedFreeNumber = "100";
                 return true;
-            case KEY_FILE_COUNT when this.DirectoryInfo is { }:
-                value = this.DirectoryInfo.GetFiles().Length;
+            case FilesystemInfoPayloadKeys.Count when filesystemInfo is DirectoryInfo di:
+                value = di.EnumerateFiles().Count();
                 return true;
-            case KEY_EXTENSION when this.FileInfo is { }:
-                value = this.FileInfo.Extension;
+            case FilesystemInfoPayloadKeys.AllCount when filesystemInfo is DirectoryInfo dia:
+                value = dia.EnumerateFileSystemInfos().Count();
                 return true;
-            case KEY_CLEAN_EXTENSION when this.FileInfo is { }:
-                value = this.FileInfo.Extension.TrimStart('.').ToLower();
+            case FilesystemInfoPayloadKeys.Extension when filesystemInfo is FileInfo fiExt:
+                value = fiExt.Extension;
                 return true;
-            case KEY_CLEAN_NAME when this.FileInfo is { }:
-                value = Path.GetFileNameWithoutExtension(FileInfo.FullName);
+            case FilesystemInfoPayloadKeys.CleanExt when filesystemInfo is FileInfo fiCExt:
+                value = fiCExt.Extension.TrimStart('.').ToLower();
                 return true;
-            case KEY_SIZE when this.FileInfo is { }:
-                value = this.FileInfo.Length;
+            case FilesystemInfoPayloadKeys.CleanName when filesystemInfo is FileInfo fiC :
+                value = Path.GetFileNameWithoutExtension(fiC.FullName);
                 return true;
-            case KEY_CLEAN_SIZE when this.FileInfo is { }:
-                value = ByteSizeFormatter.ToHumanReadable(this.FileInfo.Length);
+            case FilesystemInfoPayloadKeys.Size when filesystemInfo is FileInfo fiS:
+                value = fiS.Length;
+                return true;
+            case FilesystemInfoPayloadKeys.CleanSize when filesystemInfo is FileInfo fiCs:
+                value = ByteSizeFormatter.ToHumanReadable(fiCs.Length);
                 return true;
             default:
                 value = "";

@@ -55,5 +55,12 @@ namespace Define.Doodads.Expo.Timeline
             if (dict.ContainsKey(name))
                 throw new BasicException(message);
         }
+
+        public static void ForInteraction<T>(IInteraction source, out T output) where T : IInteraction
+        {
+            if (!source.TryGetClosest(out T? candidate) || candidate == null)
+                throw new BasicException($"Expected {typeof(T).Name}");
+            output = candidate;
+        }
     }
 }

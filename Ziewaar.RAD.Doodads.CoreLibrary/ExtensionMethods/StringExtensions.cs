@@ -55,6 +55,9 @@ public class StringCursor
     public char Current => Origin.ElementAtOrDefault(Position);
     public bool AtDelimiter =>
         CustomDelimiters.Length == 0 ? char.IsWhiteSpace(Current) : CustomDelimiters.Contains(Current);
+
+    public string AlreadyRead => Origin.Substring(0, Math.Min(Origin.Length, Position));
+    
     public StringCursor(string origin, int i, char[] customDelimiters)
     {
         this.Origin = origin;

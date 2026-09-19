@@ -1,7 +1,10 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+﻿using System.Globalization;
+using System.Threading;
+using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Define.Doodads.Expo.Timeline
 {
@@ -68,6 +71,41 @@ namespace Define.Doodads.Expo.Timeline
                 (enumerable.OfType<object>().Where(IsntJustAnObject).Select(x => x.ToString()).OfType<string>());
         }
 
+        protected void RepeatToRegister(StampedMap constants, IInteraction source, IEnumerable<object> items, bool elseOnEmpty = false)
+        {
+            BasicException.ForNullOrEmpty(Primary(constants), "repeat name required in primary constant",
+                out string riName);
+            var ri = new RepeatInteraction(riName, source, CancellationToken.None)
+            {
+                IsRunning = true
+            };
+            using var en = items.GetEnumerator();
+            bool anyItems = false;
+            while (ri.IsRunning && en.MoveNext() && en.Current != null)
+            {
+                anyItems = true;
+                ri.IsRunning = false;
+                OnThen?.Invoke(this, ri.AppendRegister(en.Current));
+            }
+
+            if (!anyItems && elseOnEmpty)
+                OnElse?.Invoke(this, source);
+        }
+        protected void RepeatToMemory(StampedMap constants, IInteraction source, IEnumerable<IReadOnlyDictionary<string, object>> items)
+        {
+            BasicException.ForNullOrEmpty(Primary(constants), "repeat name required in primary constant",
+                out string riName);
+            var ri = new RepeatInteraction(riName, source, CancellationToken.None)
+            {
+                IsRunning = true
+            };
+            using var en = items.GetEnumerator();
+            while (ri.IsRunning && en.MoveNext() && en.Current != null)
+            {
+                ri.IsRunning = false;
+                OnThen?.Invoke(this, ri.AppendMemory(en.Current));
+            }
+        }
 
         protected Queue<string> PrimaryOrRegisterParts(StampedMap constants, IInteraction interaction,
             params char[] regDelimiters)
@@ -100,7 +138,7 @@ namespace Define.Doodads.Expo.Timeline
 
         protected string? Register(IInteraction interaction) =>
             IsntJustAnObject(interaction.Register) &&
-            interaction.Register.ToString() is { } candidateFromRegister &&
+            Convert.ToString(interaction.Register, CultureInfo.InvariantCulture) is { } candidateFromRegister &&
             !string.IsNullOrWhiteSpace(candidateFromRegister)
                 ? candidateFromRegister
                 : null;

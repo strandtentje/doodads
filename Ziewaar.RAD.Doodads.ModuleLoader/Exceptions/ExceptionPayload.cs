@@ -22,7 +22,7 @@ public class ExceptionPayload
         Line = text?.GetCurrentLine() ?? -1;
         Column = text?.GetCurrentCol() ?? -1;
         Memory = (interaction?.Memory ?? EmptyReadOnlyDictionary.Instance).
-            Select(x => (x.Key, x.Value.ToString())).
+            Select(x => (x.Key, x.Value?.ToString() ?? "[<null>]")).
             ToDictionary(x => x.Key, x => x.Item2);
     }
 

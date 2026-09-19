@@ -1,4 +1,6 @@
-﻿#pragma warning disable 67
+﻿using System.Globalization;
+
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.Iterating;
 
 public static class ByteSizeFormatter
@@ -23,6 +25,9 @@ public static class ByteSizeFormatter
             i++;
         }
 
-        return $"{value:n2} {SizeSuffixes[i]}";
+        if (i == 0)
+            return value.ToString("N0", CultureInfo.InvariantCulture) + " bytes";
+        else
+            return $"{value.ToString("N2", CultureInfo.InvariantCulture)} {SizeSuffixes[i]}";
     }
 }
