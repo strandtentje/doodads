@@ -11,7 +11,7 @@ namespace Ziewaar.RAD.Doodads.Multimedia;
 public class MpvInstance : BasicService, IDisposable
 {
     private readonly Lock InstanceLock = new Lock();
-    private bool IsDisposing = true;
+    private bool IsDisposing = false;
     private readonly List<MpvPlayer> ActivePlayers = new List<MpvPlayer>();
     public override event CallForInteraction? OnThen;
 

@@ -14,6 +14,6 @@ public class MpvPropertyGet : MpvService
     {
         BasicException.ForNullOrEmpty(this.Primary(constants), "property name req'd in primary constant",
             out var propertyName);
-        OnThen?.Invoke(this, interaction.AppendRegister(player[propertyName]));
+        OnThen?.Invoke(this, interaction.AppendRegister(player[propertyName] ?? ""));
     }
 }

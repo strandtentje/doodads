@@ -1,6 +1,7 @@
 ﻿#nullable enable
 #pragma warning disable 67
 
+using System.Globalization;
 using Ziewaar;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
@@ -20,6 +21,7 @@ public static class ObjectExtensions
         float f => (decimal)f,
         double d => (decimal)d,
         decimal dec => dec,
+        string str => decimal.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out var x) ? x : obj,
         _ => obj,
     };
     public static bool TryConvertNumericToDecimal(this object? obj, decimal fallback, out decimal result)
