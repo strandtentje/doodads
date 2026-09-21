@@ -51,9 +51,9 @@ public class FilesystemInfoPayload(
     private FileInfo? FileInfo => filesystemInfo as FileInfo;
     private DirectoryInfo? DirectoryInfo => filesystemInfo as DirectoryInfo;
     private string PathVariable => field ??=
-        (optionalPathVariable ?? Enum.GetName(typeof(FilesystemInfoPayloadKeys), FilesystemInfoPayloadKeys.Path))!;
+        (optionalPathVariable ?? Enum.GetName(typeof(FilesystemInfoPayloadKeys), FilesystemInfoPayloadKeys.Path)!.ToLower())!;
     private string NameVariable => field ??=
-        (optionalNameVariable ?? Enum.GetName(typeof(FilesystemInfoPayloadKeys), FilesystemInfoPayloadKeys.Name))!;
+        (optionalNameVariable ?? Enum.GetName(typeof(FilesystemInfoPayloadKeys), FilesystemInfoPayloadKeys.Name)!.ToLower())!;
     
     private static readonly IReadOnlyDictionary<string, FilesystemInfoPayloadKeys> KeyLUT =
         Enum.GetValues(typeof(FilesystemInfoPayloadKeys)).Cast<FilesystemInfoPayloadKeys>()
