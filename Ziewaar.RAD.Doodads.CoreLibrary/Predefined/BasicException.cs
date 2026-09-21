@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Define.Doodads.Expo.Timeline
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
 {
     public class BasicException(string msg) : Exception(msg)
     {

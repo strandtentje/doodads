@@ -1,5 +1,4 @@
-﻿using Define.Doodads.Expo.Timeline;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;

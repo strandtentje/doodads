@@ -1,12 +1,8 @@
 ﻿using System.Globalization;
 using System.Threading;
-using Ziewaar.RAD.Doodads.CoreLibrary.Data;
-using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
-using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
-namespace Define.Doodads.Expo.Timeline
+namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
 {
     public abstract class BasicService : IService
     {
@@ -69,6 +65,22 @@ namespace Define.Doodads.Expo.Timeline
 
             return new Queue<string>
                 (enumerable.OfType<object>().Where(IsntJustAnObject).Select(x => x.ToString()).OfType<string>());
+        }
+
+        protected void RepeatCustom<T>(StampedMap constants, IInteraction source, Func<RepeatInteraction, T, IInteraction> factory, IEnumerable<T> items)
+        {
+            BasicException.ForNullOrEmpty(Primary(constants), "repeat name required in primary constant",
+                out string riName);
+            var ri = new RepeatInteraction(riName, source, CancellationToken.None)
+            {
+                IsRunning = true
+            };
+            using var en = items.GetEnumerator();
+            while (ri.IsRunning && en.MoveNext() && en.Current != null)
+            {
+                ri.IsRunning = false;
+                OnThen?.Invoke(this, factory(ri, en.Current));
+            }
         }
 
         protected void RepeatToRegister(StampedMap constants, IInteraction source, IEnumerable<object> items, bool elseOnEmpty = false)
@@ -142,6 +154,11 @@ namespace Define.Doodads.Expo.Timeline
             !string.IsNullOrWhiteSpace(candidateFromRegister)
                 ? candidateFromRegister
                 : null;
+
+        protected string DirectoryFromRegister(IInteraction interaction) =>
+            Register(interaction) is { } path && Directory.Exists(path)
+                ? path
+                : throw new BasicException("Directory in register did not exist");
 
         protected string? PrimaryOrRegister(StampedMap constants, IInteraction interaction)
         {
