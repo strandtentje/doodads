@@ -56,11 +56,29 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
                 throw new BasicException(message);
         }
 
+        public static void ForNotNull<T>(T? value, out T output)
+        {
+            if (value == null) throw new BasicException($"item of type {typeof(T).Name} was null");
+            output = value;
+        }
+
+        public static void ForCustom<T>(IInteraction source, out T output)
+        {
+            if (!source.TryGetCustom<T>(out var candidate) || candidate == null)
+                throw new BasicException($"expected interaction with {typeof(T).Name}");
+            output = candidate;
+        }
+
         public static void ForInteraction<T>(IInteraction source, out T output) where T : IInteraction
         {
             if (!source.TryGetClosest(out T? candidate) || candidate == null)
                 throw new BasicException($"Expected {typeof(T).Name}");
             output = candidate;
+        }
+
+        public static void AssertEquals(object actual, object expected)
+        {
+            if (!actual.Equals(expected)) throw new BasicException($"expected {expected} but got {actual}");
         }
     }
 }

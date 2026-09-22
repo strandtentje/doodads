@@ -160,6 +160,11 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
                 ? path
                 : throw new BasicException("Directory in register did not exist");
 
+        protected string FileFromRegister(IInteraction interaction) =>
+            Register(interaction) is { } path && File.Exists(path)
+                ? path
+                : throw new BasicException("File in register did not exist");
+
         protected string? PrimaryOrRegister(StampedMap constants, IInteraction interaction)
         {
             return Primary(constants) ?? Register(interaction);

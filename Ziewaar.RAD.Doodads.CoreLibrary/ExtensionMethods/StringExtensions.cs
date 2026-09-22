@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
+﻿using System.Globalization;
+
+namespace Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 
 public static class StringExtensions
 {
@@ -33,16 +35,25 @@ public static class StringExtensions
         return result.ToArray();
     }
 
-    public static StringCursor PullString(this string? origin, string fallback, out string result, params char[] customDelimiters)
+    public static StringCursor PullString(this string? origin, string fallback, out string result,
+        params char[] customDelimiters)
     {
         var sc = new StringCursor(origin ?? "", 0, customDelimiters);
         return sc.PullString(fallback, out result);
     }
 
-    public static StringCursor PullInt(this string? origin, int fallback, out int result, params char[] customDelimiters)
+    public static StringCursor PullInt(this string? origin, int fallback, out int result,
+        params char[] customDelimiters)
     {
         var sc = new StringCursor(origin ?? "", 0, customDelimiters);
         return sc.PullInt(fallback, out result);
+    }
+
+    public static StringCursor PullEnum<TEnum>(this string? origin, TEnum dflt, out TEnum result,
+        params char[] customDelimiters) where TEnum : struct, IConvertible
+    {
+        var sc = new StringCursor(origin ?? "", 0, customDelimiters);
+        return sc.PullEnum(dflt, out result);
     }
 }
 
@@ -53,11 +64,12 @@ public class StringCursor
     private string Intermediary;
     private readonly char[] CustomDelimiters;
     public char Current => Origin.ElementAtOrDefault(Position);
+
     public bool AtDelimiter =>
         CustomDelimiters.Length == 0 ? char.IsWhiteSpace(Current) : CustomDelimiters.Contains(Current);
 
     public string AlreadyRead => Origin.Substring(0, Math.Min(Origin.Length, Position));
-    
+
     public StringCursor(string origin, int i, char[] customDelimiters)
     {
         this.Origin = origin;
@@ -91,6 +103,23 @@ public static class StringCursorExtensions
     {
         sc = sc.PullString(fallback.ToString(), out string byteString);
         if (!int.TryParse(byteString, out result))
+            result = fallback;
+        return sc;
+    }
+
+    public static StringCursor PullEnum<TEnum>(this StringCursor sc, TEnum dflt, out TEnum result)
+        where TEnum : struct, IConvertible
+    {
+        sc = sc.PullString(Enum.GetName(typeof(TEnum), dflt) ?? "", out string res);
+        if (!Enum.TryParse<TEnum>(res, ignoreCase: true, out result))
+            result = dflt;
+        return sc;
+    }
+
+    public static StringCursor PullDecimal(this StringCursor sc, decimal fallback, out decimal result)
+    {
+        sc = sc.PullString(fallback.ToString(), out string numberString);
+        if (!decimal.TryParse(numberString, NumberStyles.Any, CultureInfo.InvariantCulture, out result))
             result = fallback;
         return sc;
     }
