@@ -20,8 +20,9 @@ public class MpvInstance : BasicService, IDisposable
         {
             if (IsDisposing)
                 throw new ObjectDisposedException(nameof(MpvInstance));
+            var bgColor = Named(constants, "bg") ?? "#000000";
             var factory = new MpvPlayerFactory();
-            var player = factory.CreatePlayer(IntPtr.Zero, PlaylistLifecycle.PauseAfterEnd);
+            var player = factory.CreatePlayer(IntPtr.Zero, PlaylistLifecycle.PauseAfterEnd, forceWindow: true, backgroundColor: bgColor);
             ActivePlayers.Add(player);
             OnThen?.Invoke(this, interaction.AppendCustom(player));
         }

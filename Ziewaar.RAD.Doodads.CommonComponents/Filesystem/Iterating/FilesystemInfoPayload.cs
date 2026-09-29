@@ -33,10 +33,10 @@ public enum FilesystemInfoPayloadKeys : uint
     AllCount = 1 << 23,
 
     ForFile = Visibility | NumberPrefix | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
-              PrevAfterNumber | FreeNumber | EmojiFileType | NextNumberedPath | PrevNumberedPath | Write |
+              PrevAfterNumber | EmojiFileType | NextNumberedPath | PrevNumberedPath | Write |
               Read | SafePath | Extension | CleanExt | CleanName | Size | CleanSize | Type,
 
-    ForDirectory = Visibility | NumberPrefix | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
+    ForDirectory = Visibility | NumberPrefix | EmojiFileType | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
                    PrevAfterNumber | FreeNumber | NextNumberedPath | PrevNumberedPath | Write | Read |
                    SafePath | Type | Count | AllCount,
 
@@ -95,7 +95,7 @@ public class FilesystemInfoPayload(
     public int Count => Keys.Count();
 
     public object this[string key] =>
-        TryGetValue(key, out var val) ? val : throw new KeyNotFoundException();
+        TryGetValue(key, out var val) ? val : throw new KeyNotFoundException(key);
 
     public bool ContainsKey(string key) => Keys.Contains(key);
 
@@ -210,8 +210,11 @@ public class FilesystemInfoPayload(
 
                 return true;
             case FilesystemInfoPayloadKeys.EmojiFileType
-                when EmojiFileIcons.Mapping.TryGetValue(FileInfo.Extension, out var emoji):
+                when FileInfo is {} && EmojiFileIcons.Mapping.TryGetValue(FileInfo.Extension, out var emoji):
                 value = emoji;
+                return true;
+            case FilesystemInfoPayloadKeys.EmojiFileType when DirectoryInfo is {}:
+                value = "📂";
                 return true;
             case FilesystemInfoPayloadKeys.EmojiFileType:
                 value = EmojiFileIcons.DEFAULT_FILE;

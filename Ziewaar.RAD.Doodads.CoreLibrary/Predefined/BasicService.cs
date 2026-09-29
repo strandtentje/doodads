@@ -35,6 +35,10 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             !string.IsNullOrWhiteSpace(candidateFromConstants)
                 ? candidateFromConstants
                 : null;
+        protected string? Named(StampedMap constants, string name) =>
+            constants.NamedItems.TryGetValue(name, out var item) && IsntJustAnObject(item) &&
+            item.ToString() is { } candidateFromConstants && !string.IsNullOrWhiteSpace(candidateFromConstants)
+                ? candidateFromConstants : null;
 
         private class LinesSinkEnumerable(TextSinkingInteraction tsi) : IEnumerable<string>
         {
@@ -162,6 +166,10 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
 
         protected string FileFromRegister(IInteraction interaction) =>
             Register(interaction) is { } path && File.Exists(path)
+                ? path
+                : throw new BasicException("File in register did not exist");
+        protected string FileFromPrimaryOrRegister(StampedMap constants, IInteraction interaction) =>
+            PrimaryOrRegister(constants, interaction) is { } path && File.Exists(path)
                 ? path
                 : throw new BasicException("File in register did not exist");
 
