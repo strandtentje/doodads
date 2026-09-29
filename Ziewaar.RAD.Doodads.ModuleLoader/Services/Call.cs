@@ -168,6 +168,8 @@ public class Call : IService, IDisposable
         }
         else
         {
+            if (file.Contains("mqtt") && string.IsNullOrWhiteSpace(definition))
+                Debug.WriteLine("shitty poop");
             entryPoint.Run(this, ci);
         }
     }

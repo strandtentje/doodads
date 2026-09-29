@@ -89,7 +89,7 @@ public class Template : IService
         if (!interaction.TryGetClosest<IInteraction>(out var targetInteraction,
             x => x is ISinkingInteraction || x is ICheckUpdateRequiredInteraction) || targetInteraction == null)
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template or update into."));
+                OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template or update into."));
             return;
         }
 
@@ -108,7 +108,7 @@ public class Template : IService
 
         if (targetInteraction is ICheckUpdateRequiredInteraction checkUpdateRequiredInteraction)
         {
-            checkUpdateRequiredInteraction.IsRequired = true;
+            checkUpdateRequiredInteraction.IsRequired = true;   
             return;
         } 
         if (targetInteraction is not ISinkingInteraction output)

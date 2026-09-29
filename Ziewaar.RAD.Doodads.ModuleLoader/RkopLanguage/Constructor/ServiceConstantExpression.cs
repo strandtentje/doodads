@@ -214,7 +214,7 @@ public class ServiceConstantExpression : IParityParser
         var candidateDirs = dirsInDir.Where(candidate => IsNameWithPrefix(candidate.Name, filename)).Select(x => x.Name);
         var candidateFiles = filesInDir.Where(candidate => IsNameWithPrefix(candidate.Name, filename)).Select(x => x.Name);
         var allCandidates = candidateDirs.Concat(candidateFiles).ToArray();
-                
+
         if (allCandidates.Length == 1)
             filename = allCandidates[0];
         else if (allCandidates.Length != 0)
@@ -232,13 +232,16 @@ public class ServiceConstantExpression : IParityParser
         if (ConstantType != ConstantType.Path) state |= ParityParsingState.Changed;
 
         var searchPath = subPath;
+        string? halfAfterAtsign = null;
 
         if (searchPath.Contains('@'))
         {
-            // if there's an @ in there, something like s"somefile.rkop @ someplace" is happening.
-            searchPath = subPath.Split(['@'],
+            var halves = subPath.Split(['@'],
                 StringSplitOptions.RemoveEmptyEntries).
-                Select(x => x.Trim()).ElementAtOrDefault(0) ?? "";
+                Select(x => x.Trim());
+            // if there's an @ in there, something like s"somefile.rkop @ someplace" is happening.
+            searchPath = halves.ElementAtOrDefault(0) ?? "";
+            halfAfterAtsign = halves.ElementAtOrDefault(1);
         }
 
         DirectoryInfo trueDirectory;
@@ -251,6 +254,9 @@ public class ServiceConstantExpression : IParityParser
                 throw new ParsingException(ct,
                     $"Could not find sub-path `{searchPath}` in any parent directory of `{workingDirectory}`");
         }
+
+        if (halfAfterAtsign != null)
+            trueFile = $"{trueFile} @ {halfAfterAtsign}";
 
         var newValue = (trueDirectory.FullName, trueFile);
 
@@ -272,7 +278,8 @@ public class ServiceConstantExpression : IParityParser
             trueParent = dir;
             trueChild = searchPath;
             return true;
-        } else if (Directory.Exists(combined))
+        }
+        else if (Directory.Exists(combined))
         {
             trueParent = dir;
             trueChild = searchPath;
@@ -302,7 +309,8 @@ public class ServiceConstantExpression : IParityParser
             trueParent = directoryAbove;
             trueChild = allCandidates[0];
             return true;
-        } else if (allCandidates.Length != 0)
+        }
+        else if (allCandidates.Length != 0)
         {
             Log.Post(Ambiguous2, directoryAbove, lookingForFileOrDirName, string.Join(", ", allCandidates));
         }
