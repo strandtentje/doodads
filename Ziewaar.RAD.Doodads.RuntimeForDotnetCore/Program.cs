@@ -29,18 +29,27 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
             FrameworkTypeAdaptorRepository.Instance.Register(DateOnlyAdaptor.Instance)
                 .Register(TimeOnlyAdaptor.Instance);
 
+            List<Thread> threads = new();
+            var docsFile = Path.Combine(AppDataForAssy, "disable.docs");
+            if (!File.Exists(docsFile))
+            {
+                var thr = new Thread(_ => { StartFor(AppDataForAssy); });
+                threads.Add(thr);
+                thr.Start(null);
+            }
+
             var projectsFile = Path.Combine(AppDataForAssy, "projects.directory");
 
             if (File.Exists(projectsFile))
             {
                 var projectsDirectories = File.ReadAllLines(projectsFile)
+                    .Where(x => !x.StartsWith('#'))
                     .Where(x => !string.IsNullOrWhiteSpace(x) && Directory.Exists(x)).ToArray();
                 if (projectsDirectories.Length == 0)
                     Log.Post(NoProjectDirectories);
                 var bootables = projectsDirectories.SelectMany(x => RecurseDirectories(x, 4)).ToArray();
                 if (bootables.Length == 0)
                     Log.Post(NoProjectBootables);
-                List<Thread> threads = new();
                 foreach (var bootable in bootables)
                 {
                     var thr = new Thread(path =>
@@ -50,14 +59,10 @@ namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore
                     threads.Add(thr);
                     thr.Start(bootable);
                 }
+            }
 
-                foreach (var thread in threads)
-                    thread.Join();
-            }
-            else
-            {
-                StartFor(AppDataForAssy);
-            }
+            foreach (var thread in threads)
+                thread.Join();
         }
 
         private static IDisposable StartFor(string workingDirectory) => BootstrappedStartBuilder
