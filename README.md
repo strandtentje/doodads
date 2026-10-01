@@ -1,4 +1,4 @@
-Check the [wiki](/strandtentje/doodads/wiki) for some getting started guides.
+Check the [wiki](github.com/strandtentje/doodads/wiki) for some getting started guides.
 
 # Service Docs!
 
