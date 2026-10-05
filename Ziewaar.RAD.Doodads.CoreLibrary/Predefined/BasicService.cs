@@ -27,7 +27,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             }
         }
 
-        private bool IsntJustAnObject(object obj) => !obj.GetType().IsAssignableFrom(typeof(object));
+        public static bool IsntJustAnObject(object obj) => !obj.GetType().IsAssignableFrom(typeof(object));
 
         protected string? Primary(StampedMap constants) =>
             IsntJustAnObject(constants.PrimaryConstant) &&
@@ -51,6 +51,48 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             var tsi = new TextSinkingInteraction(interaction);
             linesEnumerable = new LinesSinkEnumerable(tsi);
             return tsi;
+        }
+        protected IEnumerable<string> PrimaryPartsFromMemory(StampedMap constants, IInteraction interaction)
+        {
+            var verbatimParts = PrimaryParts(constants);
+            foreach (var item in verbatimParts)
+            {
+                string replaced = FillPlaceholders(item, interaction);
+                yield return replaced;
+            }
+        }
+
+        public enum PlaceholderMode { Out, In, }
+
+        private string FillPlaceholders(string item, IInteraction interaction)
+        {
+            StringBuilder sbl = new StringBuilder();
+            PlaceholderMode mode = PlaceholderMode.Out;
+
+            for (
+                var puller = item.PullString("", out string part, '{', '}');
+                !string.IsNullOrWhiteSpace(part);
+                puller = puller.PullString("", out part))
+            {
+                if (mode != PlaceholderMode.In && puller.Current == '{' && !part.EndsWith(@"\"))
+                {
+                    mode = PlaceholderMode.In;
+                    sbl.Append(part);
+                }
+                else if (mode == PlaceholderMode.In && puller.Current == '}' && !part.EndsWith(@"\"))
+                {
+                    mode = PlaceholderMode.Out;
+                    BasicException.ForStringInMemory(interaction, part, out var memoryValue);
+                    sbl.Append(memoryValue);
+                } else if (mode == PlaceholderMode.Out)
+                {
+                    sbl.Append(part);
+                } else
+                {
+                    throw new BasicException($"Strange occurence in placeholder string around position {puller.CurrentPosition}");
+                }
+            }
+            return sbl.ToString();
         }
 
         protected Queue<string> PrimaryParts(StampedMap constants)

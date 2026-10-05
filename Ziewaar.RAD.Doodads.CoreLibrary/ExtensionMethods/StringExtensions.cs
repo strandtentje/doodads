@@ -61,12 +61,14 @@ public class StringCursor
 {
     public readonly string Origin;
     private int Position, Anchor;
+    public int CurrentPosition => Position;
     private string Intermediary;
     private readonly char[] CustomDelimiters;
     public char Current => Origin.ElementAtOrDefault(Position);
 
     public bool AtDelimiter =>
         CustomDelimiters.Length == 0 ? char.IsWhiteSpace(Current) : CustomDelimiters.Contains(Current);
+
 
     public string AlreadyRead => Origin.Substring(0, Math.Min(Origin.Length, Position));
 

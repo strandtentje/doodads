@@ -36,6 +36,17 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
                 throw new BasicException(message);
         }
 
+        public static void ForStringInMemory(IInteraction interaction, string name, out string value)
+        {
+            if (!interaction.TryFindVariable(name, out object? valueObject) || 
+                valueObject == null ||
+                !BasicService.IsntJustAnObject(valueObject) || 
+                valueObject.ToString() is not string valueString || 
+                string.IsNullOrWhiteSpace(valueString))
+                throw new BasicException($"in memory, `{name}` was not found");
+            value = valueString;
+        }
+
         public static void ForConstraint(int value, int min, int max, string message)
         {
             if (value < min || value > max)
