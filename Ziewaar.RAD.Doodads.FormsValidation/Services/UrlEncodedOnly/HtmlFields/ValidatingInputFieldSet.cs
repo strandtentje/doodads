@@ -29,7 +29,8 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
             ValidatingEmailPicker.TryInsertInto(node, this) ||
             ValidatingCheckbox.TryInsertInto(node, this) ||
             ValidatingColorPicker.TryInsertInto(node, this) ||
-            ValidatingRadio.TryInsertInto(node, this))
+            ValidatingRadio.TryInsertInto(node, this) || 
+            ValidatingFile.TryInsertInto)
         {
             return;
         }
