@@ -33,7 +33,7 @@ public class HtmlForm : IService
 
     [EventOccasion("When there was no sink")]
     public event CallForInteraction? OnException;
-    private static readonly Log 
+    private static readonly Log
         FormError = Log.Oops("Form {method} {url} didn't come in quite right"),
         FieldError = Log.Tech("On item {name} we got a failure:{result} due to value {value}");
     public void Enter(StampedMap constants, IInteraction interaction)
@@ -45,9 +45,9 @@ public class HtmlForm : IService
             return;
         }
 
-        var tsi = new TextSinkingInteraction(interaction, textEncoding: targetSink.TextEncoding);        
+        var tsi = new TextSinkingInteraction(interaction, textEncoding: targetSink.TextEncoding);
         OnThen?.Invoke(this, tsi);
-        var x = tsi.ReadAllText();        
+        var x = tsi.ReadAllText();
         HtmlDocument doc = new();
         doc.LoadHtml(x);
         var fieldset = ValidatingInputFieldSet.Parse(doc);
@@ -78,11 +78,16 @@ public class HtmlForm : IService
             {
                 parsedForm = new FormDataDictionary(queryString);
             }
+            else if (fieldset.Method == HttpMethod.Post
+                && interaction.TryGetClosest<ISourcingInteraction>(out var multipartSource)
+                && multipartSource != null
+                && fieldset.IsMultipartAndMatches(multipartSource.SourceContentTypePattern))
+            {
+
+            }
             else
             {
-                OnException?.Invoke(this,
-                    new CommonInteraction(interaction,
-                        "bad method or no data (note: HtmlForm does not support multipart; use HtmlFormPrepare and related services instead."));
+                OnException?.Invoke(this, interaction.AppendRegister("bad method or no data"));
                 return;
             }
 
