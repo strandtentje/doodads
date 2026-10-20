@@ -1,0 +1,196 @@
+﻿namespace Ziewaar.Web.Uploadserver;
+
+public class CommonMultipartUploadParserWorker : IDisposable
+{
+    private readonly FixedBufferPool Receiving, Processing;
+    private readonly VirtualInspectionBuffer Inspector;
+    private readonly IMultipartComponentIngestor Ingestor;
+    private readonly MultipartByteSequenceGovernor Boundaries;
+    private readonly MultipartParsingPositionsCollection Positions;
+    public bool IsDisposing { get; private set; }
+    public string Fault { get; private set; }
+
+    public CommonMultipartUploadParserWorker(
+        FixedBufferPool receiving, FixedBufferPool processing,
+        VirtualInspectionBuffer inspector,
+        IMultipartComponentIngestor ingestor)
+    {
+        this.Receiving = receiving;
+        this.Processing = processing;
+        this.Inspector = inspector;
+        this.Ingestor = ingestor;
+
+        this.Boundaries = new MultipartByteSequenceGovernor();
+        this.Positions = new MultipartParsingPositionsCollection();
+    }
+
+    public void ParserLoop(object arg)
+    {
+        byte[] currentBoundary;
+
+        while (!this.Inspector.IsEof && this.Ingestor.TryHaveBoundary(
+                   out currentBoundary) && !this.Processing.IsDisposing)
+        {
+            Boundaries.Rescope(currentBoundary);
+            if (TryPushBuffers())
+                ProcessNewBuffers();
+        }
+    }
+
+    private bool TryPushBuffers()
+    {
+        byte[] availableData;
+        int availableDataCount;
+        if (!this.Processing.TryDequeue(out availableData, out availableDataCount))
+            return false;
+
+        var reusableBuffer = this.Inspector.Push(availableData, availableDataCount);
+        if (reusableBuffer.Length > 0)
+            Receiving.Enqueue(reusableBuffer, reusableBuffer.Length);
+
+        return true;
+    }
+
+    private static readonly Log
+        FlushNoBoundary = Log.Tech(
+            "No boundaries between {start} and {end}"),
+        NoContentToFlush = Log.Warn(
+            "No content to flush, or no receptive field"),
+        BoundaryDetected = Log.Tech(
+            "Boundary detect"),
+        RemainingContent = Log.Tech(
+            "Boundary was preceeded by unflushed data");
+
+    private bool ProcessNewBuffers()
+    {
+        ByteSequenceNodeTag tag;
+        while (Positions.ConsumedUntil < this.Inspector.WindowEnd)
+        {
+            if (!this.Inspector.IndexOf(Boundaries.Current,
+                    Positions.ConsumedUntil,
+                    out Positions.BoundaryStart,
+                    out Positions.BoundaryEnd, out tag))
+            {
+                Log.Post(FlushNoBoundary, Positions.ConsumedUntil,
+                    this.Inspector.WindowEnd);
+                if (this.Ingestor.IsExpectingContent &&
+                    Positions.ContentStart > 0)
+                {
+                    var remainderStart = Math.Max(Positions.ContentStart,
+                        Positions.Break);
+                    FlushWindow(remainderStart, this.Inspector.WindowEnd);
+                }
+                else
+                {
+                    Log.Post(NoContentToFlush);
+                }
+                Positions.Break = this.Inspector.WindowEnd;
+                Boundaries.WithCrlf();
+            }
+            else
+            {
+                Log.Post(BoundaryDetected);
+                Positions.ContentEnd = Positions.BoundaryStart;
+                if (this.Ingestor.IsExpectingContent &&
+                    Positions.ContentStart > 0)
+                {
+                    Log.Post(RemainingContent);
+                    var remainderStart = Math.Max(Positions.ContentStart,
+                        Positions.Break);
+                    FlushWindow(remainderStart, Positions.ContentEnd);
+                }
+
+                if (!ProcessBoundary(tag))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private static readonly Log
+        ClosingBoundary = Log.Tech("Closing {boundary} detected"),
+        OpeningHeaders = Log.Tech("Header announcement detected"),
+        HeadersRead = Log.Tech("Multipart Headers {read}");
+
+    private bool ProcessBoundary(ByteSequenceNodeTag tag)
+    {
+        switch (tag)
+        {
+            case ByteSequenceNodeTag.DashDashBoundaryDashDash:
+                Log.Post(ClosingBoundary, this.Boundaries.BoundaryTree);
+                if (!this.Ingestor.TryRetireBoundary())
+                {
+                    Fault = "Closing boundary while there was no boundary";
+                    return false;
+                }
+                Boundaries.WithoutCrlf();
+                Positions.ContentStart = 0;
+                break;
+
+            case ByteSequenceNodeTag.DashDashBoundaryCrLf:
+                Log.Post(OpeningHeaders);
+                Positions.HeaderStart = Positions.BoundaryEnd;
+                if (!this.Inspector.IndexOf(
+                        ByteSequenceNode.DoubleCrlf, Positions.HeaderStart,
+                        out Positions.HeaderEnd, out Positions.ContentStart, out tag) ||
+                    tag != ByteSequenceNodeTag.SecondHeaderCrlf)
+                {
+                    Fault = string.Format(
+                        "Expected double CRLF denoting end of header " +
+                        "section, but it wasn't found at {0}",
+                        Positions.BoundaryEnd);
+                    return false;
+                }
+                else
+                {
+                    var headerString = this.Inspector.ExtractString(
+                        Positions.HeaderStart, Positions.HeaderEnd);
+                    Log.Post(HeadersRead, headerString);
+                    if (this.Ingestor.GiveHeaderString(headerString))
+                    {
+                        Boundaries.WithCrlf();
+                    }
+                    else
+                    {
+                        Fault = string.Format("Ingestor failed at; {0}",
+                            Positions.ConsumedUntil);
+                    }
+                }
+
+                break;
+
+            default:
+                Fault = string.Format(
+                    "Unexpected multipart directive; {0}",
+                    tag.ToString());
+                return false;
+        }
+        return true;
+    }
+
+    private void FlushWindow(long contentStart, long contentEnd)
+    {
+        var readingWindowDataStart = contentStart - this.Inspector.WindowOffset;
+        readingWindowDataStart = Math.Max(0, readingWindowDataStart);
+        var readingWindowDataEnd = contentEnd - this.Inspector.WindowOffset;
+        var readingWindowDataCount =
+            readingWindowDataEnd - readingWindowDataStart;
+
+        if (readingWindowDataCount > this.Inspector.ReadingWindow.Count)
+        {
+            throw new InvalidOperationException(
+                "Remaining data stretched outside ReadingWindow");
+        }
+        if (readingWindowDataCount > 0)
+        {
+            this.Ingestor.GiveBinaryData(
+                this.Inspector.ReadingWindow.Allocation,
+                (int)readingWindowDataStart, (int)readingWindowDataCount);
+        }
+    }
+
+    public void Dispose()
+    {
+        this.IsDisposing = true;
+    }
+}

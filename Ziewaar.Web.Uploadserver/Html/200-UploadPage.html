@@ -1,0 +1,18 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<title>Upload Form</title>
+    {% extrahead %}
+	</head>
+	<body>
+    {% startbody %}
+    <form method="post" enctype="multipart/form-data"
+          action="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=UPLOAD">
+      <label for="files">Select files to Upload</label>
+      <input type="file" name="files" multiple="multiple"/>
+      <!-- accept=".pdf,audio/*,video/*,image/*" -->
+      <input type="submit" value="Send" />
+    </form>
+    {% endbody %}
+	</body>
+</html>

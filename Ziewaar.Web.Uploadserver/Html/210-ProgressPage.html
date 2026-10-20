@@ -1,0 +1,15 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<title>Upload Form</title>
+    {% extrahead %}
+	</head>
+	<body>
+    {% startbody %}
+    <img src="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=PROGRESS" />
+    <iframe src="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=PAGE">
+      
+    </iframe>
+    {% endbody %}
+	</body>
+</html>
