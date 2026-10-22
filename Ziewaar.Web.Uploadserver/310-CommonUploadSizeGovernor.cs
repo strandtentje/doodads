@@ -3,11 +3,11 @@
 public class CommonUploadSizeGovernor : IUploadSizeGovernor
 {
     public const long KB = 1024, MB = KB * 1024, GB = MB * 1024, TB = GB * 1024;
-    public readonly long HardLimit, DiskSpaceLimit;
-    public CommonUploadSizeGovernor(long hardLimit, long diskSpaceLimit)
+    public readonly long HardLimit, RemainingDiskSpaceLimit;
+    public CommonUploadSizeGovernor(long hardLimit, long remainingDiskSpaceLimit)
     {
         this.HardLimit = hardLimit;
-        this.DiskSpaceLimit = diskSpaceLimit;
+        this.RemainingDiskSpaceLimit = remainingDiskSpaceLimit;
     }
     private static readonly Log NoDrive = Log.Oops(
         "Failed to find existing drive for {path}");
@@ -27,7 +27,7 @@ public class CommonUploadSizeGovernor : IUploadSizeGovernor
                 // another one for margin.
                 var spaceAfterUpload =
                     drive.AvailableFreeSpace - contentLength * 3;
-                return spaceAfterUpload > DiskSpaceLimit;
+                return spaceAfterUpload > RemainingDiskSpaceLimit;
             }
         }
 

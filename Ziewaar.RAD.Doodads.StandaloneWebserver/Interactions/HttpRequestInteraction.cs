@@ -15,5 +15,6 @@ public class HttpRequestInteraction(
     public IReadOnlyDictionary<string, object> Memory => parent.Memory;
     public IReadOnlyDictionary<string, string> ContentTypeProperties =>
         context.Request.ContentType.GetHeaderProperties();
+    public string FullContentTypeHeader => context.Request.ContentType ?? "application/octet-stream";
 }
 

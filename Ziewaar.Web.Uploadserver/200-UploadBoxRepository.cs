@@ -1,22 +1,27 @@
-﻿namespace Ziewaar.Web.Uploadserver;
+﻿using System.Runtime.InteropServices.ComTypes;
+
+namespace Ziewaar.Web.Uploadserver;
 
 public class UploadBoxRepository
 {
     private readonly object UploadBoxesLock = new object();
-    private readonly Dictionary<UploadBox, UploadBox> UploadBoxes 
-        = new Dictionary<UploadBox, UploadBox>(new UploadBoxComparerById());
+    private readonly Dictionary<string, Dictionary<string, UploadBox>> UploadBoxesBySession = new(StringComparer.OrdinalIgnoreCase);
 
-    public UploadBox Enter(string sessionId, string path, 
-        string[] acceptedFields)
+    public UploadBox Upsert(string sessionId, string path, string[] acceptedFields)
     {
         lock (UploadBoxesLock)
         {
-            var newBox = UploadBox.CreateFresh(sessionId, path, acceptedFields);
-            if (UploadBoxes.ContainsKey(newBox))
-                throw new InvalidOperationException(
-                    "Unexpectedly created a duplicate upload box");
-            UploadBoxes[newBox] = newBox;
-            return newBox;
+            if (!UploadBoxesBySession.TryGetValue(sessionId, out var sessionBoxes))
+                UploadBoxesBySession[sessionId] =
+                    sessionBoxes = new Dictionary<string, UploadBox>(StringComparer.OrdinalIgnoreCase);
+
+            if (sessionBoxes.Values.FirstOrDefault(x => x.IsVirgin) is not { } ub)
+            {
+                ub = UploadBox.CreateFresh(sessionId, path, acceptedFields);
+                sessionBoxes[ub.UploadBoxId] = ub;
+            }
+
+            return ub;
         }
     }
 
@@ -25,7 +30,11 @@ public class UploadBoxRepository
         lock (UploadBoxesLock)
         {
             result = UploadBox.CreateFinder(sessionId, uploadId);
-            return UploadBoxes.TryGetValue(result, out result);
+            if (!UploadBoxesBySession.TryGetValue(sessionId, out var uploadBoxes))
+                return false;
+            if (!uploadBoxes.TryGetValue(uploadId, out result))
+                return false;
+            return true;
         }
     }
 
@@ -33,7 +42,8 @@ public class UploadBoxRepository
     {
         lock (UploadBoxesLock)
         {
-            UploadBoxes.Remove(u);
+            if (UploadBoxesBySession.TryGetValue(u.SessionId, out var sessionBoxes))
+                sessionBoxes.Remove(u.UploadBoxId);
             u.Dispose();
         }
     }

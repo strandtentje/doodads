@@ -1,12 +1,29 @@
-﻿namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
+﻿using Ejije.Logging;
+using Ziewaar.Web.Uploadserver.Interfaces;
 
-public class ValidatingInputFieldSet(HttpMethod method, string route, FormContentType type) : IValidatingInputFieldSet
+namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
+
+public class ValidatingInputFieldSet(HttpMethod method, string route, FormContentType type)
+    : IValidatingInputFieldSet, IContentTypeValidator
 {
     private readonly List<IValidatingInputField> fieldIngestors = new();
     public FormContentType Type => type;
     public HttpMethod Method => method;
     public IEnumerable<string> FieldNames => fieldIngestors.Select(x => x.Name);
     public override string ToString() => $"{method} {route}";
+
+    public IReadOnlySet<string> AllValidFileMimeTypes => field ??=
+        fieldIngestors.OfType<ValidatingFile>()
+            .SelectMany(fileValidator => fileValidator.AcceptedFileTypes.Select(fileType => fileType.mimeType))
+            .Distinct().ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly Log NoMimes = Log.Warn("file upload was attempted, but form had no accepted file types");
+    
+    public bool TryValidateContentType(string contentType)
+    {
+        Log.Post(NoMimes);
+        return AllValidFileMimeTypes.Contains(contentType);
+    }
 
     public void ApplyObfuscation(ICsrfFields fields)
     {
@@ -29,8 +46,8 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
             ValidatingEmailPicker.TryInsertInto(node, this) ||
             ValidatingCheckbox.TryInsertInto(node, this) ||
             ValidatingColorPicker.TryInsertInto(node, this) ||
-            ValidatingRadio.TryInsertInto(node, this) || 
-            ValidatingFile.TryInsertInto)
+            ValidatingRadio.TryInsertInto(node, this) ||
+            ValidatingFile.TryInsertInto(node, this))
         {
             return;
         }
@@ -53,6 +70,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
         if (Type != FormContentType.Multipart) return false;
         return contentType == URL_ENCODED_CONTENT_TYPE;
     }
+
     public static ValidatingInputFieldSet Parse(HtmlDocument document)
     {
         var formNode = document.DocumentNode.SelectSingleNode("//form");
@@ -78,10 +96,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
             fieldset.ParseAndMergeNode(inputElement);
         foreach (var item in fieldset.fieldIngestors)
         {
-            item.NameChanged += (s, e) =>
-            {
-                formNode.ChangeLabelNames(e.oldName, e.newName);
-            };
+            item.NameChanged += (s, e) => { formNode.ChangeLabelNames(e.oldName, e.newName); };
         }
 
         return fieldset;
@@ -89,6 +104,9 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
 
     public void Merge(IValidatingInputFieldInSet fieldInSet)
     {
+        if (fieldInSet is ValidatingFile && this.Type != FormContentType.Multipart)
+            throw new InvalidOperationException("file field can only be used in multipart form");
+
         fieldInSet.MinExpectedValues = fieldInSet.IsRequired ? 1 : 0;
         fieldInSet.MaxExpectedValues = fieldInSet.IsMaxUnbound ? short.MaxValue : 1;
         if (fieldIngestors.SingleOrDefault(x => x.Name == fieldInSet.Name) is not IValidatingInputField existingField)

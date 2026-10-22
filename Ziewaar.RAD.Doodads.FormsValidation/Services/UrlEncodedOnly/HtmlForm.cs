@@ -1,10 +1,37 @@
 using Ejije.Logging;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
 using Ziewaar.Web.Uploadserver;
+using Ziewaar.Web.Uploadserver.Models;
 
 #pragma warning disable 67
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
+
+public record UploadDirectoryAssignment(string directory, long preserveDiskSpace);
+
+[Category("Input & Validation")]
+[Title("Set upload directory on html form")]
+[Description("In register or primary constant, provide the upload directory that succeeding htmlforms should use.")]
+public class UploadDirectory : BasicService
+{
+    public override event CallForInteraction? OnThen;
+    private static readonly UploadBoxRepository UboxRepo = new UploadBoxRepository();
+    public override void TryEnter(StampedMap constants, IInteraction interaction)
+    {
+        BasicException.ForInteraction(interaction, out ICsrfTokenSourceInteraction csrfToken);
+        
+        var directory = this.DirectoryFromPrimaryOrRegister(constants, interaction);
+        
+        UboxRepo.Upsert(csrfToken.RawCsrfCookie, directory, 
+
+        var freeDiskString = this.Named(constants, "freedisk");
+        
+        if (string.IsNullOrWhiteSpace(freeDiskString) || !freeDiskString.TryParseByteSize(out var remainingDiskSpace))
+            remainingDiskSpace = 8L * 1024L * 1024L * 1024L;
+        
+        OnThen?.Invoke(this, interaction.AppendCustom(new UploadDirectoryAssignment(directory, remainingDiskSpace)));
+    }
+}
 
 [Category("Input & Validation")]
 [Title("Parse and Validate HTML form")]
@@ -21,6 +48,8 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 [ShortNames("hfrm")]
 public class HtmlForm : IService
 {
+    private readonly UpdatingKeyValue MaxPostSize = new UpdatingKeyValue("maxsize");
+
     [EventOccasion("Sink the form text here.")]
     public event CallForInteraction? OnThen;
 
@@ -34,9 +63,11 @@ public class HtmlForm : IService
 
     [EventOccasion("When there was no sink")]
     public event CallForInteraction? OnException;
+
     private static readonly Log
         FormError = Log.Oops("Form {method} {url} didn't come in quite right"),
         FieldError = Log.Tech("On item {name} we got a failure:{result} due to value {value}");
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<ISinkingInteraction>(out var targetSink) || targetSink == null)
@@ -57,6 +88,11 @@ public class HtmlForm : IService
             ? csrf.Fields
             : null;
 
+        if (!constants.NamedItems.TryGetValue("maxsize", out var maxSizeStringCandidate) ||
+            maxSizeStringCandidate is not string maxSizeString || string.IsNullOrWhiteSpace(maxSizeString) ||
+            !maxSizeString.TryParseByteSize(out var maxContentLength))
+            maxContentLength = 4 * 1024 * 1024;
+        
         if (interaction.TryFindVariable<string>("method", out string? candidateMethod) && candidateMethod != null &&
             interaction.TryFindVariable<string>("url", out string? candiateUrl) && candiateUrl != null &&
             fieldset.IsValidationRequired(candidateMethod, candiateUrl))
@@ -67,11 +103,38 @@ public class HtmlForm : IService
                 && bodySource != null
                 && fieldset.IsUrlEncodedAndMatches(bodySource.SourceContentTypePattern))
             {
-                using (var reader = new StreamReader(bodySource.SourceBuffer, bodySource.TextEncoding))
+                if (maxContentLength > 16 * 1024 * 1024)
                 {
-                    string urlEncoded = reader.ReadToEnd();
-                    parsedForm = new FormDataDictionary(urlEncoded);
+                    OnException?.Invoke(this,
+                        interaction.AppendRegister("max size of regular url encoded form may not exceed 16mb"));
+                    return;
                 }
+                else if (bodySource.SourceContentLength > maxContentLength)
+                {
+                    OnInvalid?.Invoke(this, interaction.AppendRegister("too big a form announced"));
+                    return;
+                }
+
+                byte[] fullPostBody = new byte[(int)bodySource.SourceContentLength];
+                byte[] partPostBody = new byte[4096];
+                int dataRead = 0;
+
+                for (var partRead = bodySource.SourceBuffer.Read(partPostBody, 0, partPostBody.Length);
+                     (dataRead + partRead) <= bodySource.SourceContentLength && partRead != 0;
+                     partRead = bodySource.SourceBuffer.Read(partPostBody, 0, partPostBody.Length))
+                {
+                    Array.Copy(partPostBody, 0, fullPostBody, dataRead, partRead);
+                    dataRead += partRead;
+                }
+
+                if (dataRead != bodySource.SourceContentLength)
+                {
+                    OnInvalid?.Invoke(this, interaction.AppendRegister("content-length not satisfied"));
+                    return;
+                }
+
+                string formText = bodySource.TextEncoding.GetString(fullPostBody);
+                parsedForm = new FormDataDictionary(formText);
             }
             else if (fieldset.Method == HttpMethod.Get
                      && interaction.TryFindVariable<string>("query", out string? queryString) && queryString != null
@@ -80,13 +143,31 @@ public class HtmlForm : IService
                 parsedForm = new FormDataDictionary(queryString);
             }
             else if (fieldset.Method == HttpMethod.Post
-                && interaction.TryGetClosest<ISourcingInteraction>(out var multipartSource)
-                && multipartSource != null
-                && fieldset.IsMultipartAndMatches(multipartSource.SourceContentTypePattern))
+                     && interaction.TryGetClosest<ISourcingInteraction>(out var multipartSource)
+                     && multipartSource is IHttpIncomingRequestInteraction requestInteraction
+                     && fieldset.IsMultipartAndMatches(multipartSource.SourceContentTypePattern))
             {
+                if (!interaction.TryGetCustom<UploadDirectoryAssignment>(out var target) || target == null)
+                {
+                    OnException?.Invoke(this,
+                        interaction.AppendRegister("file upload form must be preceeded with uploaddirectory service."));
+                    return;
+                }
+
                 var recv = new CommonUploadReceiver(
-                    new DiskConstrainedSizeGovernor(), 
-                    new CommonMultipartUploadParserFactory()
+                    new CommonUploadSizeGovernor(maxContentLength, target.preserveDiskSpace),
+                    new CommonMultipartUploadParserFactory(fieldset));
+                var upbox = UploadBox.CreateOrphan(target.directory, [.. fieldset.FieldNames]);
+                if (!recv.TryValidateUpload(requestInteraction.FullContentTypeHeader,
+                        requestInteraction.SourceContentLength,
+                        upbox, out var preValidationState))
+                {
+                    OnInvalid?.Invoke(this, interaction.AppendRegister($"upload form start fail {preValidationState}"));
+                    return;
+                }
+                
+                recv.TryReceiveUpload(multipartSource.SourceBuffer, upbox)
+
             }
             else
             {

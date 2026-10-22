@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Ejije.Logging;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary;
 
@@ -83,6 +84,24 @@ public static class ByteSizeParsingExtensions
 
         _ => throw new FormatException("Invalid byte size marker"),
     };
+
+    private static readonly Log ByteSizeParseFailed = Log.Warn("Failed to parse bytesize");
+    
+    public static bool TryParseByteSize(this string input, out long byteSize)
+    {
+        try
+        {
+            byteSize = input.ParseByteSize();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Post(ByteSizeParseFailed);
+            byteSize = 0L;
+            return false;
+        }
+    }
+
     public static long ParseByteSize(this string input)
     {
         if (string.IsNullOrWhiteSpace(input))
