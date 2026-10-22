@@ -3,7 +3,13 @@
 public class CommonUploadSizeGovernor : IUploadSizeGovernor
 {
     public const long KB = 1024, MB = KB * 1024, GB = MB * 1024, TB = GB * 1024;
-    public readonly long HardLimit, DiskSpaceLimit;
+    public long HardLimit = 8L * 1024L * 1024L, DiskSpaceLimit = 16L * 1024L * 1024L * 1024L;
+
+    public CommonUploadSizeGovernor()
+    {
+
+    }
+
     public CommonUploadSizeGovernor(long hardLimit, long diskSpaceLimit)
     {
         this.HardLimit = hardLimit;

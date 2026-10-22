@@ -1,4 +1,6 @@
-﻿#pragma warning disable 67
+﻿using System.Runtime.CompilerServices;
+
+#pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 
 public static class MimeMapping
@@ -16,21 +18,56 @@ public static class MimeMapping
     }
 
     private static Dictionary<string, string>? reverseMapping;
+
     public static Dictionary<string, string> MimeTypeToExtension
     {
         get
         {
             if (reverseMapping != null) return reverseMapping;
             reverseMapping = new();
-            foreach (KeyValuePair<string,MimeTypeInfo> keyValuePair in ExtensionToMimeType)
+            foreach (KeyValuePair<string, MimeTypeInfo> keyValuePair in ExtensionToMimeType)
             {
                 if (!reverseMapping.ContainsKey(keyValuePair.Value.MimeType))
                     reverseMapping[keyValuePair.Value.MimeType] = keyValuePair.Key;
             }
+
             return reverseMapping;
         }
     }
-    
+
+    public static IEnumerable<(string mimeType, string extension)> ExpandMixedBag(string[] mixedBag)
+    {
+        foreach (var extensionOrMime in mixedBag)
+        {
+            if (extensionOrMime.StartsWith(".") &&
+                ExtensionToMimeType.TryGetValue(extensionOrMime.TrimStart('.'), out var mti))
+            {
+                yield return (mti.MimeType, extensionOrMime);
+            }
+            else if (extensionOrMime.Contains("/"))
+            {
+                var halves = extensionOrMime.Split(['/'], 2, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim()).ToArray();
+                var mimeClass = halves.ElementAtOrDefault(0);
+                var subClass = halves.ElementAtOrDefault(1);
+                if (string.IsNullOrWhiteSpace(mimeClass) || string.IsNullOrWhiteSpace(subClass))
+                    continue;
+                if (subClass == "*")
+                {
+                    foreach (var mapping in ExtensionToMimeType)
+                    {
+                        if (mapping.Value.MimeType.StartsWith(mimeClass, StringComparison.OrdinalIgnoreCase))
+                            yield return (mapping.Value.MimeType, $".{mapping.Key}");
+                    }
+                }
+                else if (MimeTypeToExtension.TryGetValue(extensionOrMime, out var extensionWithoutDot))
+                {
+                    yield return (extensionOrMime, $".{extensionWithoutDot}");
+                }
+            }
+        }
+    }
+
     public static readonly Dictionary<string, MimeTypeInfo> ExtensionToMimeType =
         new(StringComparer.OrdinalIgnoreCase)
         {

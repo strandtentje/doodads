@@ -3,7 +3,7 @@
 public class MultipartMultipleFileResult : IMultipartComponentResult
 {
     public readonly string FieldName, TargetDirectory, InnerBoundary;
-    private readonly List<MultipartSingleFileResult> UnfinishedSubfiles = 
+    public readonly List<MultipartSingleFileResult> UnfinishedSubfiles = 
         new List<MultipartSingleFileResult>();
     private MultipartSingleFileResult CurrentFile = null;
     private string _backingFault = null;

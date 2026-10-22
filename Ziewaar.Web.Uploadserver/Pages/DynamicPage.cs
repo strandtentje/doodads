@@ -18,19 +18,25 @@ public class DynamicPage
         IPlaceholderResolver resolver)
     {
         long contentLength = 0;
+        response.ContentEncoding ??= Encoding.UTF8;
         foreach (var inst in Instructions)
         {
             if (inst.IsPlaceholder)
-                contentLength += resolver.GetByteLengthFor(inst.GetComponent());
+                contentLength += resolver.GetByteLengthFor(response.ContentEncoding, inst.GetComponent());
             else
                 contentLength += inst.GetVerbatimBytes().Length;
         }
-        response.ContentLength64 = contentLength;
-        response.ContentType = "text/html";
+
+        if (resolver.IsVirgin)
+        {
+            response.ContentLength64 = contentLength;
+            response.ContentType ??= "text/html";
+        }
+
         foreach (var inst in Instructions)
         {
             if (inst.IsPlaceholder)
-                resolver.WriteBytesFor(inst.GetComponent(), response.OutputStream);
+                resolver.WriteBytesFor(Encoding.UTF8, inst.GetComponent(), response.OutputStream);
             else
             {
                 var b = inst.GetVerbatimBytes();

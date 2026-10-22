@@ -5,30 +5,29 @@ namespace Ziewaar.Web.Uploadserver;
 public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
 {
     private readonly Stack<byte[]> Boundaries = new Stack<byte[]>();
+
     private readonly List<IMultipartComponentResult> FinishableResults =
         new List<IMultipartComponentResult>();
+
     private IMultipartComponentResult UnfinishedResult;
     private readonly string[] AcceptedFields;
     private readonly string TargetDirectory;
-    private readonly IContentTypeValidator ContentTypeValidator;
+    private readonly IUploadValidator UploadValidator;
 
     public CommonMultipartComponentIngestor(byte[] boundary,
         string targetDirectory, string[] acceptedFields,
-        IContentTypeValidator contentTypeValidator)
+        IUploadValidator uploadValidator)
     {
         this.Boundaries.Push(boundary);
         this.TargetDirectory = targetDirectory;
         this.AcceptedFields = acceptedFields;
         this.UnfinishedResult = new FormStartComponentResult();
-        this.ContentTypeValidator = contentTypeValidator;
+        this.UploadValidator = uploadValidator;
     }
 
     public bool IsExpectingContent
     {
-        get
-        {
-            return UnfinishedResult.IsExpectingContent;
-        }
+        get { return UnfinishedResult.IsExpectingContent; }
     }
 
     public bool TryHaveBoundary(out byte[] boundary)
@@ -47,8 +46,7 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
 
     public bool GiveHeaderString(string headerString)
     {
-        var finish = FinishableResults.
-            OfType<MultipartFinishedResult>().SingleOrDefault();
+        var finish = FinishableResults.OfType<MultipartFinishedResult>().SingleOrDefault();
 
         if (finish != null)
             throw new InvalidOperationException("cannot finish this twice");
@@ -85,6 +83,7 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
                 "Missing name from content disposition"));
             return false;
         }
+
         var fileName = contentDispositionHeader.GetPropValueCI("filename");
         if (fileName == null && contentTypeHeader == null)
         {
@@ -92,12 +91,15 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             UnfinishedResult = new MultipartInputFieldResult(fieldName);
             return true;
         }
+
         var contentType = contentTypeHeader.MainValue;
         var isMultiMixed = StringComparer.OrdinalIgnoreCase.Equals(
             contentType, "multipart/mixed");
         if (!string.IsNullOrEmpty(fileName) && !isMultiMixed)
         {
-            if (ContentTypeValidator.TryValidateContentType(contentType))
+            var fileCount = FinishableResults.OfType<MultipartSingleFileResult>().Count();
+            fileCount += FinishableResults.OfType<MultipartMultipleFileResult>().Sum(x => x.UnfinishedSubfiles.Count);
+            if (UploadValidator.TryValidate(contentType, fileCount + 1))
             {
                 FinishableResults.Add(UnfinishedResult);
                 UnfinishedResult = MultipartSingleFileResult.CreateFor(
@@ -107,10 +109,11 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             else
             {
                 FinishableResults.Add(new MultipartComponentFaultyResult(
-                    "Invalid content type"));
+                    "Invalid content type or too many files"));
                 return false;
             }
         }
+
         var innerBoundary = contentTypeHeader.GetPropValueCI("boundary").Trim();
         if (isMultiMixed && !string.IsNullOrEmpty(innerBoundary))
         {
@@ -136,13 +139,17 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
                 "Multi-file multpart component without appropriate field"));
             return false;
         }
+
         var contentType = contentTypeHeader.MainValue;
-        if (!ContentTypeValidator.TryValidateContentType(contentType))
+        var fileCount = FinishableResults.OfType<MultipartSingleFileResult>().Count();
+        fileCount += FinishableResults.OfType<MultipartMultipleFileResult>().Sum(x => x.UnfinishedSubfiles.Count);
+        if (!UploadValidator.TryValidate(contentType, fileCount + 1))
         {
             FinishableResults.Add(new MultipartComponentFaultyResult(
-                "Illegal content type"));
+                "Illegal content type or too many files"));
             return false;
         }
+
         var fileName = contentDispositionHeader.GetPropValueCI("filename").Trim();
         if (string.IsNullOrEmpty(fileName))
         {
@@ -150,6 +157,7 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
                 "Missing filename on subfile"));
             return false;
         }
+
         if (asMultiFile.TryPush(contentType, fileName))
         {
             return true;
@@ -179,6 +187,7 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
                 "Attempted to retire boundary without having boundaries"));
             return false;
         }
+
         var retiredBoundary = Boundaries.Pop();
         var asMultiFile = UnfinishedResult as MultipartMultipleFileResult;
         if (asMultiFile != null)
@@ -197,12 +206,14 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
                 return true;
             }
         }
+
         if (Boundaries.Count > 0)
         {
             FinishableResults.Add(new MultipartComponentFaultyResult(
                 "Unexpected boundaries unclosed"));
             return false;
         }
+
         return true;
     }
 

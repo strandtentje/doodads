@@ -2,7 +2,8 @@
 
 public interface IPlaceholderResolver
 {
-    long GetByteLengthFor(string p);
+    long GetByteLengthFor(Encoding encoding, string p);
 
-    void WriteBytesFor(string p, System.IO.Stream stream);
+    void WriteBytesFor(Encoding encoding, string p, Stream stream);
+    bool IsVirgin { get; }
 }

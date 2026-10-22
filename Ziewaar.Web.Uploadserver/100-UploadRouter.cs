@@ -1,5 +1,31 @@
 ﻿namespace Ziewaar.Web.Uploadserver;
 
+[Flags]
+public enum UploadRoutingState
+{
+    Failure = 0b1000_0000_0000,
+    Success = 0b0000_0000_0000,
+    MakeBox = 0b0100_0000_0000,
+
+    NoUploadMustMake = 1 | Failure | MakeBox,
+    ExpiredMustMake = 4 | Failure | MakeBox,
+    TaintedMustMake = 5 | Failure | MakeBox,
+    
+    BadMethod = 2 | Failure,
+    BadRequest = 3 | Failure,
+    BadFunction = 6 | Failure,
+    BadStart = 7 | Failure,
+    ConflictingUpload = 8 | Failure,
+    TooBig = 9 | Failure,
+    UnknownFailure = 10 | Failure,
+    UploadFailed = 11 | Failure,
+
+    UploadFunctionOk = 50 | Success,
+    FormOk = 51 | Success,
+    ProgressOk = 52 | Success,
+    UploadDone = 53 | Success,
+}
+
 public class UploadRouter
 {
     private readonly ISessionSourcer SessionSourcer;
@@ -7,6 +33,7 @@ public class UploadRouter
     private readonly IProgressGrapher ProgressGrapher;
     private readonly IUploadReceiver Receiver;
     private readonly UploadBoxRepository UploadBoxes;
+
     public UploadRouter(
         ISessionSourcer sessionSourcer,
         IPlaceholderResolver fallbackResolver,
@@ -21,131 +48,107 @@ public class UploadRouter
         this.UploadBoxes = uploadBoxes;
     }
 
-    public void Route(HttpListenerRequest req, HttpListenerResponse rsp)
-    {
-        switch (req.HttpMethod.ToUpper())
+    public UploadRoutingState Route(HttpListenerRequest req, HttpListenerResponse rsp) =>
+        req.HttpMethod.ToUpper() switch
         {
-            case "GET":
-                RouteGet(req, rsp);
-                break;
-            case "POST":
-                RoutePost(req, rsp);
-                break;
-            default:
-                rsp.WriteUtf8Bytes(405, StaticPages.Instance.Pg100BadMethod);
-                break;
-        }
-    }
+            "GET" => RouteGet(req, rsp),
+            "POST" => RoutePost(req),
+            _ => UploadRoutingState.BadMethod
+        };
+
     private static readonly string EmptyGuid = Guid.Empty.ToString();
 
     private bool ValidateUploadFunction(
-        HttpListenerRequest req, HttpListenerResponse rsp,
-        out string functionId, out UploadBox selectedUploadBox)
+        HttpListenerRequest req,
+        out string functionId, out UploadBox selectedUploadBox, out UploadRoutingState routingState)
     {
         var sessionId = this.SessionSourcer.GetSessionIdFor(req);
         var uploadBoxId = req.QueryString["uploadBoxId"];
         functionId = req.QueryString["functionId"];
-        selectedUploadBox = null;
+        selectedUploadBox = UploadBox.CreateOrphan("", Array.Empty<string>());
         if (string.IsNullOrEmpty(uploadBoxId) ||
-            uploadBoxId.Length != EmptyGuid.Length ||
-            string.IsNullOrEmpty(functionId) ||
+            string.IsNullOrEmpty(functionId))
+        {
+            routingState = UploadRoutingState.NoUploadMustMake;
+            return false;
+        }
+
+        if (uploadBoxId.Length != EmptyGuid.Length ||
             functionId.Length < 4 ||
             functionId.Length > 10)
         {
-            rsp.WriteUtf8Bytes(400, StaticPages.Instance.Pg110BadGetRequest);
+            routingState = UploadRoutingState.BadRequest;
             return false;
         }
-        else if (!UploadBoxes.TryPeek(sessionId, uploadBoxId, 
+        else if (!UploadBoxes.TryPeek(sessionId, uploadBoxId,
                      out selectedUploadBox))
         {
-            rsp.WriteUtf8Bytes(410, StaticPages.Instance.Pg120UploaderGone);
+            routingState = UploadRoutingState.ExpiredMustMake;
             return false;
         }
         else
         {
             functionId = functionId.Trim().ToUpper();
+            routingState = UploadRoutingState.UploadFunctionOk;
             return true;
         }
     }
 
-    private void RouteGet(HttpListenerRequest req, HttpListenerResponse rsp)
+    private UploadRoutingState RouteGet(HttpListenerRequest req, HttpListenerResponse rsp)
     {
-        string functionId;
-        UploadBox selectedUploadBox;
-        if (!ValidateUploadFunction(req, rsp, out functionId, 
-                out selectedUploadBox))
-            return;
+        if (!ValidateUploadFunction(req, out var functionId,
+                out var selectedUploadBox, out var state))
+            return state;
 
         switch (functionId)
         {
-            case "PAGE":
-                if (selectedUploadBox.ValidateUntainted())
-                {
-                    var placeHolders = new UploadBoxSpecificResolver(
-                        selectedUploadBox, FallbackResolver);
-                    DynamicPages.UploadForm.Render(
-                        rsp, placeHolders);
-                }
-                else
-                {
-                    throw new NotImplementedException(
-                        "TODO: Implement redirect upon active upload");
-                }
-                break;
-            case "PROGRESS":
-                this.ProgressGrapher.Run(selectedUploadBox, rsp);
-                break;
-            case "COMBO":
-                var placeHolders2 = new UploadBoxSpecificResolver(
-                    selectedUploadBox, FallbackResolver);
-                DynamicPages.ProgressPage.Render(
-                    rsp, placeHolders2);
+            case "PAGE" when !selectedUploadBox.ValidateUntainted():
+                return UploadRoutingState.TaintedMustMake;
 
-                break;
+            case "PAGE":
+                var placeHolders = new UploadBoxSpecificResolver(selectedUploadBox, FallbackResolver);
+                DynamicPages.UploadForm.Render(rsp, placeHolders);
+                return UploadRoutingState.FormOk;
+
+            case "PROGRESS":
+                ProgressGrapher.Run(selectedUploadBox, rsp);
+                return UploadRoutingState.ProgressOk;
+
             default:
-                rsp.WriteUtf8Bytes(400, 
-                    StaticPages.Instance.Pg130BadGetFunction);
-                break;
+                return UploadRoutingState.BadFunction;
         }
     }
-    private void RoutePost(HttpListenerRequest req, HttpListenerResponse rsp)
+
+    private UploadRoutingState RoutePost(HttpListenerRequest req)
     {
-        if (!ValidateUploadFunction(req, rsp, out var functionId, 
-                out var selectedUploadBox))
-            return;
+        if (!ValidateUploadFunction(req, out var functionId,
+                out var selectedUploadBox, out var urs))
+            return urs;
 
-        switch (functionId)
+        if (functionId != "UPLOAD") return UploadRoutingState.BadFunction;
+
+        try
         {
-            case "UPLOAD":
-                // we will always dispose the uploadBox after upload.
-                using (selectedUploadBox)
-                {
-                    if (!this.Receiver.TryValidateUpload(req.ContentType, req.ContentLength64,
-                            selectedUploadBox, out var state))
-                    {
-                        switch (state)
-                        {
-                            case PreValidationState.BadStart:
-                                rsp.WriteUtf8Bytes(400, StaticPages.Instance.Pg140BadUploadStart);
-                                return;
-                            case PreValidationState.AlreadyUploading:
-                                rsp.WriteUtf8Bytes(409, StaticPages.Instance.Pg150ConflictingUpload);
-                                return;
-                            case PreValidationState.TooBig:
-                                rsp.WriteUtf8Bytes(413, StaticPages.Instance.Pg160UploadTooBig);
-                                return;
-                            case PreValidationState.NoFaults:
-                            default:
-                                return;
-                        }
-                    }
+            using (selectedUploadBox)
+            {
+                if (this.Receiver.TryValidateUpload(req.ContentType, req.ContentLength64,
+                        selectedUploadBox, out var state))
+                    return this.Receiver.TryReceiveUpload(req.InputStream, selectedUploadBox)
+                        ? UploadRoutingState.UploadDone
+                        : UploadRoutingState.UploadFailed;
 
-                    if (!this.Receiver.TryReceiveUpload(req.InputStream, selectedUploadBox))
-                        return;
-                }
-                break;
-            default:
-                break;
+                return state switch
+                {
+                    PreValidationState.BadStart => UploadRoutingState.BadStart,
+                    PreValidationState.AlreadyUploading => UploadRoutingState.ConflictingUpload,
+                    PreValidationState.TooBig => UploadRoutingState.TooBig,
+                    _ => UploadRoutingState.UnknownFailure
+                };
+            }
+        }
+        finally
+        {
+            this.UploadBoxes.Remove(selectedUploadBox);
         }
     }
 }

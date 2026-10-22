@@ -2,11 +2,11 @@
 
 public class CommonMultipartUploadParserFactory : IMultipartUploadParserFactory
 {
-    private readonly IContentTypeValidator ContentTypeValidator;
+    private readonly IUploadValidator UploadValidator;
     public CommonMultipartUploadParserFactory(
-        IContentTypeValidator contentTypeValidator)
+        IUploadValidator uploadValidator)
     {
-        this.ContentTypeValidator = contentTypeValidator;
+        this.UploadValidator = uploadValidator;
     }
     public IMultipartUploadParser Create(
         byte[] boundary, string targetDirectory, string[] acceptedFields)
@@ -14,7 +14,7 @@ public class CommonMultipartUploadParserFactory : IMultipartUploadParserFactory
         var forReceiving = FixedBufferPool.CreatePreAllocated(6, 2 * 1024);
         var forProcessing = new FixedBufferPool(6);
         var ingestor = new CommonMultipartComponentIngestor(
-            boundary, targetDirectory, acceptedFields, ContentTypeValidator);
+            boundary, targetDirectory, acceptedFields, UploadValidator);
         return new CommonMultipartUploadParser(
             forReceiving, forProcessing, ingestor);
     }

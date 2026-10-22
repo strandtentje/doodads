@@ -83,6 +83,7 @@ public static class ByteSizeParsingExtensions
 
         _ => throw new FormatException("Invalid byte size marker"),
     };
+    
     public static long ParseByteSize(this string input)
     {
         if (string.IsNullOrWhiteSpace(input))

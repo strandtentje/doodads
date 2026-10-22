@@ -4,28 +4,33 @@ public class UploadBoxSpecificResolver : IPlaceholderResolver
 {
     private readonly UploadBox BackingBox;
     private readonly IPlaceholderResolver Fallback;
-    private readonly byte[] GuidAsUtf8;
     private const string UPLOAD_BOX_ID = "uploadBoxId";
-    public UploadBoxSpecificResolver(UploadBox backingBox, 
+
+    public UploadBoxSpecificResolver(UploadBox backingBox,
         IPlaceholderResolver fallback)
     {
         this.BackingBox = backingBox;
         this.Fallback = fallback;
-        this.GuidAsUtf8 = Encoding.UTF8.GetBytes(backingBox.UploadBoxId);
     }
-    public long GetByteLengthFor(string p)
+    
+    public long GetByteLengthFor(Encoding encoding, string p)
     {
         if (StringComparer.Ordinal.Equals(p, UPLOAD_BOX_ID))
-            return this.GuidAsUtf8.Length;
+            return encoding.GetByteCount(this.BackingBox.UploadBoxId);
         else
-            return this.Fallback.GetByteLengthFor(p);
+            return this.Fallback.GetByteLengthFor(encoding, p);
     }
 
-    public void WriteBytesFor(string p, Stream stream)
+    public void WriteBytesFor(Encoding encoding, string p, Stream stream)
     {
         if (StringComparer.Ordinal.Equals(p, UPLOAD_BOX_ID))
-            stream.Write(GuidAsUtf8, 0, GuidAsUtf8.Length);
+        {
+            var guidStringBytes = encoding.GetBytes(this.BackingBox.UploadBoxId);
+            stream.Write(guidStringBytes, 0, guidStringBytes.Length);
+        }
         else
-            Fallback.WriteBytesFor(p, stream);
+            Fallback.WriteBytesFor(encoding, p, stream);
     }
+
+    public bool IsVirgin => Fallback.IsVirgin;
 }
