@@ -6,4 +6,5 @@ public interface IHttpOutgoingResponseInteraction : ISinkingInteraction
     int StatusCode { get; set; }
     void RedirectTo(string url, bool preservePost = false);
     void SetCacheControl(string value);
+    void SetKeepAlive(bool ka);
 }

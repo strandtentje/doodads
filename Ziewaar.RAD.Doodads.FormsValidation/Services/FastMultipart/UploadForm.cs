@@ -1,5 +1,6 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System.Security.Cryptography;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
@@ -150,8 +151,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
     }
 
     void IProgressGrapher.Run(UploadBox selectedUploadBox, IHttpLifecycleWrapper lifecycle)
-    {
-        using var blocker = new EventWaitHandle(false, EventResetMode.ManualReset);
+    {        
         using var image = new Image<Rgba32>(BarWidth, BarHeight);
         lifecycle.Bypass();
         lifecycle.TrySetResponseHeader(-1, "multipart/x-mixed-replace; boundary=PROGRESS");
@@ -160,6 +160,14 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
 
         lifecycle.ResponseStream.Write(BareBoundaryBytes, 0, BareBoundaryBytes.Length);
         lifecycle.ResponseStream.Write(CrlfBytes, 0, CrlfBytes.Length);
+        
+        while(selectedUploadBox.TryWaitForFinish(out var msg))
+        {
+            image.Mutate(x =>
+            {
+                
+            });
+        }
     }
 
     bool IUploadValidator.TryValidate(string contentType, int fileCount) =>

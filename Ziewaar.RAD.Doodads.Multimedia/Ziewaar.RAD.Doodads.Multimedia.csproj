@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.17.1" />
+      <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="15.0.0" />
       <PackageReference Include="TagLibSharp" Version="2.3.0" />
     </ItemGroup>
 
