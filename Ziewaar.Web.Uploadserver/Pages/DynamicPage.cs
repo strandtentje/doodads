@@ -14,33 +14,29 @@ public class DynamicPage
             new DynamicPageInstructionEnumerable(
                 file));
     }
-    public void Render(HttpListenerResponse response,
+    public void Render(IHttpLifecycleWrapper lifecycle,
         IPlaceholderResolver resolver)
     {
         long contentLength = 0;
-        response.ContentEncoding ??= Encoding.UTF8;
+        lifecycle.ResponseEncoding ??= Encoding.UTF8;
         foreach (var inst in Instructions)
         {
             if (inst.IsPlaceholder)
-                contentLength += resolver.GetByteLengthFor(response.ContentEncoding, inst.GetComponent());
+                contentLength += resolver.GetByteLengthFor(lifecycle.ResponseEncoding, inst.GetComponent());
             else
                 contentLength += inst.GetVerbatimBytes().Length;
         }
 
-        if (resolver.IsVirgin)
-        {
-            response.ContentLength64 = contentLength;
-            response.ContentType ??= "text/html";
-        }
+        lifecycle.TrySetResponseHeader(contentLength, "text/html");
 
         foreach (var inst in Instructions)
         {
             if (inst.IsPlaceholder)
-                resolver.WriteBytesFor(Encoding.UTF8, inst.GetComponent(), response.OutputStream);
+                resolver.WriteBytesFor(Encoding.UTF8, inst.GetComponent(), lifecycle.ResponseStream);
             else
             {
                 var b = inst.GetVerbatimBytes();
-                response.OutputStream.Write(b, 0, b.Length);
+                lifecycle.ResponseStream.Write(b, 0, b.Length);
             }
         }
     }

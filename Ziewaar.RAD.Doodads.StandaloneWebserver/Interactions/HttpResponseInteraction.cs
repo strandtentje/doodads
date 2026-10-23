@@ -28,6 +28,11 @@ public class HttpResponseInteraction(
         context.Response.RedirectLocation = url;
         Log.Post(RedirectOut, context.Response.StatusCode, context.Response.RedirectLocation);
     }
+
+    public void SetCacheControl(string value) => context.Response.AddHeader("Cache-Control", value);
+
+    public void SetKeepAlive(bool ka) => context.Response.KeepAlive = ka;
+
     public int StatusCode
     {
         get => context.Response.StatusCode;

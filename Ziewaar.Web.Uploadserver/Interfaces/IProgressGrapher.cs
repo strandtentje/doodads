@@ -2,5 +2,5 @@
 
 public interface IProgressGrapher
 {
-    void Run(UploadBox selectedUploadBox, HttpListenerResponse rsp);
+    void Run(UploadBox selectedUploadBox, IHttpLifecycleWrapper lifecycle);
 }
