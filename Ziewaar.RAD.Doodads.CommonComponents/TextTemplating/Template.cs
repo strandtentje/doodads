@@ -81,15 +81,21 @@ public class Template : IService
     public event CallForInteraction? OnException;
 
     public bool IsNeverTouchedBefore = true;
+
     private static readonly Log
         TemplateCacheMiss = Log.Warn("Template Cache Miss; {file}"),
-        GotTemplateText = Log.Tech("{template} of {length} loaded {reason} with {commands}");
+        GotTemplateText = Log.Tech("{template} of {length} loaded {reason} with {commands}"),
+        IgnoringAcceptMismatch = Log.Tech("For {template} the incoming request wouldn't accept our content type. " +
+                                          "We will evaluate the template without writing to output; a preceeding " +
+                                          "SinkPlug suggests we may be outputting a different ContentType down " +
+                                          "the line.");
+
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         if (!interaction.TryGetClosest<IInteraction>(out var targetInteraction,
-            x => x is ISinkingInteraction || x is ICheckUpdateRequiredInteraction) || targetInteraction == null)
+                x => x is ISinkingInteraction || x is ICheckUpdateRequiredInteraction) || targetInteraction == null)
         {
-                OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template or update into."));
+            OnException?.Invoke(this, new CommonInteraction(interaction, "No sink found to template or update into."));
             return;
         }
 
@@ -108,9 +114,10 @@ public class Template : IService
 
         if (targetInteraction is ICheckUpdateRequiredInteraction checkUpdateRequiredInteraction)
         {
-            checkUpdateRequiredInteraction.IsRequired = true;   
+            checkUpdateRequiredInteraction.IsRequired = true;
             return;
-        } 
+        }
+
         if (targetInteraction is not ISinkingInteraction output)
         {
             OnException?.Invoke(this, interaction.AppendRegister("No sink found to template into"));
@@ -124,13 +131,14 @@ public class Template : IService
             string txt = "";
             using (var sr = templatefile.GetDisposingSinkReader())
             {
-                txt = sr.ReadToEnd();        
+                txt = sr.ReadToEnd();
             }
+
             Parser.RefreshTemplateData(txt);
             Log.Post(GotTemplateText, $"{constants.DefiningFile}@{constants.Line}:{constants.Column}", txt.Length,
                 IsNeverTouchedBefore ? "new" : "stale", Parser.TemplateCommands.Count);
             IsNeverTouchedBefore = false;
-        } 
+        }
 
         if (templatefile.SinkTrueContentType?.Contains('*') == false)
             output.SinkTrueContentType ??= templatefile.SinkTrueContentType;
@@ -147,8 +155,19 @@ public class Template : IService
         }
         catch (ContentTypeMismatchException ex)
         {
-            OnException?.Invoke(this, new CommonInteraction(interaction, ex));
-            return;
+            if (interaction.TryGetClosest<BufferSinkInteraction>(out var _))
+            {
+                Log.Post(IgnoringAcceptMismatch, constants.PrimaryConstant);
+                writer = StreamWriter.Null;
+            }
+            else
+            {
+                OnException?.Invoke(this,
+                    interaction.AppendRegister(new InvalidOperationException(
+                        "Content-Type mismatched for template; if you expect to be blasting some different content type downstream, use a SinkPlug",
+                        ex)));
+                return;
+            }
         }
 
         // default to the server locale

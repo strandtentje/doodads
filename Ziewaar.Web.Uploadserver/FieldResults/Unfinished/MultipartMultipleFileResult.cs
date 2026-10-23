@@ -42,10 +42,9 @@ public class MultipartMultipleFileResult : IMultipartComponentResult
 
         if (CurrentFile != null)
             UnfinishedSubfiles.Add(CurrentFile);
-        CurrentFile = MultipartSingleFileResult.CreateFor(
+        return MultipartSingleFileResult.TryCreateFor(
             this.FieldName, this.TargetDirectory,
-            fileName, contentType);
-        return true;
+            fileName, contentType, out CurrentFile);
     }
 
     public void GiveBinaryData(byte[] data, int start, int length)

@@ -33,7 +33,11 @@ public class CommonMultipartUploadParserWorker : IDisposable
         {
             Boundaries.Rescope(currentBoundary);
             if (TryPushBuffers())
-                ProcessNewBuffers();
+                if (!ProcessNewBuffers())
+                {
+                    Fault ??= "Upload interrupted prematurely";
+                    break;
+                }
         }
     }
 
@@ -52,13 +56,13 @@ public class CommonMultipartUploadParserWorker : IDisposable
     }
 
     private static readonly Log
-        FlushNoBoundary = Log.Tech(
+        FlushNoBoundary = Log.Tech(Department.Upload,
             "No boundaries between {start} and {end}"),
         NoContentToFlush = Log.Warn(
             "No content to flush, or no receptive field"),
-        BoundaryDetected = Log.Tech(
+        BoundaryDetected = Log.Tech(Department.Upload,
             "Boundary detect"),
-        RemainingContent = Log.Tech(
+        RemainingContent = Log.Tech(Department.Upload,
             "Boundary was preceeded by unflushed data");
 
     private bool ProcessNewBuffers()
@@ -108,9 +112,9 @@ public class CommonMultipartUploadParserWorker : IDisposable
     }
 
     private static readonly Log
-        ClosingBoundary = Log.Tech("Closing {boundary} detected"),
-        OpeningHeaders = Log.Tech("Header announcement detected"),
-        HeadersRead = Log.Tech("Multipart Headers {read}");
+        ClosingBoundary = Log.Tech(Department.Upload,"Closing {boundary} detected"),
+        OpeningHeaders = Log.Tech(Department.Upload,"Header announcement detected"),
+        HeadersRead = Log.Tech(Department.Upload,"Multipart Headers {read}");
 
     private bool ProcessBoundary(ByteSequenceNodeTag tag)
     {
@@ -154,6 +158,7 @@ public class CommonMultipartUploadParserWorker : IDisposable
                     {
                         Fault = string.Format("Ingestor failed at; {0}",
                             Positions.ConsumedUntil);
+                        return false;
                     }
                 }
 

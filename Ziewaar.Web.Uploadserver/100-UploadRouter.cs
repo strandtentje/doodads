@@ -19,13 +19,16 @@ public class UploadRouter
         this.UploadBoxes = uploadBoxes;
     }
 
-    public UploadRoutingState Route(IHttpLifecycleWrapper lifecycle) =>
-        lifecycle.UpperHttpMethod switch
+    public UploadRoutingState Route(IHttpLifecycleWrapper lifecycle, out IEnumerable<string> outputFiles)
+    {
+        outputFiles = Enumerable.Empty<string>();
+        return lifecycle.UpperHttpMethod switch
         {
             "GET" => RouteGet(lifecycle),
-            "POST" => RoutePost(lifecycle),
+            "POST" => RoutePost(lifecycle, out outputFiles),
             _ => UploadRoutingState.BadMethod
         };
+    }
 
     private static readonly string EmptyGuid = Guid.Empty.ToString();
 
@@ -90,8 +93,9 @@ public class UploadRouter
         }
     }
 
-    private UploadRoutingState RoutePost(IHttpLifecycleWrapper lifecycle)
+    private UploadRoutingState RoutePost(IHttpLifecycleWrapper lifecycle, out IEnumerable<string> receivedPaths)
     {
+        receivedPaths = Enumerable.Empty<string>();
         if (!ValidateUploadFunction(lifecycle, out var functionId,
                 out var selectedUploadBox, out var urs))
             return urs;
@@ -104,9 +108,19 @@ public class UploadRouter
             {
                 if (this.Receiver.TryValidateUpload(lifecycle.RequestContentType, lifecycle.RequestContentLength,
                         selectedUploadBox, out var state))
-                    return this.Receiver.TryReceiveUpload(lifecycle.RequestStream, selectedUploadBox)
+                {
+                    var returnValue = this.Receiver.TryReceiveUpload(lifecycle.RequestStream, selectedUploadBox)
                         ? UploadRoutingState.UploadDone
                         : UploadRoutingState.UploadFailed;
+                    
+                    var singles = selectedUploadBox.Values.Values.OfType<MultipartFinishedSingleFileResult>()
+                        .SelectMany(x => x.Values);
+                    var multiples = selectedUploadBox.Values.Values.OfType<MultipartFinishedMultifileResult>()
+                        .SelectMany(x => x.Values);
+                    receivedPaths = singles.Concat(multiples);
+
+                    return returnValue;
+                }
 
                 return state switch
                 {

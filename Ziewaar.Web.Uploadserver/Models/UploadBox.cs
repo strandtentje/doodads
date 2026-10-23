@@ -15,6 +15,7 @@ public class UploadBox : IDisposable
     {
         get
         {
+            if (ContentLengthAnnounced < 1) return 0;
             return (ContentLengthProgress * 100) / ContentLengthAnnounced;
         }
     }

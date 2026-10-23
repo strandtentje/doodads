@@ -36,7 +36,7 @@ public class BufferSinkInteraction : ISinkingInteraction
             field = value;
             if (SinkBuffer is not ProxyBufferStream)
             {
-                TrueSink.SinkTrueContentType = value;
+                TrueSink.SinkTrueContentType = field = value;
             }
         }
     }

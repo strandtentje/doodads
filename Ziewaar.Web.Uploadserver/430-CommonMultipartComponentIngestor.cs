@@ -73,6 +73,13 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
         return false;
     }
 
+    private static readonly string[] IllegalNames = new string[]
+    {
+        "CON", "PRN", "AUX", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
+        "COM9", "COM¹", "COM²", "COM³", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7",
+        "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"
+    };
+
     private bool GiveFormDataHeader(HttpHeader contentDispositionHeader,
         HttpHeader contentTypeHeader, HttpHeader transferEncodingHeader)
     {
@@ -99,12 +106,22 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
         {
             var fileCount = FinishableResults.OfType<MultipartSingleFileResult>().Count();
             fileCount += FinishableResults.OfType<MultipartMultipleFileResult>().Sum(x => x.UnfinishedSubfiles.Count);
-            if (UploadValidator.TryValidate(contentType, fileCount + 1))
+            if (UploadValidator.TryValidate(contentType, fileCount + 1) &&
+                !fileName.Intersect(Path.GetInvalidFileNameChars()).Any() &&
+                !IllegalNames.Contains(fileName, StringComparer.OrdinalIgnoreCase))
             {
                 FinishableResults.Add(UnfinishedResult);
-                UnfinishedResult = MultipartSingleFileResult.CreateFor(
-                    fieldName, TargetDirectory, fileName, contentType);
-                return true;
+                if (MultipartSingleFileResult.TryCreateFor(
+                        fieldName, TargetDirectory, fileName, contentType, out var ur))
+                {
+                    UnfinishedResult = ur;
+                    return true;
+                }
+                else
+                {
+                    FinishableResults.Add(new MultipartComponentFaultyResult("File already exists"));
+                    return false;
+                }
             }
             else
             {
@@ -114,19 +131,31 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             }
         }
 
-        var innerBoundary = contentTypeHeader.GetPropValueCI("boundary").Trim();
-        if (isMultiMixed && !string.IsNullOrEmpty(innerBoundary))
+        
+        if (isMultiMixed)
         {
-            this.Boundaries.Push(Encoding.ASCII.GetBytes(innerBoundary));
-            FinishableResults.Add(UnfinishedResult);
-            UnfinishedResult = new MultipartMultipleFileResult(
-                fieldName, TargetDirectory, innerBoundary);
-            return true;
+            var innerBoundary = contentTypeHeader.GetPropValueCI("boundary")?.Trim();
+            if (!string.IsNullOrEmpty(innerBoundary))
+            {
+                this.Boundaries.Push(Encoding.ASCII.GetBytes(innerBoundary));
+                FinishableResults.Add(UnfinishedResult);
+                UnfinishedResult = new MultipartMultipleFileResult(
+                    fieldName, TargetDirectory, innerBoundary);
+                return true;
+            }
+            else
+            {
+                FinishableResults.Add(new MultipartComponentFaultyResult(
+                    "Unsupported"));
+                return false;
+            }
         }
-
-        FinishableResults.Add(new MultipartComponentFaultyResult(
-            "Unsupported multipart headers"));
-        return false;
+        else
+        {
+            FinishableResults.Add(new MultipartComponentFaultyResult(
+                "Incomplete"));
+            return false;
+        }
     }
 
     private bool GiveSubFileHeader(HttpHeader contentDispositionHeader,
@@ -170,7 +199,7 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
         }
     }
 
-    private static readonly Log PassBinary = Log.Tech(
+    private static readonly Log PassBinary = Log.Tech(Department.Upload,
         "Passing binary data between {start} and {end} to {field}");
 
     public void GiveBinaryData(byte[] bytes, int start, int count)

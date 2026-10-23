@@ -23,21 +23,27 @@ public class MultipartSingleFileResult : IMultipartComponentResult
         this.ContentType = contentType;
     }
 
-    public static MultipartSingleFileResult CreateFor(
+    public static bool TryCreateFor(
         string fieldName, string workingDirectory, string fileName,
-        string contentType)
+        string contentType, out MultipartSingleFileResult result)
     {
-
         var safeFileName = new string(
             fileName.ToCharArray().
                 Where(x => !IllegalFilenameChars.Contains(x)).ToArray());
         if (!Directory.Exists(workingDirectory))
             Directory.CreateDirectory(workingDirectory);
         var fullPath = Path.Combine(workingDirectory, safeFileName);
+        if (File.Exists(fullPath))
+        {
+            result = null;
+            return false;
+        }
+
         var tempPath = Path.GetTempFileName();
         var fileStream = File.OpenWrite(tempPath);
-        return new MultipartSingleFileResult(
+        result = new MultipartSingleFileResult(
             fieldName, tempPath, fileStream, fullPath, contentType);
+        return true;
     }
 
     public string Name { get { return FieldName; } }
@@ -52,6 +58,7 @@ public class MultipartSingleFileResult : IMultipartComponentResult
         this.TempFileHandle.Flush();
         this.TempFileHandle.Close();
         this.TempFileHandle = null;
+
         File.Move(TempPath, FullPath);
         return new MultipartFinishedSingleFileResult(
             this.Name, this.FullPath);

@@ -62,6 +62,16 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             }
         }
 
+        protected IEnumerable<string> NamedPartsFromMemory(StampedMap constants, string name, IInteraction interaction)
+        {
+            var parts = NamedParts(constants, name);
+            foreach (var part in parts)
+            {
+                string replaced = FillPlaceholders(part, interaction);
+                yield return replaced;
+            }
+        }
+
         public enum PlaceholderMode { Out, In, }
 
         private string FillPlaceholders(string item, IInteraction interaction)
@@ -97,21 +107,34 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
 
         protected Queue<string> PrimaryParts(StampedMap constants)
         {
-            if (constants.PrimaryConstant is not IEnumerable enumerable)
+            var valueFromConstant = constants.PrimaryConstant;
+            return new Queue<string>(PartOut(valueFromConstant));
+        }
+
+        protected IEnumerable<string> NamedParts(StampedMap constants, string name)
+        {
+            if (!constants.NamedItems.TryGetValue(name, out var valueFromConstant) || valueFromConstant == null)
+                return Enumerable.Empty<string>();
+            return PartOut(valueFromConstant);
+        }
+        
+        private static IEnumerable<string> PartOut(object valueFromConstant)
+        {
+            if (valueFromConstant is not IEnumerable enumerable)
             {
-                if (IsntJustAnObject(constants.PrimaryConstant) &&
-                    constants.PrimaryConstant.ToString() is string single)
-                    return new Queue<string>([single]);
+                if (IsntJustAnObject(valueFromConstant) &&
+                    valueFromConstant.ToString() is string single)
+                    return [single];
                 else
                     return [];
             }
 
             if (enumerable is string actuallyAString)
-                return new Queue<string>([actuallyAString]);
+                return [actuallyAString];
 
-            return new Queue<string>
-                (enumerable.OfType<object>().Where(IsntJustAnObject).Select(x => x.ToString()).OfType<string>());
+            return enumerable.OfType<object>().Where(IsntJustAnObject).Select(x => x.ToString()).OfType<string>();
         }
+
 
         protected void RepeatCustom<T>(StampedMap constants, IInteraction source, Func<RepeatInteraction, T, IInteraction> factory, IEnumerable<T> items)
         {

@@ -31,10 +31,16 @@ public class CommonMultipartUploadParser : IMultipartUploadParser
         if (!string.IsNullOrEmpty(Fault))
             throw new InvalidOperationException(string.Format(
                 "Multipart Parse Fault: {0}", Fault));
+        if (IsDisposing)
+            throw new ObjectDisposedException(
+                "CommonMultipartUploadParser");
         byte[] result;
         int count;
         while (!Receiving.TryDequeue(out result, out count))
         {
+            if (!string.IsNullOrEmpty(Fault))
+                throw new InvalidOperationException(string.Format(
+                    "Multipart Parse Fault: {0}", Fault));
             if (IsDisposing)
                 throw new ObjectDisposedException(
                     "CommonMultipartUploadParser");
@@ -54,10 +60,16 @@ public class CommonMultipartUploadParser : IMultipartUploadParser
         IDictionary<string, IMultipartFinishedComponentResult> values,
         IList<string> faults)
     {
-        this.Processing.Enqueue(FixedBuffer.Null.Allocation, 0);
-        this.Processing.Enqueue(FixedBuffer.Null.Allocation, 0);
-        this.WorkerThread.Join();
-        this.Ingestor.Finish(values, faults);
+        try
+        {
+            this.Processing.Enqueue(FixedBuffer.Null.Allocation, 0);
+            this.Processing.Enqueue(FixedBuffer.Null.Allocation, 0);
+            this.WorkerThread.Join();
+        }
+        finally
+        {
+            this.Ingestor.Finish(values, faults);
+        }
     }
 
     public void Dispose()

@@ -1,22 +1,32 @@
-﻿namespace Ziewaar.Web.Uploadserver;
+﻿using System.Runtime.InteropServices.ComTypes;
+
+namespace Ziewaar.Web.Uploadserver;
 
 public class UploadBoxRepository
 {
     private readonly object UploadBoxesLock = new object();
-    private readonly Dictionary<UploadBox, UploadBox> UploadBoxes 
-        = new Dictionary<UploadBox, UploadBox>(new UploadBoxComparerById());
 
-    public UploadBox Enter(string sessionId, string path, 
+    private readonly Dictionary<string, Dictionary<string, UploadBox>> BackingStore = new();
+
+
+    public UploadBox Enter(string sessionId, string path,
         string[] acceptedFields)
     {
         lock (UploadBoxesLock)
         {
-            var newBox = UploadBox.CreateFresh(sessionId, path, acceptedFields);
-            if (UploadBoxes.ContainsKey(newBox))
-                throw new InvalidOperationException(
-                    "Unexpectedly created a duplicate upload box");
-            UploadBoxes[newBox] = newBox;
-            return newBox;
+            if (!BackingStore.TryGetValue(sessionId, out var sessionUploadBoxes))
+                BackingStore[sessionId] = sessionUploadBoxes = new Dictionary<string, UploadBox>();
+
+            var untaintedCandidate =
+                sessionUploadBoxes.Select(x => x.Value).FirstOrDefault(x =>
+                    x.TargetDirectory == path && x.ValidateUntainted() &&
+                    x.AcceptedFields.SequenceEqual(acceptedFields));
+            if (untaintedCandidate == null)
+            {
+                untaintedCandidate = UploadBox.CreateFresh(sessionId, path, acceptedFields);
+                sessionUploadBoxes[untaintedCandidate.UploadBoxId] = untaintedCandidate;
+            }
+            return untaintedCandidate;
         }
     }
 
@@ -24,8 +34,9 @@ public class UploadBoxRepository
     {
         lock (UploadBoxesLock)
         {
-            result = UploadBox.CreateFinder(sessionId, uploadId);
-            return UploadBoxes.TryGetValue(result, out result);
+            result = UploadBox.CreateOrphan("", Array.Empty<string>());
+            return BackingStore.TryGetValue(sessionId, out var sessionUploadBoxes) &&
+                   sessionUploadBoxes.TryGetValue(uploadId, out result);
         }
     }
 
@@ -33,7 +44,12 @@ public class UploadBoxRepository
     {
         lock (UploadBoxesLock)
         {
-            UploadBoxes.Remove(u);
+            if (BackingStore.TryGetValue(u.SessionId, out var sessionBoxes))
+            {
+                sessionBoxes.Remove(u.UploadBoxId);
+                if (sessionBoxes.Count < 1)
+                    BackingStore.Remove(u.SessionId);
+            }
             u.Dispose();
         }
     }

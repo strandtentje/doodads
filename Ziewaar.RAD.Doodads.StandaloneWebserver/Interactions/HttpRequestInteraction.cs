@@ -9,6 +9,7 @@ public class HttpRequestInteraction(
     public Stream SourceBuffer => new ProtectedStream(context.Request.InputStream, context);
     public Encoding TextEncoding => context.Request.ContentEncoding ?? Encoding.UTF8;
     public string SourceContentTypePattern => context.Request.ContentType.GetBaseHeader();
+    public string RawContentType => context.Request.ContentType ?? "application/octet-stream";
     public long SourceContentLength => context.Request.ContentLength64;
     public IInteraction Stack => parent;
     public object Register => parent.Register;

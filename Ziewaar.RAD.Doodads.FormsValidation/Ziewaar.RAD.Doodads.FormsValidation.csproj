@@ -17,12 +17,18 @@
       <PackageReference Include="HtmlAgilityPack" Version="1.13.1" />
       <PackageReference Include="HttpMultipartParser" Version="10.0.1" />
       <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
-      <PackageReference Include="SixLabors.ImageSharp" Version="4.1.3" />
-      <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="3.1.3" />
+      <PackageReference Include="SkiaSharp" Version="4.153.1" />
+      <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Services\Support\Streaming\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Services\FastMultipart\montserrat.ttf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

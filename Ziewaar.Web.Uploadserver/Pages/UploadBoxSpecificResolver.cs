@@ -31,6 +31,4 @@ public class UploadBoxSpecificResolver : IPlaceholderResolver
         else
             Fallback.WriteBytesFor(encoding, p, stream);
     }
-
-    public bool IsVirgin => Fallback.IsVirgin;
 }
