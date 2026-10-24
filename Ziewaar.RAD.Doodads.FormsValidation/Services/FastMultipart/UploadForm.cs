@@ -165,7 +165,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
     {
         this.Sleep = 10;
         this.Burst = 1;
-        this.BufferSize = 16 * 1024;
+        this.BufferSize = 12 * 1024;
     }
 
     private void SetTransferRate10M()
