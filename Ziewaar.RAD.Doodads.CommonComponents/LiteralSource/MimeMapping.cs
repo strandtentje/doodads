@@ -39,8 +39,18 @@ public static class MimeMapping
     {
         foreach (var extensionOrMime in mixedBag)
         {
-            if (extensionOrMime.StartsWith(".") &&
-                ExtensionToMimeType.TryGetValue(extensionOrMime.TrimStart('.'), out var mti))
+            if (extensionOrMime.Contains("="))
+            {
+                var assignmentHalves = extensionOrMime.Split(['='], 2, (StringSplitOptions)3);
+                var ext = assignmentHalves.ElementAtOrDefault(0);
+                var mime = assignmentHalves.ElementAtOrDefault(1);
+                if (ext?.StartsWith(".") == true && mime?.Contains("/") == true)
+                {
+                    yield return (mime, ext);
+                }
+            }
+            else if (extensionOrMime.StartsWith(".") &&
+                    ExtensionToMimeType.TryGetValue(extensionOrMime.TrimStart('.'), out var mti))
             {
                 yield return (mti.MimeType, extensionOrMime);
             }

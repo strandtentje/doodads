@@ -159,7 +159,7 @@ public class UploadBox : IDisposable
             {
                 lock (UploadLock)
                 {
-                    this.Stopper.Close();
+                    this.Stopper?.Close();
                     this.Stopper = null;
                 }
             }

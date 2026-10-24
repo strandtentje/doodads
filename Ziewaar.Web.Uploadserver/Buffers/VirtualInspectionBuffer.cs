@@ -17,15 +17,12 @@ public class VirtualInspectionBuffer
 {
     private FixedBuffer Window = FixedBuffer.Null;
     private FixedBuffer Peek = FixedBuffer.Null;
-    /// <summary>
-    /// Inclusive starting position of window in view;
-    /// </summary>
-    public long WindowOffset { get; private set; }
+    public long WindowOffset;
     /// <summary>
     /// Exclusive ending position of the window in view.
     /// </summary>
-    public long WindowEnd { get { return WindowOffset + Window.Count; } }
-    public long PeekEnd { get { return WindowOffset + Window.Count + Peek.Count; } }
+    public long WindowEnd;
+    public long PeekEnd;
     /// <summary>
     /// Buffer currently in view.
     /// </summary>
@@ -43,9 +40,14 @@ public class VirtualInspectionBuffer
     public byte[] Push(byte[] buffer, int count)
     {
         WindowOffset += Window.Count;
+
         var retiree = Window;
         Window = Peek;
         Peek = new FixedBuffer(buffer, count);
+
+        WindowEnd = WindowOffset + Window.Count;
+        PeekEnd = WindowOffset + Window.Count + Peek.Count;
+
         return retiree.Allocation;
     }
 
@@ -73,12 +75,12 @@ public class VirtualInspectionBuffer
     /// <returns>True if some sequence tree was matched, false otherwise.</returns>
     public bool IndexOf(
         ByteSequenceNode optionTree,
-        long startAt,
+        long initiallyStartAt,
         out long resultStartAt,
         out long resultEndAt,
         out ByteSequenceNodeTag tag)
     {
-        for (; startAt < this.WindowEnd; startAt++)
+        for (var startAt = initiallyStartAt; startAt < this.WindowEnd; startAt++)
         {
             resultStartAt = this.IndexOf(optionTree.Sequence, startAt);
             if (resultStartAt < 0)
@@ -149,21 +151,25 @@ public class VirtualInspectionBuffer
     /// <returns>Position absolute to start of Inspection buffer at which 
     /// the sequence first occured, or some value lower than 0 if 
     /// it did not occur.</returns>
-    public long IndexOf(byte[] sequence, long startAt)
+    public long IndexOf(byte[] sequence, long initiallyStartAt)
     {
         if (sequence.Length == 0)
             throw new ArgumentOutOfRangeException("cannot find empty thing");
-        else if (startAt < 0)
-            throw new ArgumentOutOfRangeException("startAt must be positive");
+        else if (initiallyStartAt < WindowOffset)
+            throw new ArgumentOutOfRangeException("startAt below window offset");
+        else if (initiallyStartAt >= WindowEnd)
+            throw new ArgumentOutOfRangeException("startAt above window");
 
-        for (; startAt < WindowEnd; startAt++)
+        for (var startAt = initiallyStartAt; startAt < WindowEnd; startAt++)
         {
-            var matchingPosition = this.IndexOf(sequence[0], startAt);
-            if (matchingPosition < 0)
+            var firstCharacterMatchStartsAt = this.IndexOf(sequence[0], startAt);
+            if (firstCharacterMatchStartsAt < 0)
                 return -1;
 
-            if (this.StartsWith(sequence, startAt))
-                return matchingPosition;
+            if (this.StartsWith(sequence, firstCharacterMatchStartsAt))
+                return firstCharacterMatchStartsAt;
+
+            startAt = firstCharacterMatchStartsAt;
         }
         return -1;
     }
@@ -181,12 +187,14 @@ public class VirtualInspectionBuffer
     {
         int sequencePosition;
         for (sequencePosition = 0;
-             sequencePosition < sequence.Length &&
-             (startAt + sequencePosition) < PeekEnd &&
-             this[startAt + sequencePosition] == sequence[sequencePosition];
-             sequencePosition++) ;
+            sequencePosition < sequence.Length &&
+            (startAt + sequencePosition) < PeekEnd &&
+            this[startAt + sequencePosition] == sequence[sequencePosition];
+            sequencePosition++) ;
         return sequencePosition == sequence.Length;
     }
+
+    private long _indexerVirtualPosition;
 
     /// <summary>
     /// Retrieve a single byte from the inspection buffer, relative
@@ -200,22 +208,14 @@ public class VirtualInspectionBuffer
     {
         get
         {
-            var virtualPosition = position - WindowOffset;
-            if (virtualPosition < 0)
-                throw new ArgumentOutOfRangeException(
-                    "this part of the inspection window is out of view");
-            if (virtualPosition < Window.Count)
-                return Window.Allocation[virtualPosition];
-            virtualPosition -= Window.Count;
-            // below assertion can't happen because we just established
-            // that virtualPosition has at least passed the end of Window. 
-            if (virtualPosition < 0)
-                throw new ArgumentOutOfRangeException(
-                    "this part of the inspection window is out of view");
-            if (virtualPosition < Peek.Count)
-                return Peek.Allocation[virtualPosition];
-            throw new ArgumentOutOfRangeException(
-                "this part of the inspection window is out of view");
+            _indexerVirtualPosition = position - WindowOffset;
+
+            if (_indexerVirtualPosition < Window.Count)
+                return Window.Allocation[_indexerVirtualPosition];
+
+            _indexerVirtualPosition -= Window.Count;
+
+            return Peek.Allocation[_indexerVirtualPosition];
         }
     }
 
@@ -278,16 +278,18 @@ public class VirtualInspectionBuffer
         var virtualStart = (int)(startAt - WindowOffset);
         if (virtualStart < 0)
             throw new ArgumentOutOfRangeException(
-                "this part of the inspection window is out of view");
-        if (virtualStart < Window.Count)
-        {
-            var result = Array.IndexOf(
-                Window.Allocation, b, virtualStart, 
-                Window.Count - virtualStart);
-            if (result >= virtualStart)
-                return WindowOffset + result;
-        }
-        return -1;
+                "this part of the inspection window has passed");
+        if (virtualStart >= Window.Count)
+            throw new ArgumentOutOfRangeException(
+                "this part of the inspection window han't yet come");
+
+        var result = Array.IndexOf(
+            Window.Allocation, b, virtualStart,
+            Window.Count - virtualStart);
+        if (result < 0)
+            return -1;
+
+        return WindowOffset + result;
     }
 
     /// <summary>
@@ -347,7 +349,7 @@ public class VirtualInspectionBuffer
             // Window already), and it cannot exceed Peek size minus
             // contd. seek position;
             sbl.Append(Encoding.ASCII.GetString(
-                this.Peek.Allocation, 
+                this.Peek.Allocation,
                 (int)virtualPosition,
                 (int)availableCount));
         }

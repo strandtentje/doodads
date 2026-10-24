@@ -12,7 +12,7 @@ public static class UploadBoxExtensions
         int speedIndex = 0;
         while (bps > 1024 && speedIndex < Capacities.Length - 2)
         {
-            bps /= 1024;
+            bps /= 1024L;
             speedIndex++;
         }
         return string.Format("{0}{1}", bps, Capacities[speedIndex]);
@@ -24,7 +24,7 @@ public static class UploadBoxExtensions
         int sizeIndex = 0;
         while (size > 1024 && sizeIndex < Capacities.Length - 2)
         {
-            size /= 1024;
+            size /= 1024L;
             sizeIndex++;
         }
         return string.Format("{0}{1}", size, Capacities[sizeIndex]);
