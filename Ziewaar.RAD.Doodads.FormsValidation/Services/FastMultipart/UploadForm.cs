@@ -1,3 +1,4 @@
+using Ejije.Logging;
 using SkiaSharp;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
@@ -9,7 +10,8 @@ using Ziewaar.Web.Uploadserver.Models;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.FastMultipart;
 
-public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator, ITransferRateConstraints
+public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator,
+    ITransferRateConstraints
 {
     private readonly CommonUploadSizeGovernor UploadSize;
     private readonly UploadBoxRepository UploadBoxes;
@@ -72,7 +74,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
 
                 if (Named(constants, "rate") is { } rateCandidate)
                 {
-                    switch(rateCandidate.ToLower())
+                    switch (rateCandidate.ToLower().Trim())
                     {
                         case "1":
                             SetTransferRate1M();
@@ -198,6 +200,8 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
             "Content-Type: image/gif\r\nContent-Length: ");
     }
 
+    private static readonly Log ProgressStopped = Log.Oops("Progress bar {stopped}; window likely closed.");
+    
     void IProgressGrapher.Run(UploadBox selectedUploadBox, IHttpLifecycleWrapper lifecycle)
     {
         var metaImage = new SKImageInfo(BarWidth, BarHeight, SKColorType.Rgba8888, SKAlphaType.Premul,
@@ -216,20 +220,27 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
         responseStream.Write(CrlfBytes, 0, CrlfBytes.Length);
 
         string message;
-        while (!selectedUploadBox.TryWaitForFinish(out message))
+        try
         {
-            message = selectedUploadBox.ContentLengthAnnounced > 0
-                ? string.Format("{0}%, {1}/s, {2}", selectedUploadBox.Percentage,
-                    selectedUploadBox.GetNormalizedSpeed(), selectedUploadBox.GetNormalizedSize())
-                : "Nothing Currently Uploading";
-            var barSize = (selectedUploadBox.Percentage * BarWidth) / 100;
+            while (!selectedUploadBox.TryWaitForFinish(out message))
+            {
+                message = selectedUploadBox.ContentLengthAnnounced > 0
+                    ? string.Format("{0}%, {1}/s, {2}", selectedUploadBox.Percentage,
+                        selectedUploadBox.GetNormalizedSpeed(), selectedUploadBox.GetNormalizedSize())
+                    : "Nothing Currently Uploading";
+                var barSize = (selectedUploadBox.Percentage * BarWidth) / 100;
 
-            UpdateProgressCanvas(cnv, barSize, message);
+                UpdateProgressCanvas(cnv, barSize, message);
+                FlushProgressSurface(surface, responseStream);
+            }
+
+            UpdateProgressCanvas(cnv, BarWidth, message);
             FlushProgressSurface(surface, responseStream);
         }
-
-        UpdateProgressCanvas(cnv, BarWidth, message);
-        FlushProgressSurface(surface, responseStream);
+        catch (Exception ex)
+        {
+            Log.Post(ProgressStopped, ex);
+        }
     }
 
     private void UpdateProgressCanvas(SKCanvas cnv, long barSize, string message)
