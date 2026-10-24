@@ -117,9 +117,9 @@ public class CommonUploadReceiver : IUploadReceiver
             try
             {
                 byte[] workingReceiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
+                int readCount, allocatedBuffers = 1;
 
-
-                for (int readCount = inputStream.Read(
+                for (readCount = inputStream.Read(
                          workingReceiveBuffer, 0, workingReceiveBuffer.Length);
                      readCount > 0;
                      readCount = inputStream.Read(
@@ -169,16 +169,34 @@ public class CommonUploadReceiver : IUploadReceiver
                             selectedUploadBox.UploadBytesPerSecond);
                     }
 
-                    // when trying to fill up we might have read an 
-                    // eof. then we shouldn't read again and skip
-                    // to finish. also the buffer we supplied may not have been to the liking of 
-                    // the parser, in which case we should stop too.
-
-                    if (!worker.PushBuffer(workingReceiveBuffer, fillUpCount, out workingReceiveBuffer) ||
-                        readCount == 0)
+                    // the buffer we supplied may not have been to the liking of 
+                    // the parser, in which case we should stop immediately. it could also mean 
+                    // an eof has shifted into view, but that's likely happening below.
+                    if (!worker.PushBuffer(workingReceiveBuffer, fillUpCount, out workingReceiveBuffer))
                         break;
+
+                    // when trying to fill up we might have read an eof. then we shouldn't read again and skip
+                    // to finish. 
+                    if (readCount == 0)
+                        break;
+
                     if (workingReceiveBuffer.Length != RECEIVE_BUFFER_SIZE)
+                    {
+                        allocatedBuffers++;
+                        if (allocatedBuffers > 3) // this assertion should normally not be hit.
+                            throw new InsufficientMemoryException(
+                                "multipart inspection not returning used buffers properly");
                         workingReceiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
+                    }
+                }
+
+                // we left the loop due to an eof, and our inspector has two buffer. let's super flush those out
+                // entirely, to be sure.
+                if (readCount == 0 && worker.PushBuffer(Array.Empty<byte>(), 0, out workingReceiveBuffer))
+                {
+                    if (worker.PushBuffer(Array.Empty<byte>(), 0, out workingReceiveBuffer))
+                        throw new InvalidOperationException( // this assertion should also never occur. 
+                            "inspector claims to be not done even though its entirely flushed");
                 }
             }
             finally
