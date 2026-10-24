@@ -3,14 +3,12 @@
 public class CommonUploadReceiver : IUploadReceiver
 {
     private readonly IUploadSizeGovernor SizeGovernor;
-    private readonly IMultipartUploadParserFactory ParserFactory;
+    private readonly IUploadValidator Validator;
 
-    public CommonUploadReceiver(
-        IUploadSizeGovernor sizeGovernor,
-        IMultipartUploadParserFactory parserFactory)
+    public CommonUploadReceiver(IUploadSizeGovernor sizeGovernor, IUploadValidator validator)
     {
         this.SizeGovernor = sizeGovernor;
-        this.ParserFactory = parserFactory;
+        this.Validator = validator;
     }
 
     private static readonly Log
@@ -81,13 +79,7 @@ public class CommonUploadReceiver : IUploadReceiver
     {
         try
         {
-            using (var receiveParser = ParserFactory.Create(
-                       selectedUploadBox.BoundaryBytes,
-                       selectedUploadBox.TargetDirectory,
-                       selectedUploadBox.AcceptedFields))
-            {
-                return ReceiveLoop(inputStream, receiveParser, selectedUploadBox);
-            }
+            return ReceiveLoop(inputStream, selectedUploadBox);
         }
         catch (Exception ex)
         {
@@ -109,21 +101,29 @@ public class CommonUploadReceiver : IUploadReceiver
         ExceptionBrokeLoop = Log.Fail(
             "Exception {broke} upload receive loop");
 
-    private bool ReceiveLoop(Stream inputStream, IMultipartUploadParser receiveParser,
-        UploadBox selectedUploadBox)
+    private const int RECEIVE_BUFFER_SIZE = 16 * 1024;
+
+    private bool ReceiveLoop(Stream inputStream, UploadBox selectedUploadBox)
     {
         byte[] buffer;
         int totalReceiveCount = 0;
         var dataRate = new DataRateCollection(7);
         try
         {
+            using var ingestor = new CommonMultipartComponentIngestor(selectedUploadBox.BoundaryBytes,
+                selectedUploadBox.TargetDirectory, selectedUploadBox.AcceptedFields, Validator);
+            var worker = new CommonMultipartUploadParserWorker(new VirtualInspectionBuffer(), ingestor);
+
             try
             {
+                byte[] workingReceiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
+
+
                 for (int readCount = inputStream.Read(
-                         buffer = receiveParser.PopForReceiving(), 0, buffer.Length);
+                         workingReceiveBuffer, 0, workingReceiveBuffer.Length);
                      readCount > 0;
                      readCount = inputStream.Read(
-                         buffer = receiveParser.PopForReceiving(), 0, buffer.Length))
+                         workingReceiveBuffer, 0, workingReceiveBuffer.Length))
                 {
                     // we report received size and data rate here
                     // this might fail if ie. there was too much data
@@ -147,10 +147,10 @@ public class CommonUploadReceiver : IUploadReceiver
                     // Stream.Read doesn't guarantee that, but we can
                     // Read some more.
                     int fillUpCount = readCount;
-                    while (readCount > 0 && fillUpCount < buffer.Length)
+                    while (readCount > 0 && fillUpCount < workingReceiveBuffer.Length)
                     {
                         readCount = inputStream.Read(
-                            buffer, fillUpCount, buffer.Length - fillUpCount);
+                            workingReceiveBuffer, fillUpCount, workingReceiveBuffer.Length - fillUpCount);
                         fillUpCount += readCount;
 
                         // we report received size and data rate again, here.
@@ -169,17 +169,21 @@ public class CommonUploadReceiver : IUploadReceiver
                             selectedUploadBox.UploadBytesPerSecond);
                     }
 
-                    receiveParser.PushForProcessing(buffer, fillUpCount);
-
                     // when trying to fill up we might have read an 
                     // eof. then we shouldn't read again and skip
-                    // to finish
-                    if (readCount == 0) break;
+                    // to finish. also the buffer we supplied may not have been to the liking of 
+                    // the parser, in which case we should stop too.
+
+                    if (!worker.PushBuffer(workingReceiveBuffer, fillUpCount, out workingReceiveBuffer) ||
+                        readCount == 0)
+                        break;
+                    if (workingReceiveBuffer.Length != RECEIVE_BUFFER_SIZE)
+                        workingReceiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
                 }
             }
             finally
             {
-                receiveParser.Finish(selectedUploadBox.Values, selectedUploadBox.Faults);
+                ingestor.Finish(selectedUploadBox.Values, selectedUploadBox.Faults);
             }
 
             if (selectedUploadBox.Faults.Count == 0)

@@ -36,8 +36,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
     {
         this.Router = new UploadRouter(
             this, this, new CommonUploadReceiver(
-                this.UploadSize = new CommonUploadSizeGovernor(),
-                new CommonMultipartUploadParserFactory(this)),
+                this.UploadSize = new CommonUploadSizeGovernor(), this),
             this.UploadBoxes = new UploadBoxRepository());
 
         PrepareMultipartInterruptions();

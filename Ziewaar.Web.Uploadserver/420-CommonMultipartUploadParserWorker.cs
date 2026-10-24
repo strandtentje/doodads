@@ -1,58 +1,34 @@
 ﻿namespace Ziewaar.Web.Uploadserver;
 
-public class CommonMultipartUploadParserWorker : IDisposable
+public class CommonMultipartUploadParserWorker
 {
-    private readonly FixedBufferPool Receiving, Processing;
+    // private readonly FixedBufferPool Receiving, Processing;
     private readonly VirtualInspectionBuffer Inspector;
     private readonly IMultipartComponentIngestor Ingestor;
     private readonly MultipartByteSequenceGovernor Boundaries;
     private readonly MultipartParsingPositionsCollection Positions;
-    public bool IsDisposing { get; private set; }
-    public string Fault { get; private set; }
+    public string? Fault { get; private set; }
 
-    public CommonMultipartUploadParserWorker(
-        FixedBufferPool receiving, FixedBufferPool processing,
-        VirtualInspectionBuffer inspector,
-        IMultipartComponentIngestor ingestor)
+    public CommonMultipartUploadParserWorker(VirtualInspectionBuffer inspector, IMultipartComponentIngestor ingestor)
     {
-        this.Receiving = receiving;
-        this.Processing = processing;
         this.Inspector = inspector;
         this.Ingestor = ingestor;
-
         this.Boundaries = new MultipartByteSequenceGovernor();
         this.Positions = new MultipartParsingPositionsCollection();
     }
 
-    public void ParserLoop(object arg)
+    public bool PushBuffer(byte[] availableData, int availableDataCount, out byte[] reusableBuffer)
     {
-        byte[] currentBoundary;
-
-        while (!this.Inspector.IsEof && this.Ingestor.TryHaveBoundary(
-                   out currentBoundary) && !this.Processing.IsDisposing)
+        if (this.Inspector.IsEof || !this.Ingestor.TryHaveBoundary(out var currentBoundary))
         {
-            Boundaries.Rescope(currentBoundary);
-            if (TryPushBuffers())
-                if (!ProcessNewBuffers())
-                {
-                    Fault ??= "Upload interrupted prematurely";
-                    break;
-                }
-        }
-    }
-
-    private bool TryPushBuffers()
-    {
-        byte[] availableData;
-        int availableDataCount;
-        if (!this.Processing.TryDequeue(out availableData, out availableDataCount))
+            reusableBuffer = Array.Empty<byte>();
             return false;
+        }
 
-        var reusableBuffer = this.Inspector.Push(availableData, availableDataCount);
-        if (reusableBuffer.Length > 0)
-            Receiving.Enqueue(reusableBuffer, reusableBuffer.Length);
-
-        return true;
+        Boundaries.Rescope(currentBoundary);
+        reusableBuffer = this.Inspector.Push(availableData, availableDataCount);
+        
+        return ProcessNewBuffers();
     }
 
     private static readonly Log
@@ -192,10 +168,5 @@ public class CommonMultipartUploadParserWorker : IDisposable
                 this.Inspector.ReadingWindow.Allocation,
                 (int)readingWindowDataStart, (int)readingWindowDataCount);
         }
-    }
-
-    public void Dispose()
-    {
-        this.IsDisposing = true;
     }
 }
