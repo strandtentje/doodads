@@ -53,6 +53,8 @@ public class MultipartSingleFileResult : IMultipartComponentResult
         this.TempFileHandle.Write(data, start, length);
     }
 
+    private static readonly Log SavedUpload = Log.Cool("Upload of {file} finished.");
+    
     public IMultipartFinishedComponentResult Finish()
     {
         this.TempFileHandle.Flush();
@@ -60,6 +62,7 @@ public class MultipartSingleFileResult : IMultipartComponentResult
         this.TempFileHandle = null;
 
         File.Move(TempPath, FullPath);
+        Log.Post(SavedUpload, FullPath);
         return new MultipartFinishedSingleFileResult(
             this.Name, this.FullPath);
     }
