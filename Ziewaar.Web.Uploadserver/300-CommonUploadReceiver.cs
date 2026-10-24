@@ -119,6 +119,7 @@ public class CommonUploadReceiver : IUploadReceiver
             {
                 byte[] workingReceiveBuffer = new byte[TransferRate.BufferSize];
                 int readCount, allocatedBuffers = 1;
+                using var ewhWaiter = new EventWaitHandle(false, EventResetMode.ManualReset);
 
                 for (readCount = inputStream.Read(
                          workingReceiveBuffer, 0, workingReceiveBuffer.Length);
@@ -197,7 +198,7 @@ public class CommonUploadReceiver : IUploadReceiver
                     {
                         burst = this.TransferRate.Burst;
                         if (this.TransferRate.Sleep >= 0)
-                            Thread.Sleep(this.TransferRate.Sleep);
+                            ewhWaiter.WaitOne(this.TransferRate.Sleep);
                     }
 
                 }

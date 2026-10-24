@@ -172,9 +172,9 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
 
     private void SetTransferRate10M()
     {
-        this.Sleep = 1;
-        this.Burst = 3;
-        this.BufferSize = 32 * 1024;
+        this.Sleep = 3;
+        this.Burst = 2;
+        this.BufferSize = 24 * 1024;
     }
 
     private void SetTransferRateSuper()
@@ -184,9 +184,9 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
         this.BufferSize = 16 * 1024;
     }
 
-    public int Sleep { get; private set; } = 0;
+    public int Sleep { get; private set; } = 1;
     public int BufferSize { get; private set; } = 16 * 1024;
-    public int Burst { get; private set; } = 0;
+    public int Burst { get; private set; } = 1;
 
     private byte[] BareBoundaryBytes, CrlfCrlfBoundaryBytesCrlf, CrlfBytes, PartHeaderBytes;
 
