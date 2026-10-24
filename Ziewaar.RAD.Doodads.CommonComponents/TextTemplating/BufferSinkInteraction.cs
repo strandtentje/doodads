@@ -1,3 +1,4 @@
+using Ejije.Logging;
 using System.Text;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
@@ -41,15 +42,22 @@ public class BufferSinkInteraction : ISinkingInteraction
         }
     }
     public long LastSinkChangeTimestamp { get; set; }
+    private static readonly Log FlushFail = Log.Oops("Flushing sinkplug {failed} - browser was probably closed.");
     public void Flush()
     {
         if (SinkBuffer is ProxyBufferStream pbs)
         {
-            if (DeferredContentLength != -1)
-                TrueSink.SetContentLength64(DeferredContentLength);
-            pbs.FinalFlush();
-            TrueSink.SinkTrueContentType = SinkTrueContentType;
-            TrueSink.LastSinkChangeTimestamp = LastSinkChangeTimestamp;
+            try
+            {
+                if (DeferredContentLength != -1)
+                    TrueSink.SetContentLength64(DeferredContentLength);
+                pbs.FinalFlush();
+                TrueSink.SinkTrueContentType = SinkTrueContentType;
+                TrueSink.LastSinkChangeTimestamp = LastSinkChangeTimestamp;
+            } catch(Exception ex)
+            {
+                Log.Post(FlushFail, ex);
+            }
         }
     }
     public void Bypass()

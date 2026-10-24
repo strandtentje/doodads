@@ -4,11 +4,13 @@ public class CommonUploadReceiver : IUploadReceiver
 {
     private readonly IUploadSizeGovernor SizeGovernor;
     private readonly IUploadValidator Validator;
+    private readonly ITransferRateConstraints TransferRate;
 
-    public CommonUploadReceiver(IUploadSizeGovernor sizeGovernor, IUploadValidator validator)
+    public CommonUploadReceiver(IUploadSizeGovernor sizeGovernor, IUploadValidator validator, ITransferRateConstraints transferRate)
     {
         this.SizeGovernor = sizeGovernor;
         this.Validator = validator;
+        this.TransferRate = transferRate;
     }
 
     private static readonly Log
@@ -101,8 +103,6 @@ public class CommonUploadReceiver : IUploadReceiver
         ExceptionBrokeLoop = Log.Fail(
             "Exception {broke} upload receive loop");
 
-    private const int RECEIVE_BUFFER_SIZE = 16 * 1024;
-
     private bool ReceiveLoop(Stream inputStream, UploadBox selectedUploadBox)
     {
         byte[] buffer;
@@ -113,10 +113,11 @@ public class CommonUploadReceiver : IUploadReceiver
             using var ingestor = new CommonMultipartComponentIngestor(selectedUploadBox.BoundaryBytes,
                 selectedUploadBox.TargetDirectory, selectedUploadBox.AcceptedFields, Validator);
             var worker = new CommonMultipartUploadParserWorker(new VirtualInspectionBuffer(), ingestor);
+            int burst = TransferRate.Burst;
 
             try
             {
-                byte[] workingReceiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
+                byte[] workingReceiveBuffer = new byte[TransferRate.BufferSize];
                 int readCount, allocatedBuffers = 1;
 
                 for (readCount = inputStream.Read(
@@ -180,14 +181,25 @@ public class CommonUploadReceiver : IUploadReceiver
                     if (readCount == 0)
                         break;
 
-                    if (workingReceiveBuffer.Length != RECEIVE_BUFFER_SIZE)
+                    if (workingReceiveBuffer.Length != TransferRate.BufferSize)
                     {
                         allocatedBuffers++;
                         if (allocatedBuffers > 3) // this assertion should normally not be hit.
                             throw new InsufficientMemoryException(
                                 "multipart inspection not returning used buffers properly");
-                        workingReceiveBuffer = new byte[RECEIVE_BUFFER_SIZE];
+                        workingReceiveBuffer = new byte[TransferRate.BufferSize];
                     }
+
+                    if (burst > 0)
+                    {
+                        burst--;
+                    } else
+                    {
+                        burst = this.TransferRate.Burst;
+                        if (this.TransferRate.Sleep >= 0)
+                            Thread.Sleep(this.TransferRate.Sleep);
+                    }
+
                 }
 
                 // we left the loop due to an eof, and our inspector has two buffer. let's super flush those out
@@ -198,6 +210,10 @@ public class CommonUploadReceiver : IUploadReceiver
                         throw new InvalidOperationException( // this assertion should also never occur. 
                             "inspector claims to be not done even though its entirely flushed");
                 }
+            }
+            catch(Exception ex)
+            {
+                selectedUploadBox.Faults.Add("Transmission Fault");
             }
             finally
             {

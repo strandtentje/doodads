@@ -9,7 +9,7 @@ using Ziewaar.Web.Uploadserver.Models;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.FastMultipart;
 
-public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator
+public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator, ITransferRateConstraints
 {
     private readonly CommonUploadSizeGovernor UploadSize;
     private readonly UploadBoxRepository UploadBoxes;
@@ -36,10 +36,11 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
     {
         this.Router = new UploadRouter(
             this, this, new CommonUploadReceiver(
-                this.UploadSize = new CommonUploadSizeGovernor(), this),
+                this.UploadSize = new CommonUploadSizeGovernor(), this, this),
             this.UploadBoxes = new UploadBoxRepository());
 
         PrepareMultipartInterruptions();
+        SetTransferRate10M();
     }
 
     public override void TryEnter(StampedMap constants, IInteraction interaction)
@@ -68,6 +69,23 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
                 if (Named(constants, "barheight") is { } barHeightCandidate &&
                     ushort.TryParse(barHeightCandidate, out var parsedBarHeight))
                     this.BarHeight = parsedBarHeight;
+
+                if (Named(constants, "rate") is { } rateCandidate)
+                {
+                    switch(rateCandidate.ToLower())
+                    {
+                        case "1":
+                            SetTransferRate1M();
+                            break;
+                        case "super":
+                            SetTransferRateSuper();
+                            break;
+                        case "10":
+                        default:
+                            SetTransferRate10M();
+                            break;
+                    }
+                }
 
                 var urlParts = NamedPartsFromMemory(constants, "action", interaction).ToArray();
                 if (urlParts.Length == 0 || urlParts.Sum(x => x.Length) == 0)
@@ -142,6 +160,31 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
                                           { IgnoreInaccessible = true, RecurseSubdirectories = true })
                                   .FirstOrDefault() ??
                               throw new BasicException("font not found");
+
+    private void SetTransferRate1M()
+    {
+        this.Sleep = 10;
+        this.Burst = 1;
+        this.BufferSize = 16 * 1024;
+    }
+
+    private void SetTransferRate10M()
+    {
+        this.Sleep = 1;
+        this.Burst = 3;
+        this.BufferSize = 32 * 1024;
+    }
+
+    private void SetTransferRateSuper()
+    {
+        this.Sleep = -1;
+        this.Burst = 0;
+        this.BufferSize = 16 * 1024;
+    }
+
+    public int Sleep { get; private set; } = 0;
+    public int BufferSize { get; private set; } = 16 * 1024;
+    public int Burst { get; private set; } = 0;
 
     private byte[] BareBoundaryBytes, CrlfCrlfBoundaryBytesCrlf, CrlfBytes, PartHeaderBytes;
 
