@@ -1,15 +1,43 @@
-﻿<div class="uploadbox">
-    <iframe name="uploadSink" src="about:blank">
+﻿<div class="uploadbox" id="ub{% uploadBoxId %}">
+    <iframe id="us{% uploadBoxId %}" class="formsink" name="us{% uploadBoxId %}" src="about:blank">
 
     </iframe>
 
-    <img src="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=PROGRESS" />
+    <img id="pg{% uploadBoxId %}" class="uploadprogressbar" src="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=PROGRESS"/>
 
-    <form method="post" enctype="multipart/form-data" target="uploadSink"
+    <form id="fm{% uploadBoxId %}" class="uploadform" method="post" enctype="multipart/form-data" target="us{% uploadBoxId %}"
           action="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=UPLOAD">
         <label for="files">Select files to Upload</label>
         <input type="file" id="files" name="files" {% multiple %} accept="{% accept %}"/>
         <!-- accept=".pdf,audio/*,video/*,image/*" -->
-        <input type="submit" value="Send" />
+        <input type="submit" value="Send"/>
     </form>
+
+    <a id="cc{% uploadBoxId %}" class="uploadcancel" href="{% url %}">Cancel</a>
+    <a id="fi{% uploadBoxId %}" class="uploadfinish" href="{% url %}">Finish</a>
+
+    <script type="text/javascript">
+        (function() { 
+            var uploadSink = document.getElementById("us{% uploadBoxId %}");
+            var progressBar = document.getElementById("pg{% uploadBoxId %}");
+            var uploadForm = document.getElementById("fm{% uploadBoxId %}");
+            var cancelLink = document.getElementById("cc{% uploadBoxId %}");
+            var finishLink = document.getElementById("fi{% uploadBoxId %}");
+            
+            uploadSink.style.display = "none";
+            progressBar.style.display = "none";
+            finishLink.style.display = "none";
+            
+            uploadForm.addEventListener("submit", function() {
+                progressBar.style.display = "block";
+                uploadForm.style.display = "none";
+                
+                uploadSink.addEventListener("load", function() {
+                     cancelLink.style.display = "none";
+                     finishLink.style.display = "block";
+                });
+            });
+            
+        })();
+    </script>
 </div>

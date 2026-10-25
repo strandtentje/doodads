@@ -104,29 +104,37 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             contentType, "multipart/mixed");
         if (!string.IsNullOrEmpty(fileName) && !isMultiMixed)
         {
-            var fileCount = FinishableResults.OfType<MultipartSingleFileResult>().Count();
-            fileCount += FinishableResults.OfType<MultipartMultipleFileResult>().Sum(x => x.UnfinishedSubfiles.Count);
-            if (UploadValidator.TryValidate(contentType, fileCount + 1) &&
-                !fileName.Intersect(Path.GetInvalidFileNameChars()).Any() &&
+            if (!fileName.Intersect(Path.GetInvalidFileNameChars()).Any() &&
                 !IllegalNames.Contains(fileName, StringComparer.OrdinalIgnoreCase))
             {
                 FinishableResults.Add(UnfinishedResult);
-                if (MultipartSingleFileResult.TryCreateFor(
-                        fieldName, TargetDirectory, fileName, contentType, out var ur))
+                var fileCount = FinishableResults.OfType<MultipartSingleFileResult>().Count();
+                fileCount += FinishableResults.OfType<MultipartMultipleFileResult>().Sum(x => x.UnfinishedSubfiles.Count);
+                if (UploadValidator.TryValidate(contentType, fileCount + 1))
                 {
-                    UnfinishedResult = ur;
-                    return true;
+                    if (MultipartSingleFileResult.TryCreateFor(
+                            fieldName, TargetDirectory, fileName, contentType, out var ur))
+                    {
+                        UnfinishedResult = ur;
+                        return true;
+                    }
+                    else
+                    {
+                        FinishableResults.Add(new MultipartComponentFaultyResult("File already exists"));
+                        return false;
+                    }
                 }
                 else
                 {
-                    FinishableResults.Add(new MultipartComponentFaultyResult("File already exists"));
+                    FinishableResults.Add(new MultipartComponentFaultyResult(
+                        "Too many files, or wrong file type."));
                     return false;
                 }
             }
             else
             {
                 FinishableResults.Add(new MultipartComponentFaultyResult(
-                    "Invalid content type or too many files"));
+                    "Filename contains invalid characters"));
                 return false;
             }
         }
