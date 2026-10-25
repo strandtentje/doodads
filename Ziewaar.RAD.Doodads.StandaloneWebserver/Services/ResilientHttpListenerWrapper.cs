@@ -108,7 +108,7 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
         RejectUnstarted = Log.Oops("Webserver not started; rejecting request"),
         RejectWrongInstance = Log.Oops("Wrong http listener instance; rejecting request"),
         KillStrangeFail = Log.Warn("The unexpected HTTP server that sent us a request, could not be killed. due to {exception}"),
-        ResponseCloseFail = Log.Oops("Http Response couldnt be closed; it probably was already dead.");
+        ResponseCloseFail = Log.Oops("Http Response couldnt be closed; it probably was already dead. {exception}");
     private void RequestContextOpened(IAsyncResult ar)
     {
         if (ar.AsyncState is not ControlBox sourceControlBox)
@@ -151,7 +151,7 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
             }
             catch (Exception ex)
             {
-                Log.Post(KillStrangeFail);
+                Log.Post(KillStrangeFail, ex);
             }
 
             return;
@@ -173,7 +173,7 @@ public class ResilientHttpListenerWrapper(string[] prefixes, int threadCount) : 
             }
             catch (Exception ex)
             {
-                Log.Post(ResponseCloseFail);
+                Log.Post(ResponseCloseFail, ex);
             }
         }
     }

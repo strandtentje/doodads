@@ -17,7 +17,7 @@ public class HttpRedirectFormat : BasicService
     public HttpRedirectFormat()
     {
         RedirectService.OnThen += (s, e) => FormatService.Enter(Constants!, e);
-        RedirectService.OnException += (s, e) => throw new BasicException(e.Register.ToString());
+        RedirectService.OnException += (s, e) => throw new BasicException(e.Register.ToString() ?? "");
     }
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
