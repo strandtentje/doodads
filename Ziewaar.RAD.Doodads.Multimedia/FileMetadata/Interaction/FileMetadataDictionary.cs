@@ -2,7 +2,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using TagLib;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.FileMetadata.Interaction;
 
 public class FileMetadataDictionary(Tag fileTag) : IReadOnlyDictionary<string, object>
 {

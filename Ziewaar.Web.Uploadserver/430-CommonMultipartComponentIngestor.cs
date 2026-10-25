@@ -1,4 +1,4 @@
-﻿using Ziewaar.TtLog;
+﻿using TtLog;
 using Ziewaar.Web.Uploadserver.FieldResults.Unfinished;
 
 namespace Ziewaar.Web.Uploadserver;
@@ -74,18 +74,18 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
         return false;
     }
 
-    private static readonly string[] IllegalNames = new string[]
-    {
+    private static readonly string[] IllegalNames =
+    [
         "CON", "PRN", "AUX", "NUL", "COM0", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
         "COM9", "COM¹", "COM²", "COM³", "LPT0", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7",
         "LPT8", "LPT9", "LPT¹", "LPT²", "LPT³"
-    };
+    ];
 
     private bool GiveFormDataHeader(HttpHeader contentDispositionHeader,
-        HttpHeader contentTypeHeader, HttpHeader transferEncodingHeader)
+        HttpHeader? contentTypeHeader, HttpHeader _)
     {
         var fieldName = contentDispositionHeader.GetPropValueCI("name");
-        if (!AcceptedFields.Contains(fieldName, StringComparer.OrdinalIgnoreCase))
+        if (fieldName == null || !AcceptedFields.Contains(fieldName, StringComparer.OrdinalIgnoreCase))
         {
             FinishableResults.Add(new MultipartComponentFaultyResult(
                 "Missing name from content disposition"));
@@ -100,21 +100,23 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             return true;
         }
 
-        var contentType = contentTypeHeader.MainValue;
+        var contentType = contentTypeHeader?.MainValue;
         var isMultiMixed = StringComparer.OrdinalIgnoreCase.Equals(
             contentType, "multipart/mixed");
-        if (!string.IsNullOrEmpty(fileName) && !isMultiMixed)
+        if (fileName != null && !string.IsNullOrEmpty(fileName) && !isMultiMixed)
         {
             if (!fileName.Intersect(Path.GetInvalidFileNameChars()).Any() &&
                 !IllegalNames.Contains(fileName, StringComparer.OrdinalIgnoreCase))
             {
                 FinishableResults.Add(UnfinishedResult);
                 var fileCount = FinishableResults.OfType<MultipartSingleFileResult>().Count();
-                fileCount += FinishableResults.OfType<MultipartMultipleFileResult>().Sum(x => x.UnfinishedSubfiles.Count);
-                if (UploadValidator.TryValidate(contentType, fileCount + 1))
+                fileCount += FinishableResults.OfType<MultipartMultipleFileResult>()
+                    .Sum(x => x.UnfinishedSubfiles.Count);
+                if (contentType != null && !string.IsNullOrWhiteSpace(contentType) &&
+                    UploadValidator.TryValidate(contentType, fileCount + 1))
                 {
                     if (MultipartSingleFileResult.TryCreateFor(
-                            fieldName, TargetDirectory, fileName, contentType, out var ur))
+                            fieldName, TargetDirectory, fileName, contentType, out var ur) && ur != null)
                     {
                         UnfinishedResult = ur;
                         return true;
@@ -140,11 +142,11 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             }
         }
 
-        
+
         if (isMultiMixed)
         {
             var innerBoundary = contentTypeHeader.GetPropValueCI("boundary")?.Trim();
-            if (!string.IsNullOrEmpty(innerBoundary))
+            if (innerBoundary != null && !string.IsNullOrEmpty(innerBoundary))
             {
                 this.Boundaries.Push(Encoding.ASCII.GetBytes(innerBoundary));
                 FinishableResults.Add(UnfinishedResult);
@@ -168,7 +170,7 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
     }
 
     private bool GiveSubFileHeader(HttpHeader contentDispositionHeader,
-        HttpHeader contentTypeHeader, HttpHeader transferEncodingHeader)
+        HttpHeader contentTypeHeader, HttpHeader _)
     {
         var asMultiFile = UnfinishedResult as MultipartMultipleFileResult;
         if (asMultiFile == null)
@@ -188,8 +190,8 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
             return false;
         }
 
-        var fileName = contentDispositionHeader.GetPropValueCI("filename").Trim();
-        if (string.IsNullOrEmpty(fileName))
+        var fileName = contentDispositionHeader.GetPropValueCI("filename")?.Trim();
+        if (fileName == null || string.IsNullOrEmpty(fileName))
         {
             FinishableResults.Add(new MultipartComponentFaultyResult(
                 "Missing filename on subfile"));
@@ -261,23 +263,18 @@ public class CommonMultipartComponentIngestor : IMultipartComponentIngestor
     {
         FinishableResults.Add(UnfinishedResult);
 
-        foreach (var item in FinishableResults)
-            if (!string.IsNullOrEmpty(item.Fault))
-                faults.Add(item.Fault);
+        foreach (var fault in FinishableResults.Select(x => x.Fault).OfType<string>())
+            if (!string.IsNullOrEmpty(fault))
+                faults.Add(fault);
 
         UnfinishedResult = new MultipartFinishedResult(faults);
         FinishableResults.Add(UnfinishedResult);
 
-        if (!faults.Any())
-        {
-            foreach (var item in FinishableResults)
-            {
-                var usableResult =
-                    item.Finish() as IMultipartFinishedComponentResult;
-                if (usableResult != null)
-                    values[usableResult.Name] = usableResult;
-            }
-        }
+        if (faults.Any()) return;
+        
+        foreach (var item in FinishableResults)
+            if (item.Finish() is { } usableResult)
+                values[usableResult.Name] = usableResult;
     }
 
     public void Dispose()

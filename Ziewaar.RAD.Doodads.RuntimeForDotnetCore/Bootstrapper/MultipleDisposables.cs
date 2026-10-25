@@ -1,5 +1,5 @@
 ﻿using Ziewaar.RAD.Doodads.CoreLibrary;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Bootstrapper;
 

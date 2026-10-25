@@ -165,29 +165,3 @@ public class Route : IService
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
-
-public class Breadcrumbs : BasicService
-{
-    public override void TryEnter(StampedMap constants, IInteraction interaction)
-    {
-        BasicException.ForNullOrEmpty(Register(interaction), "path req'd in register", out var path); 
-        RepeatToMemory(constants, interaction, GetBreadcrumbs(path));
-    }
-
-    private IEnumerable<IReadOnlyDictionary<string, object>> GetBreadcrumbs(string path)
-    {
-        for (
-            var sc = path.PullString("/", out var element, '/');
-            element != "/";
-            sc.PullString("/", out element))
-            yield return MakeDict(sc, element);
-    }
-
-    private static SwitchingDictionary MakeDict(StringCursor sc, string element) =>
-        new(["path", "name"], key => key switch
-        {
-            "path" => sc.AlreadyRead,
-            "name" => element,
-            _ => throw new KeyNotFoundException(),
-        });
-}

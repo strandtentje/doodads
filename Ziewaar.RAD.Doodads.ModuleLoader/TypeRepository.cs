@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 

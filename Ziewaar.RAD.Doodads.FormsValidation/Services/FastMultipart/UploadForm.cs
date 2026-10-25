@@ -1,8 +1,8 @@
 using SkiaSharp;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
-using Ziewaar.TtLog;
-using Ziewaar.TtLog.Utilities;
+using TtLog;
+using TtLog.Utilities;
 using Ziewaar.Web.Uploadserver;
 using Ziewaar.Web.Uploadserver.Extensions;
 using Ziewaar.Web.Uploadserver.Interfaces;
@@ -10,6 +10,30 @@ using Ziewaar.Web.Uploadserver.Models;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.FastMultipart;
 
+[Category("Input & Validation")]
+[Title("A fully integrated upload form")]
+[Description("""
+             Put a target directory in register before calling this service, or your files are gonna end up 
+             all sorts of weird places.
+             
+             Fully generates an upload form and conducts its lifecycle. This service requires a Session and a SinkPlug
+             to have preceeded it. Uploads are not accepted willy-nilly, instead a transient upload session is generated
+             for each upload job. In case this Service finds the current upload session incomplete or unsuitable,
+             it'll go into HaveLink; you will need to ie. pass this link to the user. 
+             
+             Uploads that did not succeed trigger OnElse, uploads that did succeed trigger OnThen; which may then be 
+             used with UploadedFileList to get a list of the files that have been uploaded. 
+             
+             Upon GET and a matching upload transient, this service generates the <form>-html automatically, as opposed
+             to HtmlForm which requires you to provide a <form>-html with validation rules. This html is a form with 
+             only a file field, configured to match the way this service has been configured. Thise html also contains
+             an <img> tag that calls the PROGRESS-function on this service; this provides a multipart/x-mixed-replace 
+             stream of webp's that show the upload progress. 
+             
+             An upload transient will always get purged and disposed after use, regardless of whether or not the 
+             upload succeeded. If part of the upload was OK, but another part wasn't, no files related to the upload
+             will be persisted. 
+             """)]
 public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator,
     ITransferRateConstraints
 {
@@ -30,8 +54,14 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
         (AcceptableExtensions ?? throw new BasicException("no acceptable extensions")).Concat
             (AcceptableMimeTypes ?? throw new BasicException("no acceptable mimes")));
 
+    [EventOccasion("""
+                   when the upload completed successfully, you may use a UploadedFileList here to iterate through
+                    uploaded files
+                   """)]
     public override event CallForInteraction? OnThen;
+    [EventOccasion("when the upload failed, a message may be in register. the failure mode is also in the logs")]
     public override event CallForInteraction? OnElse;
+    [EventOccasion("make sure to use this branch to provide a suitable transient upload link to the user.")]
     public event CallForInteraction? HaveLink;
 
     public UploadForm()
@@ -41,10 +71,30 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
                 this.UploadSize = new CommonUploadSizeGovernor(), this, this),
             this.UploadBoxes = new UploadBoxRepository());
 
-        PrepareMultipartInterruptions();
         SetTransferRate10M();
     }
 
+    [NamedSetting("maxfilesize", "limit of upload size in bytes, or suffix number with kb, mb, gb, etc.")]
+    private readonly UpdatingKeyValue MaxFileSizeConstant = new UpdatingKeyValue("maxfilesize");
+    [NamedSetting("mindiskspace", "amount of disk space to preserve in bytes, or suffix number with mb, gb, etc.")]
+    private readonly UpdatingKeyValue MinDiskSpaceConstant = new UpdatingKeyValue("mindiskspace");
+    [NamedSetting("maxfilecount", "max. number of files to allow in upload.")]
+    private readonly UpdatingKeyValue MaxFileCountConstant = new UpdatingKeyValue("maxfilecount");
+    [NamedSetting("barwidth", "width of progress bar in pixels")]
+    private readonly UpdatingKeyValue BarWidthConstant = new UpdatingKeyValue("barwidth");
+    [NamedSetting("barheight", "height  of progress bar in pixels")]
+    private readonly UpdatingKeyValue BarHeightConstant = new UpdatingKeyValue("barheight");
+    [NamedSetting("rate", "upload rate limit; 1 for ~1mbps, 10 for ~10mbps and super for unlimited (very fast!)")]
+    private readonly UpdatingKeyValue RateLimitConstant = new UpdatingKeyValue("rate");
+    [NamedSetting("action", "full absolute working url of the form")]
+    private readonly UpdatingKeyValue ActionConstant = new UpdatingKeyValue("action");
+    [NamedSetting("accept", """
+                            array of acceptable extensions and mime types. use `.extensions` and `mime/types` separately 
+                            to have it automatically make a mime-extension combo, or supply `.extension=mime/type` 
+                            for custom situations
+                            """)]
+    private readonly UpdatingKeyValue AcceptConstant = new UpdatingKeyValue("accept");
+    
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
         BasicException.ForInteraction(interaction, out IHttpIncomingRequestInteraction request);
@@ -58,21 +108,21 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
         {
             if (this.AcceptableMimeTypes == null || this.AcceptableExtensions == null)
             {
-                if (Named(constants, "maxfilesize") is { } maxFileSizeCandidate)
+                if (Named(constants, MaxFileSizeConstant) is { } maxFileSizeCandidate)
                     this.UploadSize.HardLimit = maxFileSizeCandidate.ParseByteSize();
-                if (Named(constants, "mindiskspace") is { } minDiskSpaceCandidate)
+                if (Named(constants, MinDiskSpaceConstant) is { } minDiskSpaceCandidate)
                     this.UploadSize.DiskSpaceLimit = minDiskSpaceCandidate.ParseByteSize();
-                if (Named(constants, "maxfilecount") is { } maxFileCountCandidate &&
+                if (Named(constants, MaxFileCountConstant) is { } maxFileCountCandidate &&
                     byte.TryParse(maxFileCountCandidate, out var maxFileCount))
                     this.MaxFileCount = maxFileCount;
-                if (Named(constants, "barwidth") is { } barWidthCandidate &&
+                if (Named(constants, BarWidthConstant) is { } barWidthCandidate &&
                     ushort.TryParse(barWidthCandidate, out var parsedBarWidth))
                     this.BarWidth = parsedBarWidth;
-                if (Named(constants, "barheight") is { } barHeightCandidate &&
+                if (Named(constants, BarHeightConstant) is { } barHeightCandidate &&
                     ushort.TryParse(barHeightCandidate, out var parsedBarHeight))
                     this.BarHeight = parsedBarHeight;
 
-                if (Named(constants, "rate") is { } rateCandidate)
+                if (Named(constants, RateLimitConstant) is { } rateCandidate)
                 {
                     switch (rateCandidate.ToLower().Trim())
                     {
@@ -82,21 +132,21 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
                         case "super":
                             SetTransferRateSuper();
                             break;
-                        case "10":
+                        // case "10":
                         default:
                             SetTransferRate10M();
                             break;
                     }
                 }
 
-                var urlParts = NamedPartsFromMemory(constants, "action", interaction).ToArray();
+                var urlParts = NamedPartsFromMemory(constants, ActionConstant, interaction).ToArray();
                 if (urlParts.Length == 0 || urlParts.Sum(x => x.Length) == 0)
                     throw new BasicException("absolute action url required");
                 this.ActionUrl = string.Concat(urlParts);
 
-                var extensionsAndMimes = NamedParts(constants, "accept").ToArray();
+                var extensionsAndMimes = NamedParts(constants, AcceptConstant).ToArray();
                 if (extensionsAndMimes.Length == 0)
-                    throw new BasicException("missing acceptable extensions and/or mime types in primary");
+                    throw new BasicException("missing acceptable extensions and/or mime types in accept");
                 var mimePairs = MimeMapping.ExpandMixedBag(extensionsAndMimes).ToArray();
                 this.AcceptableExtensions = mimePairs.Select(x => x.extension).Distinct()
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -154,7 +204,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
         };
 
     private static SKFont
-        FixedSkFont => field ??= new SKFont(SKTypeface.FromFile(FontPath, 0)) { Embolden = true };
+        FixedSkFont => field ??= new SKFont(SKTypeface.FromFile(FontPath)) { Embolden = true };
 
     private static string
         FontPath => field ??= Directory.EnumerateFiles(SpecialPaths.AssemblyDirectory, "montserrat.ttf",
@@ -188,17 +238,10 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
     public int BufferSize { get; private set; } = 16 * 1024;
     public int Burst { get; private set; } = 1;
 
-    private byte[] BareBoundaryBytes, CrlfCrlfBoundaryBytesCrlf, CrlfBytes, PartHeaderBytes;
-
-    private void PrepareMultipartInterruptions()
-    {
-        this.BareBoundaryBytes = Encoding.ASCII.GetBytes("--PROGRESS");
-        this.CrlfCrlfBoundaryBytesCrlf = Encoding.ASCII.GetBytes(
-            "\r\n\r\n--PROGRESS\r\n");
-        this.CrlfBytes = Encoding.ASCII.GetBytes("\r\n");
-        this.PartHeaderBytes = Encoding.ASCII.GetBytes(
-            "Content-Type: image/gif\r\nContent-Length: ");
-    }
+    private byte[] BareBoundaryBytes => field ??= [.. "--PROGRESS"u8];
+    private byte[] CrlfCrlfBoundaryBytesCrlf => field ??= [.. "\r\n\r\n--PROGRESS\r\n"u8];
+    private byte[] CrlfBytes => field ??= [.. "\r\n"u8];
+    private byte[] PartHeaderBytes => field ??= [.. "Content-Type: image/gif\r\nContent-Length: "u8]; 
 
     private static readonly Log ProgressStopped = Log.Oops("Progress bar {stopped}; window likely closed.");
     
@@ -219,9 +262,9 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
         responseStream.Write(BareBoundaryBytes, 0, BareBoundaryBytes.Length);
         responseStream.Write(CrlfBytes, 0, CrlfBytes.Length);
 
-        string message;
         try
         {
+            string message;
             while (!selectedUploadBox.TryWaitForFinish(out message))
             {
                 message = selectedUploadBox.ContentLengthAnnounced > 0
@@ -251,7 +294,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
 
         var scenter = center;
         using var reader = new StringReader(message);
-        while (reader.ReadLine() is string line)
+        while (reader.ReadLine() is { } line)
         {
             cnv.DrawText(line, scenter, SKTextAlign.Center, FixedSkFont, FontPaint);
             scenter.Y += 16;

@@ -1,6 +1,6 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 public class FileWatcherFactory : IDisposable

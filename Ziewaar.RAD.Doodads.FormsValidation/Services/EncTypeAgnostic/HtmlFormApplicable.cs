@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingMultipart;
 using Ziewaar.RAD.Doodads.EnumerableStreaming.StreamingUrlEncoded;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 

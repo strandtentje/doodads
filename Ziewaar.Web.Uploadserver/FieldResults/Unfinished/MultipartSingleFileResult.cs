@@ -1,15 +1,13 @@
-﻿using Ziewaar.TtLog;
+﻿using TtLog;
 
 namespace Ziewaar.Web.Uploadserver.FieldResults.Unfinished;
 
 public class MultipartSingleFileResult : IMultipartComponentResult
 {
-    public string Fault { get { return null; } }
-
-    public bool IsExpectingContent { get { return true; } }
-
+    public string? Fault => null;
+    public bool IsExpectingContent => true;
     public readonly string FieldName, TempPath, FullPath, ContentType;
-    private FileStream TempFileHandle;
+    private FileStream? TempFileHandle;
     private static readonly char[] IllegalFilenameChars = Path.GetInvalidFileNameChars();
     private MultipartSingleFileResult(
         string fieldName,
@@ -27,7 +25,7 @@ public class MultipartSingleFileResult : IMultipartComponentResult
 
     public static bool TryCreateFor(
         string fieldName, string workingDirectory, string fileName,
-        string contentType, out MultipartSingleFileResult result)
+        string contentType, out MultipartSingleFileResult? result)
     {
         var safeFileName = new string(
             fileName.ToCharArray().
@@ -48,10 +46,11 @@ public class MultipartSingleFileResult : IMultipartComponentResult
         return true;
     }
 
-    public string Name { get { return FieldName; } }
+    public string Name => FieldName;
 
     public void GiveBinaryData(byte[] data, int start, int length)
     {
+        if (TempFileHandle == null) throw new InvalidOperationException("result already finished; may not write.");
         this.TempFileHandle.Write(data, start, length);
     }
 
@@ -59,6 +58,7 @@ public class MultipartSingleFileResult : IMultipartComponentResult
     
     public IMultipartFinishedComponentResult Finish()
     {
+        if (TempFileHandle == null) throw new InvalidOperationException("result may only be finished once.");
         this.TempFileHandle.Flush();
         this.TempFileHandle.Close();
         this.TempFileHandle = null;

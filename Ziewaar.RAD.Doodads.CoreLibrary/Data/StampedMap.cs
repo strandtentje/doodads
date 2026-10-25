@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Data;
 #nullable enable

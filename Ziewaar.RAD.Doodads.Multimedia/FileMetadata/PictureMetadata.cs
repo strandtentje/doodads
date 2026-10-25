@@ -1,18 +1,23 @@
 using System.Buffers;
-using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using ImageMagick;
 using TagLib;
+using TtLog;
+using TtLog.Utilities;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-using Ziewaar.TtLog;
-using Ziewaar.TtLog.Utilities;
-using File = TagLib.File;
+using Ziewaar.RAD.Doodads.Multimedia.FileMetadata.Interaction;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.FileMetadata;
 
+[Category("Multimedia")]
+[Title("Iterate through pictures of multimedia file")]
+[Description("""
+             Requires AtomicMetadata to have run previously. Will iterate through base64 thumbnails
+             """)]
 public class PictureMetadata : BasicService
 {
     public override void TryEnter(StampedMap constants, IInteraction interaction)

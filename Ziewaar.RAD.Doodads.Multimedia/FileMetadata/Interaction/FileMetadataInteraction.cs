@@ -1,7 +1,7 @@
 using TagLib;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.FileMetadata.Interaction;
 
 public class FileMetadataInteraction(IInteraction parent, string path, Tag fileTag) : IInteraction
 {

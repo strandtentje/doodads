@@ -1,4 +1,4 @@
-﻿using Ziewaar.TtLog;
+﻿using TtLog;
 
 namespace Ziewaar.Web.Uploadserver;
 
@@ -34,9 +34,8 @@ public class CommonUploadReceiver : IUploadReceiver
             return false;
         }
 
-        var contentTypeParts = contentType.Split(
-            new char[] { ';' },
-            2, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+        var contentTypeParts = contentType.
+            Split([';'], 2, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
         var expectsMultipartFormData = contentTypeParts.ElementAtOrDefault(0);
         var expectsBoundary = contentTypeParts.ElementAtOrDefault(1);
         if (string.IsNullOrEmpty(expectsMultipartFormData) ||
@@ -107,7 +106,8 @@ public class CommonUploadReceiver : IUploadReceiver
 
     private bool ReceiveLoop(Stream inputStream, UploadBox selectedUploadBox)
     {
-        byte[] buffer;
+        if (selectedUploadBox.BoundaryBytes == null)
+            throw new ArgumentException("UploadBox must have its BoundaryBytes assigned", nameof(selectedUploadBox));
         int totalReceiveCount = 0;
         var dataRate = new DataRateCollection(7);
         try
@@ -214,7 +214,7 @@ public class CommonUploadReceiver : IUploadReceiver
                             "inspector claims to be not done even though its entirely flushed");
                 }
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 selectedUploadBox.Faults.Add("Transmission Fault");
             }

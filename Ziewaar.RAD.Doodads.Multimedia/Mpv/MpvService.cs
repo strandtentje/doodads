@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.Mpv;
 
 public abstract class MpvService : BasicService
 {

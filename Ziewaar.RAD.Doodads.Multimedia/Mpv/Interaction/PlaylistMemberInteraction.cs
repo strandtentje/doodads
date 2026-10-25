@@ -2,9 +2,8 @@ using LibMpvWrapper;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
-using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.Mpv.Interaction;
 
 public class PlaylistMemberInteraction(RepeatInteraction ri, PlaylistMember member) : IInteraction
 {

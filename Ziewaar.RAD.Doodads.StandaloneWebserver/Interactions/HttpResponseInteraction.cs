@@ -1,4 +1,4 @@
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Interactions;
 public class HttpResponseInteraction(

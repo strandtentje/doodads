@@ -1,15 +1,11 @@
 ﻿namespace Ziewaar.Web.Uploadserver.Pages;
 
-public class DynamicPageInstructionEnumerable : IEnumerable<DynamicPageInstruction>
+public class DynamicPageInstructionEnumerable(string file) : IEnumerable<DynamicPageInstruction>
 {
-    private readonly object FileLock = new object();
-    private List<DynamicPageInstruction> Instructions = null;
-    public readonly string SourceFile;
+    private readonly object FileLock = new();
+    private List<DynamicPageInstruction>? Instructions;
+    public readonly string SourceFile = file;
     private DateTime LastChanged = DateTime.MinValue;
-    public DynamicPageInstructionEnumerable(string file)
-    {
-        this.SourceFile = file;
-    }
 
     public IEnumerator<DynamicPageInstruction> GetEnumerator()
     {
@@ -23,15 +19,14 @@ public class DynamicPageInstructionEnumerable : IEnumerable<DynamicPageInstructi
             }
         }
 
-        return Instructions.GetEnumerator();
+        return Instructions?.GetEnumerator() ?? Enumerable.Empty<DynamicPageInstruction>().GetEnumerator();
     }
 
     private void Rebuild()
     {
         Instructions = new List<DynamicPageInstruction>();
         var fileText = new FileText(SourceFile);
-        int offset, countUntil;
-        while(fileText.GoTo("{% ", out offset, out countUntil))
+        while(fileText.GoTo("{% ", out var offset, out var countUntil))
         {
             Instructions.Add(new DynamicPageInstruction(
                 fileText, offset, countUntil, false));

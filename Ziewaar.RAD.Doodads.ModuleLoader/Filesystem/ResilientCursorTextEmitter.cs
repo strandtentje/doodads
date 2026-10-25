@@ -4,7 +4,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Delegates;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
 #pragma warning disable CS0162

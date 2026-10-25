@@ -45,7 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Multimedia", "Multimedia", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.RAD.Doodads.AdvancedFilesystem", "Ziewaar.RAD.Doodads.AdvancedFilesystem\Ziewaar.RAD.Doodads.AdvancedFilesystem.csproj", "{FC8DA069-E6CB-48CB-976E-9889C0A16968}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.TtLog", "ttlog\Ziewaar.TtLog\Ziewaar.TtLog.csproj", "{4C49EEFA-C1CD-44C1-8E52-EBD8B39845C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TtLog", "ttlog\TtLog\TtLog.csproj", "{4C49EEFA-C1CD-44C1-8E52-EBD8B39845C8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ziewaar.Web.Uploadserver", "Ziewaar.Web.Uploadserver\Ziewaar.Web.Uploadserver.csproj", "{F1900577-0A5F-44B8-8C19-D4FDD552E651}"
 EndProject

@@ -35,6 +35,8 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             !string.IsNullOrWhiteSpace(candidateFromConstants)
                 ? candidateFromConstants
                 : null;
+
+        protected string? Named(StampedMap constants, UpdatingKeyValue setting) => Named(constants, setting.Key);
         protected string? Named(StampedMap constants, string name) =>
             constants.NamedItems.TryGetValue(name, out var item) && IsntJustAnObject(item) &&
             Convert.ToString(item, CultureInfo.InvariantCulture) is { } candidateFromConstants && 
@@ -62,6 +64,9 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             }
         }
 
+        protected IEnumerable<string> NamedPartsFromMemory(StampedMap constants, UpdatingKeyValue setting,
+            IInteraction interaction) => NamedPartsFromMemory(constants, setting.Key, interaction);
+            
         protected IEnumerable<string> NamedPartsFromMemory(StampedMap constants, string name, IInteraction interaction)
         {
             var parts = NamedParts(constants, name);
@@ -111,6 +116,8 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             return new Queue<string>(PartOut(valueFromConstant));
         }
 
+        protected IEnumerable<string> NamedParts(StampedMap constants, UpdatingKeyValue setting) =>
+            NamedParts(constants, setting.Key);
         protected IEnumerable<string> NamedParts(StampedMap constants, string name)
         {
             if (!constants.NamedItems.TryGetValue(name, out var valueFromConstant) || valueFromConstant == null)

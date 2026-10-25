@@ -1,7 +1,7 @@
 ﻿#pragma warning disable 67
 using System.Collections;
 using System.Data;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 

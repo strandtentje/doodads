@@ -3,14 +3,14 @@
 public static class HttpHeaderExtensions
 {
     public static bool HasMainValueCI(
-        this HttpHeader header,
+        this HttpHeader? header,
         string value)
     {
         if (header == null) return false;
         return StringComparer.OrdinalIgnoreCase.Equals(
             header.MainValue, value);
     }
-    public static string GetPropValueCI(this HttpHeader header, string name)
+    public static string? GetPropValueCI(this HttpHeader? header, string name)
     {
         if (header == null) return null;
         var value = header.Where(x => StringComparer.OrdinalIgnoreCase.Equals(

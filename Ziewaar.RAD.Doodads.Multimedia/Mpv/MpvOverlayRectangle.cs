@@ -1,15 +1,24 @@
 using LibMpvWrapper;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+using Ziewaar.RAD.Doodads.Multimedia.Mpv.Interaction;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.Mpv;
 
+[Category("Multimedia")]
+[Title("Have MPV overlay rectangle")]
+[Description("""
+             Requires an MpvInstance, defines a rectangle to put MpvSetOverlayImage into
+             """)]
 public class MpvOverlayRectangle : MpvService
 {
+    [EventOccasion("Use MpvSetOverlayImage here to set the image in the rectange")]
     public override event CallForInteraction? OnThen;
-
+    [PrimarySetting("Define a rectangle here as `[xposition],[yposition] [width]x[height]` (may also be in register)")]
+    private readonly UpdatingPrimaryValue OverlayRectangle = new UpdatingPrimaryValue();
     protected override void TryEnter(StampedMap constants, IInteraction interaction, MpvPlayer player)
     {
         var parts = PrimaryAndRegisterParts(constants, interaction, ' ', 'x', ',', ':');

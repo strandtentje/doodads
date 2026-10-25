@@ -1,6 +1,6 @@
 ﻿#nullable enable
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 

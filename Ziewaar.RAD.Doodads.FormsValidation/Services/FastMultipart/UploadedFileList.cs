@@ -1,5 +1,8 @@
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.FastMultipart;
 
+[Category("Input & Validation")]
+[Title("Iterate through uploaded files")]
+[Description("Use after UploadedFileList to iterate through the destionation paths of uploaded files")]
 public class UploadedFileList : IteratingService
 {
     protected override bool RunElse => false;

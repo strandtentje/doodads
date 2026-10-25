@@ -62,7 +62,6 @@ public class StringCursor
     public readonly string Origin;
     private int Position, Anchor;
     public int CurrentPosition => Position;
-    private string Intermediary;
     private readonly char[] CustomDelimiters;
     public char Current => Origin.ElementAtOrDefault(Position);
 

@@ -1,20 +1,18 @@
+using TtLog.Utilities;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-using Ziewaar.TtLog.Utilities;
+using Ziewaar.RAD.Doodads.Multimedia.FileMetadata.Interaction;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.FileMetadata;
 
-public enum FileMetadataKeys
-{
-    Length,
-    Album,
-    Title,
-    Track,
-    Year,
-    TrackCount
-}
-
+[Category("Multimedia")]
+[Title("Iterate keywords of multimedia file")]
+[Description("""
+             Requires AtomicMetadata to have run previously. Accumulates common keywords like album, artist, etc.
+             and iterates through all of them indiscriminately.
+             """)]
 public class MetadataKeywords : BasicService
 {
     public override void TryEnter(StampedMap constants, IInteraction interaction)

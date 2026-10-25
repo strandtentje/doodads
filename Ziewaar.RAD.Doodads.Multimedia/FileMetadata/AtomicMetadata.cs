@@ -1,20 +1,32 @@
 using TagLib;
+using TtLog;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
+using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
-using Ziewaar.TtLog;
+using Ziewaar.RAD.Doodads.Multimedia.FileMetadata.Interaction;
 using File = System.IO.File;
 
-namespace Ziewaar.RAD.Doodads.Multimedia;
+namespace Ziewaar.RAD.Doodads.Multimedia.FileMetadata;
 
+[Category("Multimedia")]
+[Title("Get simple metadata for media file")]
+[Description("""
+             Have a multimedia file in the register and get its metadata OnThen
+             """)]
 public class AtomicMetadata : BasicService
 {
+    [EventOccasion("Metadata was found; the following will be in memory: Length, Album, Title, Track, Year, TrackCount")]
     public override event CallForInteraction? OnThen;
+    [EventOccasion("No metadata was found.")]
     public override event CallForInteraction? OnElse;
 
     private static readonly Log UnsupportedFile =
         Log.Oops("Received unsupported {file} for metadata reading; {exception}");
 
+    [NamedSetting("cache", "Cache file metadata instead of looking it up every time.")]
+    private readonly UpdatingKeyValue CacheConstant = new UpdatingKeyValue("cache");
+    
     private readonly SortedList<string, (Tag tag, DateTime age)> Cache = new();
 
     public override void TryEnter(StampedMap constants, IInteraction interaction)

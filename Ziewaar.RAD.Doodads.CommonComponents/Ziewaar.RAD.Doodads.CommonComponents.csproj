@@ -15,7 +15,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ttlog\Ziewaar.TtLog\Ziewaar.TtLog.csproj" />
+      <ProjectReference Include="..\ttlog\TtLog\TtLog.csproj" />
       <ProjectReference Include="..\Ziewaar.RAD.Doodads.CoreLibrary\Ziewaar.RAD.Doodads.CoreLibrary.csproj" />
     </ItemGroup>
 

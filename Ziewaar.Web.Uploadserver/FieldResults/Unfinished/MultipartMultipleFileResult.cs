@@ -1,12 +1,12 @@
 ﻿namespace Ziewaar.Web.Uploadserver.FieldResults.Unfinished;
 
-public class MultipartMultipleFileResult : IMultipartComponentResult
+public class MultipartMultipleFileResult(string fieldName, string targetDirectory, string innerBoundary)
+    : IMultipartComponentResult
 {
-    public readonly string FieldName, TargetDirectory, InnerBoundary;
-    public readonly List<MultipartSingleFileResult> UnfinishedSubfiles = 
-        new List<MultipartSingleFileResult>();
-    private MultipartSingleFileResult CurrentFile = null;
-    private string _backingFault = null;
+    public readonly string FieldName = fieldName, TargetDirectory = targetDirectory, InnerBoundary = innerBoundary;
+    public readonly List<MultipartSingleFileResult> UnfinishedSubfiles = new();
+    private MultipartSingleFileResult? CurrentFile;
+    private string? _backingFault;
     public bool IsRetired { get; private set; }
 
     private IEnumerable<string> GetSubFaults()
@@ -15,18 +15,7 @@ public class MultipartMultipleFileResult : IMultipartComponentResult
             OfType<string>().Where(x => !string.IsNullOrEmpty(x));
     }
 
-    public MultipartMultipleFileResult(
-        string fieldName, string targetDirectory, string innerBoundary)
-    {
-        this.FieldName = fieldName;
-        this.TargetDirectory = targetDirectory;
-        this.InnerBoundary = innerBoundary;
-    }
-
-    public string Name
-    {
-        get { return FieldName; }
-    }
+    public string Name => FieldName;
 
     public bool TryPush(string contentType, string fileName)
     {
@@ -49,13 +38,12 @@ public class MultipartMultipleFileResult : IMultipartComponentResult
 
     public void GiveBinaryData(byte[] data, int start, int length)
     {
-        if ((CurrentFile == null || IsRetired) && length > 0)
-        {
+        if (length <= 0) return;
+        if (CurrentFile != null && !IsRetired)
+            CurrentFile.GiveBinaryData(data, start, length);
+        else
             _backingFault = "Receiving binary data while no inner " +
                             "file header was provided";
-            return;
-        }
-        CurrentFile.GiveBinaryData(data, start, length);
     }
 
     public IMultipartFinishedComponentResult Finish()
@@ -70,12 +58,10 @@ public class MultipartMultipleFileResult : IMultipartComponentResult
             files.Add(item.Finish());
         }
 
-        return new MultipartFinishedMultifileResult(
-            this.FieldName, files.
-                OfType<IMultipartFinishedComponentResult>().
-                Select(x => x.Values.ElementAtOrDefault(0)).
-                OfType<string>().
-                Where(x => !string.IsNullOrEmpty(x)).ToArray());
+        return new MultipartFinishedMultifileResult(this.FieldName, [
+            .. files.OfType<IMultipartFinishedComponentResult>().Select(x => x.Values.ElementAtOrDefault(0))
+                .OfType<string>().Where(x => !string.IsNullOrEmpty(x))
+        ]);
     }
 
     public string Fault
@@ -90,12 +76,8 @@ public class MultipartMultipleFileResult : IMultipartComponentResult
         } 
     }
 
-    public bool IsExpectingContent
-    {
-        get { return !this.IsRetired &&
-                     CurrentFile != null && CurrentFile.IsExpectingContent; }
-    }
-
+    public bool IsExpectingContent => !this.IsRetired && CurrentFile is { IsExpectingContent: true };
+    
     public void Dispose()
     {
         if (CurrentFile != null)

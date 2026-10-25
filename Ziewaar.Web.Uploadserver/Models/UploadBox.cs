@@ -1,11 +1,12 @@
-﻿using Ziewaar.TtLog;
+﻿using TtLog;
 
 namespace Ziewaar.Web.Uploadserver.Models;
 
-public class UploadBox : IDisposable
+public class UploadBox(string sessionId, string targetDirectory, string uploadBoxId, string[] acceptedFields)
+    : IDisposable
 {
-    public readonly string SessionId, TargetDirectory, UploadBoxId, TempFile;
-    public readonly string[] AcceptedFields;
+    public readonly string SessionId = sessionId, TargetDirectory = targetDirectory, UploadBoxId = uploadBoxId, TempFile = Path.GetTempFileName();
+    public readonly string[] AcceptedFields = acceptedFields;
     public List<string> Faults = new List<string>();
     public SortedList<string, IMultipartFinishedComponentResult> Values = 
         new SortedList<string, IMultipartFinishedComponentResult>();
@@ -23,29 +24,19 @@ public class UploadBox : IDisposable
     }
     public bool IsUploading { get; private set; }
     public bool IsDisposing { get; private set; }
-    public byte[] BoundaryBytes { get; private set; }
-    public string StopMessage { get; private set; }
+    public byte[]? BoundaryBytes { get; private set; }
+    public string? StopMessage { get; private set; }
 
     private readonly object UploadLock = new object();
-    private EventWaitHandle Stopper = new EventWaitHandle(
+    private EventWaitHandle? Stopper = new EventWaitHandle(
         false, EventResetMode.ManualReset);
 
-    public UploadBox(string sessionId, string targetDirectory, 
-        string uploadBoxId, string[] acceptedFields)
-    {
-        this.SessionId = sessionId;
-        this.TargetDirectory = targetDirectory;
-        this.UploadBoxId = uploadBoxId;
-        this.TempFile = Path.GetTempFileName();
-        this.AcceptedFields = acceptedFields;
-    }
-
-    public bool TrySetStopMessage(string message)
+    public bool TrySetStopMessage(string? message)
     {
         lock (UploadLock)
         {
             if (StopMessage != null || message == null) return false;
-            Stopper.Set();
+            Stopper?.Set();
             StopMessage = message;
             return true;
         }
@@ -53,10 +44,10 @@ public class UploadBox : IDisposable
 
     public bool TryWaitForFinish(out string message)
     {
-        bool wasStopped = false;
+        bool wasStopped;
         try
         {
-            wasStopped = Stopper.WaitOne(924);
+            wasStopped = Stopper?.WaitOne(924) == true;
         }
         catch (Exception)
         {

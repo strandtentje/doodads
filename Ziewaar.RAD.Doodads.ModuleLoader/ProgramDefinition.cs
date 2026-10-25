@@ -6,7 +6,7 @@ using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Blocks;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.SeriesParsers;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #pragma warning disable CS0162

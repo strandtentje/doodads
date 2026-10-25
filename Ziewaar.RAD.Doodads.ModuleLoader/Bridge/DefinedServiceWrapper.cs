@@ -5,7 +5,7 @@ using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.Profiler;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 

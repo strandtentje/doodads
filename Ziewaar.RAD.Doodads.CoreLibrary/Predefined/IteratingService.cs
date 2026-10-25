@@ -1,7 +1,7 @@
 #nullable enable
 using System.Threading;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 

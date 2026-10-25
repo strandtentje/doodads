@@ -1,7 +1,5 @@
-using System.Xml.Resolvers;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic.FormStructure;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
-using Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly;
 
 namespace Ziewaar.RAD.Doodads.FormsValidation.Services.EncTypeAgnostic;
 
@@ -20,8 +18,8 @@ public class HtmlFormPrepare : IService
     public event CallForInteraction? OnElse;
     [EventOccasion("When there was no (HTTP) sink to mimic for the HTML form source.")]
     public event CallForInteraction? OnException;
-    private FormStructureInteractionBuilder? CurrentFormBuilder = null;
-    private TextSinkingInteraction? CurrentHtmlSink = null;
+    private FormStructureInteractionBuilder? CurrentFormBuilder;
+    private TextSinkingInteraction? CurrentHtmlSink;
     private static readonly string[] InputElementNames = ["input", "select", "textarea", "button"];
     private static string InputElementFilter => string.Join('|', InputElementNames.Select(x => $".//{x}"));
 
@@ -65,11 +63,9 @@ public class HtmlFormPrepare : IService
             
             IEnumerable<char> getActionBeforeSpecial()
             {
-                using (var e = action.GetEnumerator())
-                {
-                    while(e.MoveNext() && e.Current != '#' && e.Current != '?')
-                        yield return e.Current;
-                }
+                using var e = action.GetEnumerator();
+                while(e.MoveNext() && e.Current != '#' && e.Current != '?')
+                    yield return e.Current;
             }
 
             CurrentFormBuilder = FormStructureInteraction.Builder
@@ -78,11 +74,11 @@ public class HtmlFormPrepare : IService
                 .WithMethod(formNode.GetAttributeValue("method", "GET"))
                 .WithAction(new string(getActionBeforeSpecial().ToArray()));
 
-            var inputGroups = formNode.SelectNodes(InputElementFilter)
+            var inputGroups = formNode.SelectNodes(InputElementFilter)?
                 .NotDisabled()
                 .Select(inputNode => (inputName: inputNode.GetAttributeValue("name", string.Empty), node: inputNode))
                 .Where(tuple => !string.IsNullOrWhiteSpace(tuple.inputName))
-                .GroupBy(x => x.inputName, x => x.node);
+                .GroupBy(x => x.inputName, x => x.node) ?? [];
 
             foreach (IGrouping<string, HtmlNode> inputGroup in inputGroups)
             {

@@ -61,16 +61,3 @@ public class Dir : IteratingService
         return info;
     }
 }
-
-public class FindInFiles : BasicService
-{
-    public override void TryEnter(StampedMap constants, IInteraction interaction)
-    {
-        var directory = new DirectoryInfo(DirectoryFromRegister(interaction));
-        var extensions = PrimaryParts(constants, []);
-        var files = directory.EnumerateFiles("*.*", SearchOption.AllDirectories).Where(x => !x.IsHidden()).Where(x =>
-            extensions.Length == 0 || extensions.Contains(x.Extension, StringComparer.OrdinalIgnoreCase));
-        var payloads = files.Select(x => new FilesystemInfoPayload(x, null, null));
-        RepeatToMemory(constants, interaction, payloads);
-    }
-}

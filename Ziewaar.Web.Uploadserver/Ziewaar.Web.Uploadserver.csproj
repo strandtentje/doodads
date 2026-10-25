@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
-        <LangVersion>10</LangVersion>
+        <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -35,7 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ttlog\Ziewaar.TtLog\Ziewaar.TtLog.csproj" />
+      <ProjectReference Include="..\ttlog\TtLog\TtLog.csproj" />
     </ItemGroup>
 
     <ItemGroup>

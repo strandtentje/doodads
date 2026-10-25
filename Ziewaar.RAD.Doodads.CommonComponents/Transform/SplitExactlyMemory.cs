@@ -1,5 +1,5 @@
 using System.Collections;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 

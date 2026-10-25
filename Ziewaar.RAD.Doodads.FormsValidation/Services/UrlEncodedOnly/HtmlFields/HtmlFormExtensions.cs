@@ -53,14 +53,14 @@ public static class HtmlFormExtensions
     {
         var matchingErrorNodes = document.DocumentNode.
             SelectNodes("//span")?.
-            Where(x => x.GetAttributes("class").
-            Any(x => x.Value.Contains($"error_{fieldName}"))) ?? [];
+            Where(node => node.GetAttributes("class").
+            Any(attr => attr.Value?.Contains($"error_{fieldName}") == true)) ?? [];
         foreach (var errorNode in matchingErrorNodes)
         {
             var classAttributes = errorNode.GetAttributes("class");
             foreach (var classAttribute in classAttributes)
             {
-                classAttribute.Value = $"{classAttribute.Value.Replace("disabled", "")} enabled";
+                classAttribute.Value = $"{classAttribute.Value?.Replace("disabled", "") ?? ""} enabled";
             }
         }
     }

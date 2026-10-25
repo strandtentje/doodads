@@ -1,7 +1,7 @@
 #pragma warning disable 67
 using Ziewaar.RAD.Doodads.CommonComponents.Control;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 

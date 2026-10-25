@@ -3,7 +3,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
-using Ziewaar.TtLog;
+using TtLog;
 
 #pragma warning disable CS0162 // Unreachable code detected
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;

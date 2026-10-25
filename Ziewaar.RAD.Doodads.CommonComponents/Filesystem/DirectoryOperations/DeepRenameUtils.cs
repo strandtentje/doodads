@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 67
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 

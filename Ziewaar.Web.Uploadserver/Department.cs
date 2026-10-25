@@ -1,5 +1,5 @@
-using Ziewaar.TtLog;
-using Ziewaar.TtLog.LogFormats;
+using TtLog;
+using TtLog.LogFormats;
 
 namespace Ziewaar.Web.Uploadserver;
 

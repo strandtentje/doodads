@@ -1,6 +1,6 @@
 #nullable enable
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
-using Ziewaar.TtLog;
+using TtLog;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 
