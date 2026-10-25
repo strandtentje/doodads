@@ -1,8 +1,8 @@
 #nullable enable
 #pragma warning disable 67
-using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Filesystem;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Services;
 [Category("Call Definition Return")]

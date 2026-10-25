@@ -1,8 +1,8 @@
 ﻿#nullable enable
-using Ejije.Logging;
 using System.Threading.Tasks;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 

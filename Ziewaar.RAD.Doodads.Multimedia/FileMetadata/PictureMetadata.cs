@@ -2,12 +2,12 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using Ejije.Logging;
 using ImageMagick;
 using TagLib;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+using Ziewaar.TtLog;
 using Ziewaar.TtLog.Utilities;
 using File = TagLib.File;
 

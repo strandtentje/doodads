@@ -1,7 +1,7 @@
-﻿using Ejije.Logging;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Xml.Schema;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 

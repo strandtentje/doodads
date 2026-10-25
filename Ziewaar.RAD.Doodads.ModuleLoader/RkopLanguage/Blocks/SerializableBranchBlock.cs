@@ -1,8 +1,8 @@
 #nullable enable
-using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.SeriesParsers;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Blocks;
 

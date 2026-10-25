@@ -1,5 +1,5 @@
-﻿using Ejije.Logging;
-using Ziewaar.RAD.Doodads.CoreLibrary;
+﻿using Ziewaar.RAD.Doodads.CoreLibrary;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.RuntimeForDotnetCore.Bootstrapper;
 

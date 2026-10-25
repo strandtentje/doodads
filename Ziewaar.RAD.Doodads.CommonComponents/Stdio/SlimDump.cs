@@ -1,4 +1,4 @@
-using Ejije.Logging;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 #pragma warning disable 67

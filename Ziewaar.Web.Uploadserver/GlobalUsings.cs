@@ -2,7 +2,6 @@
 
 global using System.Net;
 global using System.Text;
-global using Ejije.Logging;
 global using Ziewaar.TtLog.Utilities;
 global using Ziewaar.Web.Uploadserver.Buffers;
 global using Ziewaar.Web.Uploadserver.Collections;

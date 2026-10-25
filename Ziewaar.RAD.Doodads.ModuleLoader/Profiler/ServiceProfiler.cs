@@ -1,8 +1,8 @@
 #nullable enable
-using Ejije.Logging;
 using System.Collections.Concurrent;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
+using Ziewaar.TtLog;
 using ProfilingFrameStackByThread =
     System.Threading.ThreadLocal<System.Collections.Generic.Stack<
         Ziewaar.RAD.Doodads.ModuleLoader.Profiler.ProfilingScopedServiceFrame>>;

@@ -1,5 +1,5 @@
-using Ejije.Logging;
 using System.Text;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 

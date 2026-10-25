@@ -1,6 +1,6 @@
 ﻿#pragma warning disable 67
-using Ejije.Logging;
 using System.Diagnostics;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
 

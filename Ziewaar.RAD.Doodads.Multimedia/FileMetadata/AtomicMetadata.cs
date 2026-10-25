@@ -1,8 +1,8 @@
-using Ejije.Logging;
 using TagLib;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+using Ziewaar.TtLog;
 using File = System.IO.File;
 
 namespace Ziewaar.RAD.Doodads.Multimedia;

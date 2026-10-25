@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.Web.Uploadserver.Models;
+﻿using Ziewaar.TtLog;
+
+namespace Ziewaar.Web.Uploadserver.Models;
 
 public class UploadBox : IDisposable
 {

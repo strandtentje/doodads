@@ -1,5 +1,4 @@
 #nullable enable
-using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
@@ -7,6 +6,7 @@ using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Blocks;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.SeriesParsers;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader;
 #pragma warning disable CS0162

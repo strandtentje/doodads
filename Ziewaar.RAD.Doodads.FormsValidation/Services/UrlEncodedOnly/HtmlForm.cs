@@ -1,5 +1,5 @@
-using Ejije.Logging;
 using Ziewaar.RAD.Doodads.FormsValidation.Services.Support;
+using Ziewaar.TtLog;
 
 #pragma warning disable 67
 

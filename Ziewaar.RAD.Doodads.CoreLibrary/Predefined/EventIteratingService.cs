@@ -1,6 +1,6 @@
 #nullable enable
-using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
 

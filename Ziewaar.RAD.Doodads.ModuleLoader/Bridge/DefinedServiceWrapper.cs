@@ -1,11 +1,11 @@
 #nullable enable
-using Ejije.Logging;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.ModuleLoader.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.Profiler;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.Bridge;
 

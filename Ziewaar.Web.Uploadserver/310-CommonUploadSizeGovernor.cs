@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.Web.Uploadserver;
+﻿using Ziewaar.TtLog;
+
+namespace Ziewaar.Web.Uploadserver;
 
 public class CommonUploadSizeGovernor : IUploadSizeGovernor
 {

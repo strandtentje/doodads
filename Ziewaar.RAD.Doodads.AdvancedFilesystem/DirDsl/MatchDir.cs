@@ -1,5 +1,4 @@
-﻿using Ejije.Logging;
-using Microsoft.VisualBasic;
+﻿using Microsoft.VisualBasic;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +8,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
 using Ziewaar.RAD.Doodads.CoreLibrary.Interfaces;
 using Ziewaar.RAD.Doodads.CoreLibrary.Predefined;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.AdvancedFilesystem.DirDsl;
 

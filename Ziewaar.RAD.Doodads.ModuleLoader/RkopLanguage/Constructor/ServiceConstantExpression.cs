@@ -1,9 +1,9 @@
-﻿using Ejije.Logging;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using Ziewaar.RAD.Doodads.CoreLibrary;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Exceptions;
 using Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Text;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.ModuleLoader.RkopLanguage.Constructor;
 

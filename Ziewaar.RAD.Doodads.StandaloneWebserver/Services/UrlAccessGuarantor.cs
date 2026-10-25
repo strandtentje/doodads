@@ -1,4 +1,4 @@
-﻿using Ejije.Logging;
+﻿using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 

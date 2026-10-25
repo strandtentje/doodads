@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 67
-using Ejije.Logging;
+using Ziewaar.TtLog;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Filesystem.DirectoryOperations;
 

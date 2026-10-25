@@ -1,4 +1,6 @@
-﻿namespace Ziewaar.Web.Uploadserver.FieldResults.Unfinished;
+﻿using Ziewaar.TtLog;
+
+namespace Ziewaar.Web.Uploadserver.FieldResults.Unfinished;
 
 public class MultipartSingleFileResult : IMultipartComponentResult
 {
