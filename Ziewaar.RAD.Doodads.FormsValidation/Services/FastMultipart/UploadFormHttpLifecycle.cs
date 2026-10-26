@@ -16,13 +16,13 @@ public class UploadFormHttpLifecycle(
 
     public Encoding? ResponseEncoding
     {
-        get => response.TextEncoding;
+        get => sink.TextEncoding;
         set { }
     }
 
     public Stream ResponseStream
     {
-        get => response.SinkBuffer;
+        get => sink.SinkBuffer;
     }
 
     public Stream RequestStream

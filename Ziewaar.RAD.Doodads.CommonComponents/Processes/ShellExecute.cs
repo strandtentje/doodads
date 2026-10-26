@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CommonComponents.Filesystem.ReadWrite;
+﻿using TtLog;
+using Ziewaar.RAD.Doodads.CommonComponents.Filesystem.ReadWrite;
 
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.CommonComponents.Processes;
@@ -16,11 +17,14 @@ public class ShellExecute : IService
     public event CallForInteraction? OnElse;
     [NeverHappens]
     public event CallForInteraction? OnException;
+    private static readonly Log AttemptingToShellExecute = Log.Tech("Attempting to shellexecute {path}");
     public void Enter(StampedMap constants, IInteraction interaction)
     {
         var tsi = new TextSinkingInteraction(interaction);
         OnElse?.Invoke(this, tsi);
-        FileOpener.OpenWithDefaultApp(tsi.ReadAllText());
+        string path = tsi.ReadAllText();
+        Log.Post(AttemptingToShellExecute, path);
+        FileOpener.OpenWithDefaultApp(path);
         OnThen?.Invoke(this, interaction);
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);

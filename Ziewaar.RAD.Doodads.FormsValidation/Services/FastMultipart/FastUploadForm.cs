@@ -250,11 +250,12 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
         var metaImage = new SKImageInfo(BarWidth, BarHeight, SKColorType.Rgba8888, SKAlphaType.Premul,
             SKColorSpace.CreateSrgb());
 
+        lifecycle.Bypass();
+
         using var responseStream = lifecycle.ResponseStream;
         using var surface = SKSurface.Create(metaImage);
         using var cnv = surface.Canvas;
 
-        lifecycle.Bypass();
         lifecycle.TrySetResponseHeader(-1, "multipart/x-mixed-replace; boundary=PROGRESS");
         lifecycle.SetCacheControl("no-cache");
         lifecycle.SetKeepAlive(true);

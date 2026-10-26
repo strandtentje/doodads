@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks.Sources;
 using TtLog;
+using TtLog.LogFormats;
 
 #pragma warning disable 67
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
@@ -9,6 +10,8 @@ namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services;
 [Description("Starts listening for web requests when it receives a start command.")]
 public class WebServer : IService, IDisposable
 {
+    public static readonly LogDepartment Department = new LogDepartment(LogLevel.Tech);
+
     private readonly PrefixProcessor Prefixes = new();
     private readonly ControlCommandInstanceProvider<ServerCommand> Server = new();
 
@@ -112,7 +115,7 @@ public class WebServer : IService, IDisposable
             OnStopping?.Invoke(this, interaction);
         }
     }
-    private static readonly Log ReplyLog = Log.Tech("Webserver Replying to {method} {url} with {code}");
+    private static readonly Log ReplyLog = Log.Tech(WebServer.Department, "Webserver Replying to {method} {url} with {code}");
     private IControlCommandReceiver<ServerCommand> ListenerWrapperFactory()
     {
         return new ResilientHttpListenerWrapper(prefixes: ActivePrefixStrings, threadCount: (int)this.CurrentThreadCount);
