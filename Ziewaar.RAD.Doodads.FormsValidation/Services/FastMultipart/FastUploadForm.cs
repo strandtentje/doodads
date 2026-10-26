@@ -34,7 +34,7 @@ namespace Ziewaar.RAD.Doodads.FormsValidation.Services.FastMultipart;
              upload succeeded. If part of the upload was OK, but another part wasn't, no files related to the upload
              will be persisted. 
              """)]
-public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator,
+public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, IUploadValidator,
     ITransferRateConstraints
 {
     private readonly CommonUploadSizeGovernor UploadSize;
@@ -64,7 +64,7 @@ public class UploadForm : BasicService, IPlaceholderResolver, IProgressGrapher, 
     [EventOccasion("make sure to use this branch to provide a suitable transient upload link to the user.")]
     public event CallForInteraction? HaveLink;
 
-    public UploadForm()
+    public FastUploadForm()
     {
         this.Router = new UploadRouter(
             this, this, new CommonUploadReceiver(
