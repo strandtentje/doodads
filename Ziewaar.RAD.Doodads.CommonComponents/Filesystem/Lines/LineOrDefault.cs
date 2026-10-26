@@ -47,7 +47,8 @@ public class LineOrDefault : IService
         if (line == null)
         {
             OnElse?.Invoke(this, interaction.AppendRegister(CurrentDefaultText));
-        } else
+        }
+        else
         {
             OnThen?.Invoke(this, interaction.AppendRegister(line));
         }
