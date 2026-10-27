@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 using Ziewaar.RAD.Doodads.CommonComponents.LiteralSource;
+using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 using Ziewaar.RAD.Doodads.ModuleLoader.Services;
 
 namespace Ziewaar.RAD.Doodads.StandaloneWebserver.Services.Routing;
@@ -120,6 +121,9 @@ public class Fileserver : IService
         {
             if (interaction.TryGetClosest<HttpResponseInteraction>(out var resp) && resp != null)
             {
+                if (interaction.TryGetClosest<BufferSinkInteraction>(out var bsi) && bsi != null)
+                    bsi.Bypass();
+                
                 resp.SinkTrueContentType = MimeMapping.GetMimeType(fileInfo.FullName);
                 
                 if (!fileCache.TryGetValue(fileInfo.FullName, out var data) &&
