@@ -13,32 +13,27 @@ public class RepeatInteraction(string repeatName, IInteraction parent, Cancellat
     public IInteraction Stack => parent;
     public bool IsDeep = false;
     public object Register => Stack.Register;
-    private readonly SortedList<string, object> _sorted = new(1)
-    {
-        [$"Number of {repeatName}"] = 0
-    };
-    public IReadOnlyDictionary<string, object> Memory => _sorted;
+    public int GetCounterValue() => counterMemory.GetCounterValue();
+    private readonly RepeatInteractionCounterMemory counterMemory = new RepeatInteractionCounterMemory(repeatName);
+    public IReadOnlyDictionary<string, object> Memory => counterMemory;
     public CancellationToken CancellationToken => cancellationToken;
-    private bool LastRunningState = true;
-    private int Counter = 0;
     public bool IsRunning
     {
         get
         {
-            return LastRunningState && !CancellationToken.IsCancellationRequested;
+            return field && !CancellationToken.IsCancellationRequested;
         }
         set
         {
-            if (value != LastRunningState && value == true)
+            if (value != field && value == true)
             {
-                Counter++;
-                _sorted[$"Number of {repeatName}"] = Counter;
+                counterMemory.Increment();
             }
-            LastRunningState = value;
+            field = value;
         }
     }
     public IInteraction? ContinueFrom;
-    
+
     public void Cancel()
     {
         IsRunning = false;

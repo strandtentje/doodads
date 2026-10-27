@@ -374,7 +374,21 @@ public class ServiceConstantExpression : IParityParser
             }
             else
             {
-                guts.Append(slash.Text[1]);
+                switch (slash.Text[1])
+                {
+                    case 't':
+                        guts.Append("\t");
+                        break;
+                    case 'r':
+                        guts.Append("\r");
+                        break;
+                    case 'n':
+                        guts.Append("\n");
+                        break;
+                    default:
+                        guts.Append(slash.Text[1]);
+                        break;
+                }                
             }
         }
     }

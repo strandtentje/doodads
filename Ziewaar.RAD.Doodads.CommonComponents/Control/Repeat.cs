@@ -1,4 +1,5 @@
-﻿using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
+﻿using System.Globalization;
+using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Control;
 

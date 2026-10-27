@@ -5,43 +5,18 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 [Title("Turn text into a list")]
 [Description("""
              Does a best effort to turn Register contents into a string if it isn't already,
-             and uses the configured split character to turn the string into a list of strings.
-             The default split character is '/', which makes this suitable for routing duties in 
-             conjunction with Pop.
+             and uses the configured split character to turn the string into a list of strings
+             and iterate it.
              """)]
-public class Split : IService
+public class Split : BasicService
 {
     [PrimarySetting("Splitting character; defaults to forward slash `/`")]
     private readonly UpdatingPrimaryValue SplitCharacter = new();
-
-    [EventOccasion("When a string was indeed turned into a list, puts the list in Register")]
-    public event CallForInteraction? OnThen;
-
-    [NeverHappens] public event CallForInteraction? OnElse;
-
-    [EventOccasion("Likely happens when the register content couldn't be turned into a string.")]
-    public event CallForInteraction? OnException;
-
-    public void Enter(StampedMap constants, IInteraction interaction)
+    public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
-        (constants, SplitCharacter).IsRereadRequired(out string? splitChar);
-        splitChar ??= "/";
-        if (interaction.Register is not string toSplit)
-        {
-            try
-            {
-                toSplit = Convert.ToString(interaction.Register);
-            }
-            catch (Exception ex)
-            {
-                OnException?.Invoke(this, new CommonInteraction(interaction, ex.ToString()));
-                return;
-            }
-        }
-
-        OnThen?.Invoke(this, new CommonInteraction(
-            interaction, toSplit.Split(splitChar, StringSplitOptions.RemoveEmptyEntries)));
+        BasicException.ForNullOrEmpty(Register(interaction), "string expected in register", out string toSplit);
+        var splitter = Named(constants, "splitter") ?? "/";
+        var items = toSplit.Split(splitter, (StringSplitOptions)3);
+        RepeatToRegister(constants, interaction.AppendCustom(new SplitterSetup(items, splitter)), items);
     }
-
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
