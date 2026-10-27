@@ -3,7 +3,7 @@ using Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 
-public class UnSplit : BasicService
+public class Unsplit : BasicService
 {
     public override event CallForInteraction? OnThen;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
