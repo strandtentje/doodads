@@ -5,7 +5,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 internal class RepeatInteractionCounterMemory(string repeatName) : IReadOnlyDictionary<string, object>
 {
-    private int Counter;
+    private int Counter = -1;
     public int GetCounterValue() => Counter;
     public object this[string key] { get => TryGetValue(key, out var val) ? val : throw new KeyNotFoundException(); }
     private string PlainNumberKey => field ??= $"Number of {repeatName}";

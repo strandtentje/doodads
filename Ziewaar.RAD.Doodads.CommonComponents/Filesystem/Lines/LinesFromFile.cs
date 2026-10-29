@@ -10,6 +10,7 @@ public class LinesFromFile : IteratingService
 {
     [EventOccasion("When the file was empty or didn't exist")]
     public override event CallForInteraction? OnElse;
+    public event CallForInteraction? FileChanged;
     protected override bool RunElse => false;
     IEnumerable<string> GetLinesFromFile(string fileName)
     {
@@ -47,7 +48,10 @@ public class LinesFromFile : IteratingService
                         if (fli.LineBefore != null)
                             linesOutput.Add(fli.LineBefore);
                         if (!fli.SkipLine)
+                        {
                             linesOutput.Add(fli.ChangedLine ?? linesInput[i]);
+                            fli.ChangedLine = null;
+                        }
                         if (fli.LineAfter != null)
                             linesOutput.Add(fli.LineAfter);
                     }
@@ -56,7 +60,10 @@ public class LinesFromFile : IteratingService
             finally
             {
                 if (changes)
+                {
                     File.WriteAllLines(info.FullName, linesOutput.ToArray());
+                    FileChanged?.Invoke(this, repeater);
+                }
             }
         }
     }

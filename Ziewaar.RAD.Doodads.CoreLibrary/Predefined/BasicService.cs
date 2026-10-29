@@ -40,7 +40,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
         protected string? Named(StampedMap constants, string name) =>
             constants.NamedItems.TryGetValue(name, out var item) && IsntJustAnObject(item) &&
             Convert.ToString(item, CultureInfo.InvariantCulture) is { } candidateFromConstants && 
-            !string.IsNullOrWhiteSpace(candidateFromConstants) ? candidateFromConstants : null;
+            !string.IsNullOrEmpty(candidateFromConstants) ? candidateFromConstants : null;
 
         private class LinesSinkEnumerable(TextSinkingInteraction tsi) : IEnumerable<string>
         {
