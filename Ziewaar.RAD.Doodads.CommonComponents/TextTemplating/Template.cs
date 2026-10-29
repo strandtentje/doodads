@@ -2,6 +2,7 @@
 using System.Xml.Schema;
 using Ziewaar.RAD.Doodads.CommonComponents.TextTemplating.Parser;
 using TtLog;
+using TtLog.LogFormats;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
 
@@ -82,10 +83,12 @@ public class Template : IService
 
     public bool IsNeverTouchedBefore = true;
 
+    private static readonly LogDepartment Department = new LogDepartment(LogLevel.Tech);
+    
     private static readonly Log
         TemplateCacheMiss = Log.Warn("Template Cache Miss; {file}"),
         GotTemplateText = Log.Tech("{template} of {length} loaded {reason} with {commands}"),
-        IgnoringAcceptMismatch = Log.Tech("For {template} the incoming request wouldn't accept our content type. " +
+        IgnoringAcceptMismatch = Log.Tech(Department, "For {template} the incoming request wouldn't accept our content type. " +
                                           "We will evaluate the template without writing to output; a preceeding " +
                                           "SinkPlug suggests we may be outputting a different ContentType down " +
                                           "the line.");

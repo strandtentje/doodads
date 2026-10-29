@@ -35,12 +35,12 @@
             finishLink.style.display = "none";
             
             uploadForm.addEventListener("submit", function() {
-                progressBar.style.display = "block";
+                progressBar.style.display = "inline-block";
                 uploadForm.style.display = "none";
                 
                 uploadSink.addEventListener("load", function() {
                      cancelLink.style.display = "none";
-                     finishLink.style.display = "block";
+                     finishLink.style.display = "inline-block";
                 });
             });
             
