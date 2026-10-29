@@ -3,5 +3,5 @@
 public interface IPlaceholderResolver
 {
     long GetByteLengthFor(Encoding encoding, string p);
-    void WriteBytesFor(Encoding encoding, string p, Stream stream);
+    void WriteBytesFor(IHttpLifecycleWrapper lifecycle, Encoding encoding, string p, Stream stream);
 }

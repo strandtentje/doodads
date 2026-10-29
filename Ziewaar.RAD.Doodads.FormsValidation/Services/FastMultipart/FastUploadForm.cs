@@ -47,7 +47,6 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
     private HashSet<string>? AcceptableExtensions, AcceptableMimeTypes;
     private ushort BarWidth;
     private ushort BarHeight;
-    private string? ActionUrl;
 
     private string AcceptString => field ??= string.Join(
         ',',
@@ -94,7 +93,7 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
                             for custom situations
                             """)]
     private readonly UpdatingKeyValue AcceptConstant = new UpdatingKeyValue("accept");
-    
+
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
         BasicException.ForInteraction(interaction, out IHttpIncomingRequestInteraction request);
@@ -139,11 +138,6 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
                     }
                 }
 
-                var urlParts = NamedPartsFromMemory(constants, ActionConstant, interaction).ToArray();
-                if (urlParts.Length == 0 || urlParts.Sum(x => x.Length) == 0)
-                    throw new BasicException("absolute action url required");
-                this.ActionUrl = string.Concat(urlParts);
-
                 var extensionsAndMimes = NamedParts(constants, AcceptConstant).ToArray();
                 if (extensionsAndMimes.Length == 0)
                     throw new BasicException("missing acceptable extensions and/or mime types in accept");
@@ -155,10 +149,16 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
             }
         }
 
+        var urlParts = NamedPartsFromMemory(constants, ActionConstant, interaction).ToArray();
+        if (urlParts.Length == 0 || urlParts.Sum(x => x.Length) == 0)
+            throw new BasicException("absolute action url required");
+        var actionUrl = string.Concat(urlParts);
+        var actionUrlParts = actionUrl.Split('#', 2, (StringSplitOptions)3);
+
         IEnumerable<string> receivedFiles = Enumerable.Empty<string>();
         var routingResult =
-            StringComparer.Ordinal.Equals(this.ActionUrl, head.RouteString)
-                ? Router.Route(new UploadFormHttpLifecycle(head, currentCookie, request, response, sink, bsi),
+            StringComparer.Ordinal.Equals(actionUrlParts.ElementAtOrDefault(0) ?? "", head.RouteString)
+                ? Router.Route(new UploadFormHttpLifecycle(head, currentCookie, request, response, sink, bsi, actionUrl),
                     out receivedFiles)
                 : UploadRoutingState.MakeBox;
 
@@ -169,7 +169,7 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
                 throw new BasicException("empty cookie not allowed");
             var suitableUploadBox = UploadBoxes.Enter(cookie, DirectoryFromRegister(interaction), ["files"]);
             HaveLink?.Invoke(this, interaction.AppendRegister(
-                $"{this.ActionUrl}?uploadBoxId={suitableUploadBox.UploadBoxId}&amp;functionId=PAGE"));
+                $"{actionUrlParts.ElementAtOrDefault(0) ?? ""}?uploadBoxId={suitableUploadBox.UploadBoxId}&amp;functionId=PAGE#{actionUrlParts.ElementAtOrDefault(1) ?? string.Empty}"));
         }
         else if (routingResult == UploadRoutingState.UploadDone)
             OnThen?.Invoke(this, interaction.AppendCustom(new FinishedUpload(receivedFiles)));
@@ -179,11 +179,12 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
 
     long IPlaceholderResolver.GetByteLengthFor(Encoding encoding, string p) => -1;
 
-    void IPlaceholderResolver.WriteBytesFor(Encoding encoding, string p, Stream stream)
+    void IPlaceholderResolver.WriteBytesFor(IHttpLifecycleWrapper lifecycle, Encoding encoding, string p, Stream stream)
     {
         byte[] writeBytes = p switch
         {
-            "url" => encoding.GetBytes(this.ActionUrl ?? throw new BasicException("missing action url")),
+            "beforehash" => encoding.GetBytes(lifecycle.ActionBeforeHash ?? throw new BasicException("missing action url")),
+            "afterhash" => encoding.GetBytes(lifecycle.ActionAfterHash ?? throw new BasicException("missing action url")),
             "multiple" when this.MaxFileCount > 1 => encoding.GetBytes("multiple"),
             "accept" => encoding.GetBytes(AcceptString),
             _ => Array.Empty<byte>()
@@ -196,11 +197,15 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
     private static readonly SKPaint
         FontPaint = new SKPaint()
         {
-            Color = SKColors.Black, Style = SKPaintStyle.Fill, IsAntialias = true,
+            Color = SKColors.Black,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true,
         },
         BarPaint = new SKPaint()
         {
-            Color = SKColors.DodgerBlue, Style = SKPaintStyle.Fill, IsAntialias = true
+            Color = SKColors.DodgerBlue,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
         };
 
     private static SKFont
@@ -209,7 +214,7 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
     private static string
         FontPath => field ??= Directory.EnumerateFiles(SpecialPaths.AssemblyDirectory, "montserrat.ttf",
                                       new EnumerationOptions()
-                                          { IgnoreInaccessible = true, RecurseSubdirectories = true })
+                                      { IgnoreInaccessible = true, RecurseSubdirectories = true })
                                   .FirstOrDefault() ??
                               throw new BasicException("font not found");
 
@@ -241,10 +246,10 @@ public class FastUploadForm : BasicService, IPlaceholderResolver, IProgressGraph
     private byte[] BareBoundaryBytes => field ??= [.. "--PROGRESS"u8];
     private byte[] CrlfCrlfBoundaryBytesCrlf => field ??= [.. "\r\n\r\n--PROGRESS\r\n"u8];
     private byte[] CrlfBytes => field ??= [.. "\r\n"u8];
-    private byte[] PartHeaderBytes => field ??= [.. "Content-Type: image/gif\r\nContent-Length: "u8]; 
+    private byte[] PartHeaderBytes => field ??= [.. "Content-Type: image/gif\r\nContent-Length: "u8];
 
     private static readonly Log ProgressStopped = Log.Oops("Progress bar {stopped}; window likely closed.");
-    
+
     void IProgressGrapher.Run(UploadBox selectedUploadBox, IHttpLifecycleWrapper lifecycle)
     {
         var metaImage = new SKImageInfo(BarWidth, BarHeight, SKColorType.Rgba8888, SKAlphaType.Premul,

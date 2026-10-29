@@ -9,7 +9,8 @@ public class UploadFormHttpLifecycle(
     IHttpIncomingRequestInteraction request,
     IHttpOutgoingResponseInteraction response,
     ISinkingInteraction sink,
-    BufferSinkInteraction? plugBuffer) : IHttpLifecycleWrapper
+    BufferSinkInteraction? plugBuffer,
+    string actionUrl) : IHttpLifecycleWrapper
 {
     public string UpperHttpMethod => head.Method.ToUpper();
     public string SessionId => cookie.Register.ToString() ?? throw new BasicException("missing cookie");
@@ -39,6 +40,10 @@ public class UploadFormHttpLifecycle(
     {
         get => request.SourceContentLength;
     }
+    public string ActionUrl => actionUrl;
+
+    public string ActionBeforeHash => field ??= actionUrl.Split('#', 2, (StringSplitOptions)3).ElementAtOrDefault(0) ?? "";
+    public string ActionAfterHash => field ??= actionUrl.Split('#', 2, (StringSplitOptions)3).ElementAtOrDefault(1) ?? "";
 
     private IReadOnlyDictionary<string, string> QueryParameters => field ??=
         HttpUtility.HtmlDecode(head.QueryString).Split('&', (StringSplitOptions)3)

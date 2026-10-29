@@ -32,7 +32,7 @@ public class DynamicPage
         foreach (var inst in Instructions)
         {
             if (inst.IsPlaceholder)
-                resolver.WriteBytesFor(Encoding.UTF8, inst.GetComponent(), lifecycle.ResponseStream);
+                resolver.WriteBytesFor(lifecycle, Encoding.UTF8, inst.GetComponent(), lifecycle.ResponseStream);
             else
             {
                 var b = inst.GetVerbatimBytes();

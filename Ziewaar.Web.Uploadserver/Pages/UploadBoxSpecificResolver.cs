@@ -21,7 +21,7 @@ public class UploadBoxSpecificResolver : IPlaceholderResolver
             return this.Fallback.GetByteLengthFor(encoding, p);
     }
 
-    public void WriteBytesFor(Encoding encoding, string p, Stream stream)
+    public void WriteBytesFor(IHttpLifecycleWrapper lifecycle, Encoding encoding, string p, Stream stream)
     {
         if (StringComparer.Ordinal.Equals(p, UPLOAD_BOX_ID))
         {
@@ -29,6 +29,6 @@ public class UploadBoxSpecificResolver : IPlaceholderResolver
             stream.Write(guidStringBytes, 0, guidStringBytes.Length);
         }
         else
-            Fallback.WriteBytesFor(encoding, p, stream);
+            Fallback.WriteBytesFor(lifecycle, encoding, p, stream);
     }
 }

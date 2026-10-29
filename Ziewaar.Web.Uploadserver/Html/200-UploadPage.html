@@ -9,18 +9,18 @@
 
     </iframe>
 
-    <img id="pg{% uploadBoxId %}" class="uploadprogressbar" src="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=PROGRESS"/>
+    <img id="pg{% uploadBoxId %}" class="uploadprogressbar" src="{% beforehash %}?uploadBoxId={% uploadBoxId %}&amp;functionId=PROGRESS"/>
 
     <form id="fm{% uploadBoxId %}" class="uploadform" method="post" enctype="multipart/form-data" target="us{% uploadBoxId %}"
-          action="{% url %}?uploadBoxId={% uploadBoxId %}&amp;functionId=UPLOAD">
+          action="{% beforehash %}?uploadBoxId={% uploadBoxId %}&amp;functionId=UPLOAD#{% afterhash %}">
         <label for="files">Select files to Upload</label>
         <input type="file" id="files" name="files" {% multiple %} accept="{% accept %}"/>
         <!-- accept=".pdf,audio/*,video/*,image/*" -->
         <input type="submit" value="Send"/>
     </form>
 
-    <a id="cc{% uploadBoxId %}" class="uploadcancel" href="{% url %}">Cancel</a>
-    <a id="fi{% uploadBoxId %}" class="uploadfinish" href="{% url %}">Finish</a>
+    <a id="cc{% uploadBoxId %}" class="uploadcancel" href="{% beforehash %}#{% afterhash %}">Cancel</a>
+    <a id="fi{% uploadBoxId %}" class="uploadfinish" href="{% beforehash %}#{% afterhash %}">Finish</a>
 
     <script type="text/javascript">
         (function() { 

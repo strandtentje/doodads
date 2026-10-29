@@ -2,6 +2,9 @@
 
 public interface IHttpLifecycleWrapper
 {
+    string ActionBeforeHash { get; }
+    string ActionAfterHash { get; }
+
     string UpperHttpMethod { get; }
     string SessionId { get; }
     Encoding? ResponseEncoding { get; set; }
