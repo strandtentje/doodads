@@ -114,7 +114,7 @@ public class HtmlForm : IService
                         }
                     }
 
-                    OnValid?.Invoke(this, new CommonInteraction(interaction, saneValues));
+                    OnValid?.Invoke(this, new CommonInteraction(interaction.AppendCustom(fieldset), saneValues));
                 }
                 else
                 {

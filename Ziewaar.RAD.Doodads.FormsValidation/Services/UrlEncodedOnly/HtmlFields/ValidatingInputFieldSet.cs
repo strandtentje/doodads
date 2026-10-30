@@ -1,13 +1,14 @@
 ﻿namespace Ziewaar.RAD.Doodads.FormsValidation.Services.UrlEncodedOnly.HtmlFields;
 
-public class ValidatingInputFieldSet(HttpMethod method, string route, FormContentType type) : IValidatingInputFieldSet
+public class ValidatingInputFieldSet(HttpMethod method, string route, string? formid, FormContentType type) : IValidatingInputFieldSet
 {
     private readonly List<IValidatingInputField> fieldIngestors = new();
     public FormContentType Type => type;
     public HttpMethod Method => method;
     public IEnumerable<string> FieldNames => fieldIngestors.Select(x => x.Name);
     public override string ToString() => $"{method} {route}";
-
+    public string Route => route;
+    public string? FormId => formid;
     public void ApplyObfuscation(ICsrfFields fields)
     {
         foreach (var item in fieldIngestors)
@@ -57,6 +58,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
         var formNode = document.DocumentNode.SelectSingleNode("//form");
         if (formNode == null)
             throw new FormValidationMarkupException($"No form specified");
+        var perhapsId = formNode.Id;
         var enctypeFound = formNode.GetAttributeValue("enctype", URL_ENCODED_CONTENT_TYPE).ToLowerInvariant();
         var formType = enctypeFound switch
         {
@@ -72,7 +74,7 @@ public class ValidatingInputFieldSet(HttpMethod method, string route, FormConten
         if (string.IsNullOrWhiteSpace(actionFound))
             throw new FormValidationMarkupException($"Action required");
         var inputNodes = formNode.SelectNodes(".//input|.//select|.//textarea|.//button")?.ToArray() ?? [];
-        var fieldset = new ValidatingInputFieldSet(HttpMethod.Parse(methodFound), actionFound, formType);
+        var fieldset = new ValidatingInputFieldSet(HttpMethod.Parse(methodFound), actionFound, perhapsId, formType);
         foreach (var inputElement in inputNodes)
             fieldset.ParseAndMergeNode(inputElement);
         foreach (var item in fieldset.fieldIngestors)

@@ -51,3 +51,19 @@ public class RegexMatches : IService
 
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
 }
+
+
+[Category("Input & Validation")]
+[Title("Escape text for use in regex")]
+[Description("""
+    Put text in register, it comes out escaped.
+    """)]
+public class RegexEscape : BasicService
+{
+    public override event CallForInteraction? OnThen;
+    public override void TryEnter(StampedMap constants, IInteraction interaction)
+    {
+        BasicException.ForNullOrEmpty(Register(interaction), "some text req'd in register", out var text);
+        OnThen?.Invoke(this, interaction.AppendRegister(Regex.Escape(text)));
+    }
+}
