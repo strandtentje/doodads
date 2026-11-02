@@ -1,4 +1,4 @@
-using TtLog;
+using TtLog.LogFormats;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 
@@ -6,50 +6,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Stdio;
 [Title("Write an information message and optionally some interaction context to console/logfile")]
 [Description("This is cool in prod.")]
 [ShortNames("msg")]
-public class InformationMessage : IService
+public class InformationMessage : LogMessage
 {
-    [PrimarySetting("Serilog-style log line that may optionally contain memory names")]
-    private readonly UpdatingPrimaryValue DumpFormatConstant = new();
-    private string DumpFormat = "";
-    private List<string> DumpVarNames = [];
-    [NeverHappens]
-    public event CallForInteraction? OnThen;
-    [NeverHappens]
-    public event CallForInteraction? OnElse;
-    [NeverHappens]
-    public event CallForInteraction? OnException;
-
-    private static readonly SortedList<string, Log>
-        AvailableLogs = new SortedList<string, Log>();
-    public void Enter(StampedMap constants, IInteraction interaction)
-    {
-        if ((constants, DumpFormatConstant).IsRereadRequired(out string? formatCandidate))
-        {
-            DumpFormat = formatCandidate ?? "";
-            DumpVarNames = formatCandidate?.
-                Split(['{'], StringSplitOptions.RemoveEmptyEntries).
-                Select(tagCandidate => (startOfTag: tagCandidate, posOfEnd: tagCandidate.IndexOf('}'))).
-                Where(x => x.posOfEnd > -1).
-                Select(x => x.startOfTag.Substring(0, x.posOfEnd)).
-                ToList() ?? [];
-
-            foreach (var item in DumpVarNames)
-                DumpFormat = DumpFormat.Replace(item, item.Replace(" ", ""));
-        }
-
-        object[] values = DumpVarNames.
-            Select(varName => interaction.TryFindVariable(varName, out object? cv) ? cv?.ToString() ?? "" : "").
-            OfType<object>().
-            ToArray();
-
-        if (!AvailableLogs.TryGetValue(DumpFormat, out var log))
-            AvailableLogs[DumpFormat] = log = Log.Info(DumpFormat);
-
-        Log.Post(log, values);
-
-
-        OnThen?.Invoke(this, interaction);
-    }
-
-    public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
+    protected override LogLevel Level { get; } = LogLevel.Info;
 }
