@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Ziewaar.RAD.Doodads.CoreLibrary.Data;
 using Ziewaar.RAD.Doodads.CoreLibrary.Documentation;
 using Ziewaar.RAD.Doodads.CoreLibrary.ExtensionMethods;
@@ -22,20 +24,99 @@ public class FlatFileKeysWith : IteratingService
     protected override bool RunElse { get; } = false;
     protected override IEnumerable<IInteraction> GetItems(StampedMap constants, IInteraction repeater)
     {
-        if (constants.PrimaryConstant.ToString() is not string forKey)
+        string forKey;
+        ComparisonType comparison = ComparisonType.Equals;
+        decimal searchNum = 0;
+        bool numericCompare = TryReduceToNumber(repeater.Register, out searchNum);
+        string searchString = ReduceToString(repeater.Register);
+
+        if (constants.NamedItems.TryGetValue("neq", out var neqObj) && neqObj.ToString() is { } notEqualsCandidate)
+        {
+            forKey = notEqualsCandidate;
+            comparison = ComparisonType.NotEquals;
+        }
+        else if (constants.NamedItems.TryGetValue("leq", out var leqObj) && leqObj.ToString() is { } lessEqualsCandidate)
+        {
+            forKey = lessEqualsCandidate;
+            comparison = ComparisonType.LesserInclusive;
+        }
+        else if (constants.NamedItems.TryGetValue("geq", out var geqObj) && geqObj.ToString() is { } greaterEqualsCandidate)
+        {
+            forKey = greaterEqualsCandidate;
+            comparison = ComparisonType.GreaterInclusive;
+        }
+        else if (constants.NamedItems.TryGetValue("lt", out var ltObj) && ltObj.ToString() is { } lessThanCandidate)
+        {
+            forKey = lessThanCandidate;
+            comparison = ComparisonType.LesserInclusive;
+        }
+        else if (constants.NamedItems.TryGetValue("gt", out var gtObj) && gtObj.ToString() is { } greaterThanCandidate)
+        {
+            forKey = greaterThanCandidate;
+            comparison = ComparisonType.GreaterInclusive;
+        }
+        else if (constants.PrimaryConstant.ToString() is string keyCandidate)
+        {
+            forKey = keyCandidate;
+            comparison = ComparisonType.Equals;
+        }
+        else
+        {
             throw new BasicException("expected search key in primary constant");
+        }
+
         if (!repeater.TryGetCustom<JsonFile>(out var flatFile) || flatFile == null)
             throw new BasicException("no flat file in scope");
-        var searchValue = ReduceToString(repeater.Register);
 
         var items = flatFile.ListAll(forKey, storedValue =>
         {
-            var castValue = ReduceToString(storedValue);
-            return castValue == searchValue;
+            if (!numericCompare)
+            {
+                var castValue = ReduceToString(storedValue);
+                return comparison switch
+                {
+                    ComparisonType.Equals => StringComparer.Ordinal.Equals(searchString, castValue),
+                    ComparisonType.NotEquals => !StringComparer.Ordinal.Equals(searchString, castValue),
+                    ComparisonType.Greater => StringComparer.Ordinal.Compare(castValue, searchString) > 0,
+                    ComparisonType.Lesser => StringComparer.Ordinal.Compare(castValue, searchString) < 0,
+                    ComparisonType.GreaterInclusive => StringComparer.Ordinal.Compare(castValue, searchString) >= 0,
+                    ComparisonType.LesserInclusive => StringComparer.Ordinal.Compare(castValue, searchString) <= 0,
+                    _ => false,
+                };
+            }
+
+            if (TryReduceToNumber(storedValue, out var val))
+                return comparison switch
+                {
+                    ComparisonType.Equals => val == searchNum,
+                    ComparisonType.NotEquals => val != searchNum,
+                    ComparisonType.Greater => val > searchNum,
+                    ComparisonType.Lesser => val < searchNum,
+                    ComparisonType.GreaterInclusive => val >= searchNum,
+                    ComparisonType.LesserInclusive => val <= searchNum,
+                    _ => false,
+                };
+
+            return false;
         });
 
         foreach (var item in items)
             yield return repeater.AppendRegister(item.Key).AppendMemory(new FlatFileMemberMemory(constants.NamedItems, item.Value));
+    }
+
+    public static bool TryReduceToNumber(object? value, out decimal dec)
+    {
+        dec = 0M;
+        if (value == null) return false;
+        try
+        {
+            dec = Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     public static string ReduceToString(object? value)
@@ -73,3 +154,5 @@ public class FlatFileKeysWith : IteratingService
         }
     }
 }
+
+public enum ComparisonType { Equals, NotEquals, Greater, Lesser, GreaterInclusive, LesserInclusive, }

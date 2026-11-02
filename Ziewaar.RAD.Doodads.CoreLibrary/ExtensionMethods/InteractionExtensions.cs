@@ -53,6 +53,23 @@ public static class InteractionExtensions
             interaction = interaction.Stack;
         }
     }
+    public static bool TryGetCustom<TType>(
+        this IInteraction childInteraction,
+        Func<TType, bool> pred,
+        out TType? customPayload)
+    {
+        if (!TryGetClosest<CustomInteraction<TType>>(childInteraction, out var x, x => pred(x.Payload))
+            || x == null)
+        {
+            customPayload = default;
+            return false;
+        }
+        else
+        {
+            customPayload = x.Payload;
+            return true;
+        }
+    }
 
     public static bool TryGetCustom<TType>(
         this IInteraction childInteraction,

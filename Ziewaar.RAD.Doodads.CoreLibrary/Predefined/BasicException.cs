@@ -80,6 +80,13 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             output = candidate;
         }
 
+        public static void ForCustom<T>(IInteraction source, Func<T,bool> pred, out T output)
+        {
+            if (!source.TryGetCustom<T>(pred, out var candidate) || candidate == null)
+                throw new BasicException($"expected interaction with {typeof(T).Name}");
+            output = candidate;
+        }
+
         public static void ForInteraction<T>(IInteraction source, out T output) where T : IInteraction
         {
             if (!source.TryGetClosest(out T? candidate) || candidate == null)

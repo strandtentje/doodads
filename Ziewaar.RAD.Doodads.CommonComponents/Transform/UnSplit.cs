@@ -8,7 +8,12 @@ public class Unsplit : BasicService
     public override event CallForInteraction? OnThen;
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
-        BasicException.ForCustom<SplitterSetup>(interaction, out var origin);
+        SplitterSetup origin;
+        if (Primary(constants)?.ToString() is string repeatName)
+            BasicException.ForCustom<SplitterSetup>(interaction, x => x.RepeatName == repeatName, out origin);
+        else
+            BasicException.ForCustom<SplitterSetup>(interaction, out origin);
+
         BasicException.ForInteraction<RepeatInteraction>(interaction, out var repeatInteraction);
         var position = repeatInteraction.GetCounterValue();
         var arr = origin.Items;

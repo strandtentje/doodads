@@ -17,6 +17,6 @@ public class Split : BasicService
         BasicException.ForNullOrEmpty(Register(interaction), "string expected in register", out string toSplit);
         var splitter = Named(constants, "splitter") ?? "/";
         var items = toSplit.Split(splitter, (StringSplitOptions)3);
-        RepeatToRegister(constants, interaction.AppendCustom(new SplitterSetup(items, splitter)), items);
+        RepeatToRegister(constants, interaction.AppendCustom(new SplitterSetup(Primary(constants) ?? "", items, splitter)), items);
     }
 }
