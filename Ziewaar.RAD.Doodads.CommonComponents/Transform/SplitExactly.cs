@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Globalization;
 using Ziewaar.RAD.Doodads.CommonComponents.Filesystem;
 
 namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
@@ -49,7 +50,21 @@ public class SplitExactly : BasicService
         var toSplit = interaction.Register.ToString();
         if (string.IsNullOrWhiteSpace(toSplit))
             throw new BasicException("string reqd as input");
-        var splitValues = toSplit.Split([splitter], maxItems);
+        bool makeClean = false;
+
+        try
+        {
+            if (constants.NamedItems.TryGetValue("clean", out var cleanObj)
+                && Convert.ToBoolean(cleanObj, CultureInfo.InvariantCulture))
+                makeClean = true;
+        } catch(Exception)
+        {
+            throw new BasicException("incorrect value for `clean` setting on SplitExactly");
+        }
+
+        string[] splitValues = toSplit.Split([splitter], maxItems);
+        if (makeClean)
+            splitValues = splitValues.Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
         OnThen?.Invoke(this, new CommonInteraction(interaction, memory: new SplitExactlyMemory(names, replacements, splitValues)));
     }

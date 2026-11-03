@@ -30,28 +30,35 @@ public class FlatFileKeysWith : IteratingService
         bool numericCompare = TryReduceToNumber(repeater.Register, out searchNum);
         string searchString = ReduceToString(repeater.Register);
 
-        if (constants.NamedItems.TryGetValue("neq", out var neqObj) && neqObj.ToString() is { } notEqualsCandidate)
+        var ddict = constants.NamedItems.ToDictionary(x => x.Key, x => x.Value);
+
+        if (ddict.TryGetValue("neq", out var neqObj) && neqObj.ToString() is { } notEqualsCandidate)
         {
+            ddict.Remove("neq");
             forKey = notEqualsCandidate;
             comparison = ComparisonType.NotEquals;
         }
-        else if (constants.NamedItems.TryGetValue("leq", out var leqObj) && leqObj.ToString() is { } lessEqualsCandidate)
+        else if (ddict.TryGetValue("leq", out var leqObj) && leqObj.ToString() is { } lessEqualsCandidate)
         {
+            ddict.Remove("leq");
             forKey = lessEqualsCandidate;
             comparison = ComparisonType.LesserInclusive;
         }
-        else if (constants.NamedItems.TryGetValue("geq", out var geqObj) && geqObj.ToString() is { } greaterEqualsCandidate)
+        else if (ddict.TryGetValue("geq", out var geqObj) && geqObj.ToString() is { } greaterEqualsCandidate)
         {
+            ddict.Remove("geq");
             forKey = greaterEqualsCandidate;
             comparison = ComparisonType.GreaterInclusive;
         }
-        else if (constants.NamedItems.TryGetValue("lt", out var ltObj) && ltObj.ToString() is { } lessThanCandidate)
+        else if (ddict.TryGetValue("lt", out var ltObj) && ltObj.ToString() is { } lessThanCandidate)
         {
+            ddict.Remove("lt");
             forKey = lessThanCandidate;
             comparison = ComparisonType.LesserInclusive;
         }
-        else if (constants.NamedItems.TryGetValue("gt", out var gtObj) && gtObj.ToString() is { } greaterThanCandidate)
+        else if (ddict.TryGetValue("gt", out var gtObj) && gtObj.ToString() is { } greaterThanCandidate)
         {
+            ddict.Remove("gt");
             forKey = greaterThanCandidate;
             comparison = ComparisonType.GreaterInclusive;
         }
@@ -101,7 +108,7 @@ public class FlatFileKeysWith : IteratingService
         });
 
         foreach (var item in items)
-            yield return repeater.AppendRegister(item.Key).AppendMemory(new FlatFileMemberMemory(constants.NamedItems, item.Value));
+            yield return repeater.AppendRegister(item.Key).AppendMemory(new FlatFileMemberMemory(ddict, item.Value));
     }
 
     public static bool TryReduceToNumber(object? value, out decimal dec)

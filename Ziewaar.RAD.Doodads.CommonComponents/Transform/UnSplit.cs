@@ -24,8 +24,18 @@ public class Unsplit : BasicService
                 if (arr[i] == null) arr[i] = string.Empty;
         }
 
-        BasicException.ForNullOrEmpty(Register(interaction), "some text required to put in place", out var txt);
-        arr[position] = txt;
+        var txt = Register(interaction)?.ToString();
+
+        if (string.IsNullOrWhiteSpace(txt))
+        {
+            List<string> parts = new List<string>(arr);
+            parts.RemoveAt(position);
+            arr = [.. parts];
+        } else
+        {
+            arr[position] = txt;
+        }
+
         var joined = string.Join(origin.Splitter, arr);
         OnThen?.Invoke(this, interaction.AppendRegister(joined));
     }
