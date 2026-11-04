@@ -6,6 +6,8 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 public class Unsplit : BasicService
 {
     public override event CallForInteraction? OnThen;
+    [NamedSetting("unique", "Make sure the members of the merge are all unique")]
+    private readonly UpdatingKeyValue MakeUniqueConstant = new UpdatingKeyValue("unique");
     public override void TryEnter(StampedMap constants, IInteraction interaction)
     {
         SplitterSetup origin;
@@ -35,6 +37,9 @@ public class Unsplit : BasicService
         {
             arr[position] = txt;
         }
+
+        if (constants.NamedItems.TryGetValue("unique", out var uniqueCand) && Convert.ToBoolean(uniqueCand ?? "false"))
+            arr = arr.Distinct().ToArray();
 
         var joined = string.Join(origin.Splitter, arr);
         OnThen?.Invoke(this, interaction.AppendRegister(joined));

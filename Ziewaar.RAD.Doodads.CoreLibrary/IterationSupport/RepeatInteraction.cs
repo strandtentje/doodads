@@ -14,7 +14,7 @@ public class RepeatInteraction(string repeatName, IInteraction parent, Cancellat
     public bool IsDeep = false;
     public object Register => Stack.Register;
     public int GetCounterValue() => counterMemory.GetCounterValue();
-    private readonly RepeatInteractionCounterMemory counterMemory = new RepeatInteractionCounterMemory(repeatName);
+    private readonly RepeatInteractionCounterMemory counterMemory = new RepeatInteractionCounterMemory(repeatName, parent);
     public IReadOnlyDictionary<string, object> Memory => counterMemory;
     public CancellationToken CancellationToken => cancellationToken;
     public bool IsRunning

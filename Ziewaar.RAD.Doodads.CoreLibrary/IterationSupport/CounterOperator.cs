@@ -5,5 +5,5 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.IterationSupport;
 
 public enum CounterOperator
 {
-    Stop, Minus, Plus, Times, Divide
+    Stop, Minus, Plus, Times, Divide, Mod
 }

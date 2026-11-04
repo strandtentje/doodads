@@ -68,7 +68,7 @@ public class Clamp : IService
         }
         catch (Exception)
         {
-            OnThen?.Invoke(this, new CommonInteraction(interaction, DefaultValue));
+            OnThen?.Invoke(this, new CommonInteraction(interaction, Default));
         }
     }
     public void HandleFatal(IInteraction source, Exception ex) => OnException?.Invoke(this, source);
