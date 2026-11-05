@@ -29,6 +29,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.TextTemplating;
               - `%` : Prefixing with a percent sign will escape strings to be safe for URL usage.
               - `=` : Prefixing with an equals-sign will escape strings to be safe for HTML attribute usage.
               - `;` : Prefixing with a semicolon will escape strings to be safe for JS string literal usage.
+              - '‰' : Prefixing with permille will snake-case anything non-alphanumeric out of a string.
               
              Conditional modifiers
               - `!` : Null-coalescing modifier. Prefixing with an exclamation mark then putting the alternative 

@@ -31,14 +31,15 @@ public enum FilesystemInfoPayloadKeys : uint
     Type = 1 << 21,
     Count = 1 << 22,
     AllCount = 1 << 23,
+    Parent = 1 << 24,
 
     ForFile = Visibility | NumberPrefix | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
               PrevAfterNumber | EmojiFileType | NextNumberedPath | PrevNumberedPath | Write |
-              Read | SafePath | Extension | CleanExt | CleanName | Size | CleanSize | Type,
+              Read | SafePath | Extension | CleanExt | CleanName | Size | CleanSize | Type | Parent,
 
     ForDirectory = Visibility | NumberPrefix | EmojiFileType | AfterNumber | NextNumberPrefix | PreviousNumberPrefix | NextAfterNumber |
                    PrevAfterNumber | FreeNumber | NextNumberedPath | PrevNumberedPath | Write | Read |
-                   SafePath | Type | Count | AllCount,
+                   SafePath | Type | Count | AllCount | Parent,
 
     ForPathAndName = Path | Name,
 }
@@ -124,6 +125,12 @@ public class FilesystemInfoPayload(
 
         switch (selection)
         {
+            case FilesystemInfoPayloadKeys.Parent when filesystemInfo is DirectoryInfo dirInfo:
+                value = dirInfo.Parent?.FullName ?? "";
+                return true;
+            case FilesystemInfoPayloadKeys.Parent when filesystemInfo is FileInfo fileInfo:
+                value = fileInfo.Directory?.FullName ?? "";
+                return true;
             case FilesystemInfoPayloadKeys.Visibility:
                 value = filesystemInfo.IsHidden() ? "visible" : "hidden";
                 return true;
@@ -310,6 +317,13 @@ public class FilesystemInfoPayload(
                 return false;
         }
     }
+
+    public string CleanestPossibleName => filesystemInfo switch
+    {
+        FileInfo fi => Path.GetFileNameWithoutExtension(fi.FullName),
+        DirectoryInfo di => di.Name,
+        _ => "",
+    };
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

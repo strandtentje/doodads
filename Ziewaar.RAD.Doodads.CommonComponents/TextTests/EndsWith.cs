@@ -23,10 +23,19 @@ public class EndsWith : IService
         if ((constants, IgnoreCaseConstant).IsRereadRequired(out bool ci))
             this.IsCaseInsensitive = ci;
 
-        var tsi = new TextSinkingInteraction(interaction);
-        Expression?.Invoke(this, tsi);
-        var sw = tsi.ReadAllText();
-        if (interaction.Register.ToString().EndsWith(sw,
+        string startsWith;
+
+        if (constants.PrimaryConstant?.ToString() is { } constantStartsWith &&
+            !string.IsNullOrWhiteSpace(constantStartsWith))
+            startsWith = constantStartsWith;
+        else
+        {
+            var tsi = new TextSinkingInteraction(interaction);
+            Expression?.Invoke(this, tsi);
+            startsWith = tsi.ReadAllText();
+        }
+
+        if (interaction.Register.ToString().EndsWith(startsWith,
                 IsCaseInsensitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture))
             OnThen?.Invoke(this, interaction);
         else

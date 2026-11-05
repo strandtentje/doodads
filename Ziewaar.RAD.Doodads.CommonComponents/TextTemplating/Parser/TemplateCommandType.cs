@@ -38,5 +38,8 @@ public enum TemplateCommandType
     UrlDataFilter = 
         0b10_0000_0000,
     
-    AllFilters = 0b11_1110_0000,
+    SnakeCaseFilter = 
+        0b100_0000_0000,
+    
+    AllFilters = 0b111_1110_0000,
 }

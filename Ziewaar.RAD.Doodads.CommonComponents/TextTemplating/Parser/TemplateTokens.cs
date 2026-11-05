@@ -36,7 +36,7 @@ public static class TemplateTokens
     public static string TrimTemplateTokens(this string inputString) =>
         inputString.Trim(
             CALL_OUT_OR_CONTEXT, CONTEXT, CALL_OUT, ARGUMENT_SOURCE,
-            NO_FILTER, HTML_FILTER, URL_FILTER, URL_DATA_FILTER, ATTRIBUTE_FILTER, JS_FILTER);
+            NO_FILTER, HTML_FILTER, URL_FILTER, SNAKECASE_FILTER, URL_DATA_FILTER, ATTRIBUTE_FILTER, JS_FILTER);
     public const char
         CALL_OUT_OR_CONTEXT = '?',
         CONTEXT = '<',
@@ -45,6 +45,7 @@ public static class TemplateTokens
         NO_FILTER = '_',
         HTML_FILTER = '&',
         URL_FILTER = '%',
+        SNAKECASE_FILTER = '‰',
         URL_DATA_FILTER = '~',
         ATTRIBUTE_FILTER = '=',
         JS_FILTER = ';';
@@ -70,6 +71,9 @@ public static class TemplateTokens
                     break;
                 case '%':
                     filterToken = TemplateCommandType.UrlFilter;
+                    break;
+                case SNAKECASE_FILTER:
+                    filterToken = TemplateCommandType.SnakeCaseFilter;
                     break;
                 case '~':
                     filterToken = TemplateCommandType.UrlDataFilter;

@@ -13,6 +13,7 @@ namespace Ziewaar.RAD.Doodads.CommonComponents.Transform;
 
              Splitter string & defaults may optionally be provided.
              """)]
+[ShortNames("splex")]
 public class SplitExactly : BasicService
 {
     [PrimarySetting("Array of memory names to split into")]

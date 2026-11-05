@@ -36,11 +36,18 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
                 ? candidateFromConstants
                 : null;
 
+        protected bool NamedBool(StampedMap constants, UpdatingKeyValue setting) =>
+            Named(constants, setting) is string boolCandidate &&
+            bool.TryParse(boolCandidate, out var parsedBool) && parsedBool;
+
         protected string? Named(StampedMap constants, UpdatingKeyValue setting) => Named(constants, setting.Key);
+
         protected string? Named(StampedMap constants, string name) =>
             constants.NamedItems.TryGetValue(name, out var item) && IsntJustAnObject(item) &&
-            Convert.ToString(item, CultureInfo.InvariantCulture) is { } candidateFromConstants && 
-            !string.IsNullOrEmpty(candidateFromConstants) ? candidateFromConstants : null;
+            Convert.ToString(item, CultureInfo.InvariantCulture) is { } candidateFromConstants &&
+            !string.IsNullOrEmpty(candidateFromConstants)
+                ? candidateFromConstants
+                : null;
 
         private class LinesSinkEnumerable(TextSinkingInteraction tsi) : IEnumerable<string>
         {
@@ -54,6 +61,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             linesEnumerable = new LinesSinkEnumerable(tsi);
             return tsi;
         }
+
         protected IEnumerable<string> PrimaryPartsFromMemory(StampedMap constants, IInteraction interaction)
         {
             var verbatimParts = PrimaryParts(constants);
@@ -66,7 +74,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
 
         protected IEnumerable<string> NamedPartsFromMemory(StampedMap constants, UpdatingKeyValue setting,
             IInteraction interaction) => NamedPartsFromMemory(constants, setting.Key, interaction);
-            
+
         protected IEnumerable<string> NamedPartsFromMemory(StampedMap constants, string name, IInteraction interaction)
         {
             var parts = NamedParts(constants, name);
@@ -99,14 +107,18 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
                     mode = PlaceholderMode.Out;
                     BasicException.ForStringInMemory(interaction, part, out var memoryValue);
                     sbl.Append(memoryValue);
-                } else if (mode == PlaceholderMode.Out)
+                }
+                else if (mode == PlaceholderMode.Out)
                 {
                     sbl.Append(part);
-                } else
+                }
+                else
                 {
-                    throw new BasicException($"Strange occurence in placeholder string around position {puller.CurrentPosition}");
+                    throw new BasicException(
+                        $"Strange occurence in placeholder string around position {puller.CurrentPosition}");
                 }
             }
+
             return sbl.ToString();
         }
 
@@ -118,13 +130,14 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
 
         protected IEnumerable<string> NamedParts(StampedMap constants, UpdatingKeyValue setting) =>
             NamedParts(constants, setting.Key);
+
         protected IEnumerable<string> NamedParts(StampedMap constants, string name)
         {
             if (!constants.NamedItems.TryGetValue(name, out var valueFromConstant) || valueFromConstant == null)
                 return Enumerable.Empty<string>();
             return PartOut(valueFromConstant);
         }
-        
+
         private static IEnumerable<string> PartOut(object valueFromConstant)
         {
             if (valueFromConstant is not IEnumerable enumerable)
@@ -143,14 +156,12 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
         }
 
 
-        protected void RepeatCustom<T>(StampedMap constants, IInteraction source, Func<RepeatInteraction, T, IInteraction> factory, IEnumerable<T> items)
+        protected void RepeatCustom<T>(StampedMap constants, IInteraction source,
+            Func<RepeatInteraction, T, IInteraction> factory, IEnumerable<T> items)
         {
             BasicException.ForNullOrEmpty(Primary(constants), "repeat name required in primary constant",
                 out string riName);
-            var ri = new RepeatInteraction(riName, source, CancellationToken.None)
-            {
-                IsRunning = true
-            };
+            var ri = new RepeatInteraction(riName, source, CancellationToken.None) { IsRunning = true };
             using var en = items.GetEnumerator();
             while (ri.IsRunning && en.MoveNext() && en.Current != null)
             {
@@ -159,14 +170,12 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             }
         }
 
-        protected void RepeatToRegister(StampedMap constants, IInteraction source, IEnumerable<object> items, bool elseOnEmpty = false)
+        protected void RepeatToRegister(StampedMap constants, IInteraction source, IEnumerable<object> items,
+            bool elseOnEmpty = false)
         {
             BasicException.ForNullOrEmpty(Primary(constants), "repeat name required in primary constant",
                 out string riName);
-            var ri = new RepeatInteraction(riName, source, CancellationToken.None)
-            {
-                IsRunning = true
-            };
+            var ri = new RepeatInteraction(riName, source, CancellationToken.None) { IsRunning = true };
             using var en = items.GetEnumerator();
             bool anyItems = false;
             while (ri.IsRunning && en.MoveNext() && en.Current != null)
@@ -179,14 +188,13 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             if (!anyItems && elseOnEmpty)
                 OnElse?.Invoke(this, source);
         }
-        protected void RepeatToMemory(StampedMap constants, IInteraction source, IEnumerable<IReadOnlyDictionary<string, object>> items)
+
+        protected void RepeatToMemory(StampedMap constants, IInteraction source,
+            IEnumerable<IReadOnlyDictionary<string, object>> items)
         {
             BasicException.ForNullOrEmpty(Primary(constants), "repeat name required in primary constant",
                 out string riName);
-            var ri = new RepeatInteraction(riName, source, CancellationToken.None)
-            {
-                IsRunning = true
-            };
+            var ri = new RepeatInteraction(riName, source, CancellationToken.None) { IsRunning = true };
             using var en = items.GetEnumerator();
             while (ri.IsRunning && en.MoveNext() && en.Current != null)
             {
@@ -240,6 +248,7 @@ namespace Ziewaar.RAD.Doodads.CoreLibrary.Predefined
             Register(interaction) is { } path && File.Exists(path)
                 ? path
                 : throw new BasicException("File in register did not exist");
+
         protected string FileFromPrimaryOrRegister(StampedMap constants, IInteraction interaction) =>
             PrimaryOrRegister(constants, interaction) is { } path && File.Exists(path)
                 ? path
